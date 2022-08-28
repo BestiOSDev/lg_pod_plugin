@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = Gem::Requirement.new(">= 2.3.0")
 
   spec.files = Dir["lib/**/*.rb"] + %w{ README.md LICENSE }
-  spec.executables   = %w{ lg_pod_plugin }
+  # spec.executables   = %w{ lg_pod_plugin }
   spec.require_paths = %w{ lib }
 
   spec.add_development_dependency 'bacon', '~> 1.1'
