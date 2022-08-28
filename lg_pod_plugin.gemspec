@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.license       = "MIT"
   spec.required_ruby_version = Gem::Requirement.new(">= 2.3.0")
 
-  spec.files = Dir["lib/**/*.rb"] + %w{ bin/lg_pod_plugin README.md LICENSE CHANGELOG.md }
+  spec.files = Dir["lib/**/*.rb"] + %w{ README.md LICENSE }
   spec.executables   = %w{ lg_pod_plugin }
   spec.require_paths = %w{ lib }
 
