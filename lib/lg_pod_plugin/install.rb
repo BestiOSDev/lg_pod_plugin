@@ -21,7 +21,7 @@ module LgPodPlugin
          change.to_s
        }
         # 如果有要暂存的内容, 就 git stash save
-        if have_changes.count.positive?
+        unless have_changes.empty?
           # pp "当前#{current_branch}分支有未暂存的内容"
           git.branch.stashes.save(last_stash_message)
         end
@@ -32,7 +32,7 @@ module LgPodPlugin
         last_stash_message = "#{current_branch}_pod_install_cache"
         # 查看下贮存的有没有代码
         stash_names = git.branch.stashes.all
-        if stash_names.count.positive?
+        unless stash_names.empty?
           drop_index = nil # 需要 pop 那个位置索引
           stash_names.each do |each|
             next unless each.include?(last_stash_message)
@@ -60,8 +60,6 @@ module LgPodPlugin
     # @return [Object] nil
     def self.pod(name, target, options = {})
       path = options[:path]
-      git_url = options[:git]
-      version = options[:tag]
       branch = options[:branch]
       if !path.nil? && File.directory?(path)
         # 找到本地组件库 执行 git pull
