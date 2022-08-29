@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'bacon', '~> 1.1'
   spec.add_development_dependency 'bundler', '~> 2.0'
   spec.add_development_dependency 'rake', '~> 12.3'
-  spec.add_development_dependency 'git'
-  spec.add_development_dependency 'cocoapods'
+  spec.add_development_dependency 'git', '1.12.0'
+  spec.add_development_dependency 'cocoapods', '1.11.3'
 
 end
