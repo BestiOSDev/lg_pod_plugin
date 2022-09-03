@@ -17,6 +17,7 @@ module LgPodPlugin
         system("git clone --depth=1 -b #{tag}  #{git_url} l-temp-pod")
         Dir.chdir("l-temp-pod")
         system("echo \"tag:#{tag}\" >> git_log.txt")
+        system("echo git_log.txt >> .gitignore")
         Dir.chdir("..")
         return Dir.pwd + "/l-temp-pod"
       end
@@ -25,6 +26,7 @@ module LgPodPlugin
         Dir.chdir("./l-temp-pod")
         system("git checkout #{commit}")
         system("echo \"commit:#{commit}\" >> git_log.txt")
+        system("echo git_log.txt >> .gitignore")
         Dir.chdir("..")
         return Dir.pwd + "/l-temp-pod"
       end
@@ -32,6 +34,7 @@ module LgPodPlugin
         system("git clone --depth=1 -b #{branch} #{git_url} l-temp-pod")
         Dir.chdir("l-temp-pod")
         system("echo \"branch:#{branch}\" >> git_log.txt")
+        system("echo git_log.txt >> .gitignore")
         Dir.chdir("..")
         return Dir.pwd + "/l-temp-pod"
       end
@@ -89,6 +92,7 @@ module LgPodPlugin
         if branch && log_txt == "branch:#{branch}"
           return [log_txt, lg_pod_path]
         end
+        FileUtils.rm_r(lg_pod_path)
       end
       Dir.chdir(root_path)
       temp_path = root_path + "/tmp"
@@ -145,10 +149,14 @@ module LgPodPlugin
       git = Git.open('./')
       current_branch = git.current_branch
       if current_branch == branch # 要 clone 的分支正好等于当前分支
-        # pp "git pull #{git_url} -b #{branch}"
-        git_pull(branch)
+        pp "git fetch origin/#{current_branch}"
+        diff = git.fetch.to_s
+        if diff != ""
+          pp "git pull origin/#{current_branch}"
+          git_pull(branch)
+        end
         commit = git.log(1).to_s
-        # pp "git log #{git_url} -commit #{commit}"
+        # pp "git log #{git_url} -commit #{commit}"x
         hash_map = {:git => git_url}
         if commit
           hash_map[:commit] = commit
