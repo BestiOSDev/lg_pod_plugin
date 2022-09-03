@@ -44,10 +44,10 @@ module LgPodPlugin
         h = { git: git, tag: tag }
       elsif git && branch
         # branch is not supported for binary
-        puts("`#{name}` is require by `branch`, which is not preferred")
+        puts("`#{name}` is require by `branch`, which is not preferred\n")
         h = { git: git, branch: branch, depth: depth }
       else
-        puts("VirusFile is not valid, `#{name}` will not be required")
+        puts("VirusFile is not valid, `#{name}` will not be required\n")
       end
 
       pod_optional(h)

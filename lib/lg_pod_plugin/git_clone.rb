@@ -114,9 +114,9 @@ module LgPodPlugin
 
     # git 预下载
     def self.git_pre_downloading(name, options = {})
-      if name == "l-mapKit-iOS" || name == "LLogger" || name == "LUnityFramework" || name == "LUser"
-        pp name
-      end
+      # if name == "l-mapKit-iOS" || name == "LLogger" || name == "LUnityFramework" || name == "LUser"
+      #   pp name
+      # end
       tag = options[:tag]
       git_url = options[:git]
       commit = options[:commit]
@@ -149,14 +149,13 @@ module LgPodPlugin
       git = Git.open('./')
       current_branch = git.current_branch
       if current_branch == branch # 要 clone 的分支正好等于当前分支
-        pp "git fetch origin/#{current_branch}"
+        puts "git fetch origin/#{current_branch}\n"
         diff = git.fetch.to_s
         if diff != ""
-          pp "git pull origin/#{current_branch}"
+          puts "git pull origin/#{current_branch}\n"
           git_pull(branch)
         end
         commit = git.log(1).to_s
-        # pp "git log #{git_url} -commit #{commit}"x
         hash_map = {:git => git_url}
         if commit
           hash_map[:commit] = commit
@@ -167,13 +166,13 @@ module LgPodPlugin
           s.to_s
         }
         if local_branches.include?(branch)
-          pp "git switch #{git_url} -b #{branch}"
+          puts "git switch #{git_url} -b #{branch}\n"
           git_switch(branch)
         else
-          pp "git checkout #{git_url} -b #{branch}"
+          puts "git checkout #{git_url} -b #{branch}\n"
           git_checkout(branch)
         end
-        pp "git pull #{git_url} -b #{branch}"
+        puts "git pull #{git_url} -b #{branch}\n"
         git_pull(branch)
         commit = git.log(1).to_s
         hash_map = {:git => git_url}
