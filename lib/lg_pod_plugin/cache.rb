@@ -36,24 +36,26 @@ class Cache
     result = Pod::Downloader::Response.new
     # result.checkout_options = download_source(target, request.params)
     result.location = target
-
+    local_specs = {}
     if request.released_pod?
       result.spec = request.spec
-      podspecs = { request.name => request.spec }
+      local_specs = { request.name => request.spec }
     else
+      local_specs = {}
       podspecs = Pod::Sandbox::PodspecFinder.new(target).podspecs
       podspecs[request.name] = request.spec if request.spec
       podspecs.each do |name, spec|
         if request.name == name
           result.spec = spec
+          local_specs[request.name] = spec
         end
       end
     end
 
-    [result, podspecs]
+    [result, local_specs]
   end
 
-  def self.group_subspecs_by_platform(spec)
+  def self.group_sub_specs_by_platform(spec)
     specs_by_platform = {}
     [spec, *spec.recursive_subspecs].each do |ss|
       ss.available_platforms.each do |platform|
@@ -65,7 +67,7 @@ class Cache
   end
 
   def self.copy_and_clean(source, destination, spec)
-    specs_by_platform = group_subspecs_by_platform(spec)
+    specs_by_platform = group_sub_specs_by_platform(spec)
     destination.parent.mkpath
     Pod::Downloader::Cache.write_lock(destination) do
       FileUtils.rm_rf(destination)
@@ -103,16 +105,7 @@ class Cache
       end
     end
 
-    result
 
-    # cache_pod_path = path_for_pod(request,{})
-    # pp "cache_pod_path => #{cache_pod_path}"
-    # cache_pod_spec = path_for_spec(request, {})
-    # pp "cache_pod_spec => #{cache_pod_spec}"
-    # source_pod_path = "~/Desktop/LCombineExtension"
-    # soure_spec_path = "~/Desktop/95d59207c374c7a53ef97a6e28855526.podspec.json"
-    # system("cp -rf #{source_pod_path} #{cache_pod_path}")
-    # system("cp -rf #{soure_spec_path} #{cache_pod_spec}")
 
   end
 
