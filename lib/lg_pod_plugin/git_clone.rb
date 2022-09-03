@@ -65,7 +65,7 @@ module LgPodPlugin
       if log_txt.respond_to?(:encoding) && log_txt.encoding.name != 'UTF-8'
         contents.encoding("UTF-8")
       end
-      return log_txt
+      return log_txt.to_s
     end
 
     def self.init_pod_path(name, git_url, branch, tag , commit)
@@ -74,17 +74,21 @@ module LgPodPlugin
       if File::exist?(lg_pod_path)
         Dir.chdir(lg_pod_path)
         log_txt = self.read_log_txt
-        if tag && log_txt == "tag:#{tag}\n"
+        if log_txt.include?("\n")
+          log_txt = log_txt.delete("\n")
+        end
+        if tag && log_txt == "tag:#{tag}"
           return [log_txt ,lg_pod_path]
         end
-        if commit && log_txt == "commit:#{commit}\n"
+        if commit && log_txt == "commit:#{commit}"
           return [log_txt ,lg_pod_path]
         end
-
-        if branch && log_txt == "branch:#{branch}" && commit.nil? && tag.nil?
+        if commit || tag
+          FileUtils.rm_r(lg_pod_path)
+        end
+        if branch && log_txt == "branch:#{branch}"
           return [log_txt, lg_pod_path]
         end
-        FileUtils.rm_r(lg_pod_path)
       end
       Dir.chdir(root_path)
       temp_path = root_path + "/tmp"
@@ -106,6 +110,9 @@ module LgPodPlugin
 
     # git 预下载
     def self.git_pre_downloading(name, options = {})
+      if name == "l-mapKit-iOS" || name == "LLogger" || name == "LUnityFramework" || name == "LUser"
+        pp name
+      end
       tag = options[:tag]
       git_url = options[:git]
       commit = options[:commit]
@@ -119,16 +126,16 @@ module LgPodPlugin
       # 切换到本地git仓库目录下
       Dir.chdir(lg_pod_path)
       #当前仓库是通过tag或者commit下载的
-      if log_txt == "commit:#{commit}\n" || log_txt == "tag:#{tag}\n"
+      if log_txt == "commit:#{commit}" || log_txt == "tag:#{tag}"
         git = Git.open('./')
         if commit == nil
           commit = git.log(1).to_s
         end
         hash_map = {:git => git_url}
-        if tag
+        if log_txt == "tag:#{tag}"
           hash_map[:tag] = tag
         end
-        if commit
+        if log_txt == "commit:#{commit}"
           hash_map[:commit] = commit
         end
         LgPodPlugin::Cache.cache_pod(name,lg_pod_path, hash_map)
@@ -138,10 +145,10 @@ module LgPodPlugin
       git = Git.open('./')
       current_branch = git.current_branch
       if current_branch == branch # 要 clone 的分支正好等于当前分支
-        pp "git pull #{git_url} -b #{branch}"
+        # pp "git pull #{git_url} -b #{branch}"
         git_pull(branch)
         commit = git.log(1).to_s
-        pp "git log #{git_url} -commit #{commit}"
+        # pp "git log #{git_url} -commit #{commit}"
         hash_map = {:git => git_url}
         if commit
           hash_map[:commit] = commit
