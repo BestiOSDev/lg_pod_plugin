@@ -2,14 +2,11 @@ module LgPodPlugin
 
   class Spec
 
-    REQUIRED_ATTRS ||= %i[name version git commit tag path branch].freeze
+    REQUIRED_ATTRS ||= %i[install name version git commit tag path branch].freeze
     attr_accessor(*REQUIRED_ATTRS)
-    OPTIONAL_ATTRS ||= %i[install depth configurations modular_headers subspecs inhibit_warnings testspecs].freeze
+    OPTIONAL_ATTRS ||= %i[depth configurations modular_headers subspecs inhibit_warnings testspecs].freeze
     attr_accessor(*OPTIONAL_ATTRS)
-
-    attr_accessor :defined_in_file
     def initialize(defined_in_file = nil, &block)
-      self.defined_in_file = defined_in_file
       if block
         instance_eval(&block)
       end
@@ -26,12 +23,18 @@ module LgPodPlugin
       end
       # 2 讲xx.rb转成 Spec 对象
       l_spec = eval(contents, nil , file_path.to_s)
+      if l_spec.install == nil
+        l_spec.install = true
+      end
       l_spec
     end
 
     # pod 必传参数
     def pod_requirements
       h = nil
+      unless install != false
+        return h
+      end
       # 集成组件时, 【必选】参数, 必须互斥
       if version
         h = { version: version }
@@ -44,7 +47,7 @@ module LgPodPlugin
       elsif git && branch
         # branch is not supported for binary
         puts("`#{name}` is require by `branch`, which is not preferred")
-        h = { git: git, branch: branch }
+        h = { git: git, branch: branch, depth: depth }
       else
         puts("VirusFile is not valid, `#{name}` will not be required")
       end

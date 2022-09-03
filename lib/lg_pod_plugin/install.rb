@@ -69,8 +69,10 @@ module LgPodPlugin
       end
       # 便利出每一个pod对安装信息
       file_objects.each do |file|
-        options = file.pod_requirements
-        self.pod(name, target, options)
+        if file.install
+          options = file.pod_requirements
+          self.pod(file.name, target, options)
+        end
       end
 
     end
