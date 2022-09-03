@@ -9,17 +9,22 @@ module LgPodPlugin
 
 class Cache
 
+  def self.root_path
+    path = File.join(Dir.home, "Library/Caches/CocoaPods/Pods")
+    Pathname(path)
+  end
+
   def self.download_request(name, params)
     Pod::Downloader::Request.new(spec: nil, released: false, name: name, params: params)
   end
 
   def self.path_for_pod(request, slug_opts = {})
-    root = Pathname("/Users/dongzb01/Library/Caches/CocoaPods/Pods")
+    root = self.root_path
     root + request.slug(**slug_opts)
   end
 
   def self.path_for_spec(request, slug_opts = {})
-    root = Pathname("/Users/dongzb01/Library/Caches/CocoaPods/Pods")
+    root = self.root_path
     path = root + 'Specs' + request.slug(**slug_opts)
     Pathname.new(path.to_path + '.podspec.json')
   end
@@ -85,11 +90,7 @@ class Cache
   end
 
   def self.cache_pod(name, file_path, options = {})
-    # return
-    pp name
-    pp options
-    # root = Pathname("/Users/dongzb01/Library/Caches/CocoaPods/Pods")
-    # cache = Pod::Downloader::Cache.new(root)
+
     target = Pathname(file_path)
     request = download_request(name, options)
     result, podspecs = get_local_spec(request, target)

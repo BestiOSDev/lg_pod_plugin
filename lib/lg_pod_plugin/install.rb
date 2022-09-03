@@ -1,13 +1,14 @@
 require 'pp'
 require 'git'
 require 'cocoapods'
+require_relative 'pod_spec.rb'
 require_relative 'git_clone.rb'
 
 module LgPodPlugin
   class Installer
 
     # 预下载处理
-    def self.pre_download(name, target, options = {})
+    def self.pre_download(name, options = {})
       git_url = options[:git]
       commit = options[:commit]
       branch = options[:branch]
@@ -38,7 +39,7 @@ module LgPodPlugin
         hash_map = options
         hash_map.delete(:path)
         if depth == true && !branch.nil? && !git_url.nil?
-          pre_download name, target, options
+          pre_download name, options
           hash_map.delete(:depth)
           target.store_pod(name, hash_map)
         else
@@ -48,7 +49,7 @@ module LgPodPlugin
       else
         hash_map = options
         if depth == true && !branch.nil? && !git_url.nil?
-          pre_download name, target, options
+          pre_download name, options
           hash_map.delete(:depth)
           target.store_pod(name, hash_map)
         else
@@ -58,5 +59,21 @@ module LgPodPlugin
       end
 
     end
+
+    def self.install(target, spec_path = nil)
+      spec_path ||= './Specs'
+      path = File.expand_path(spec_path, Dir.pwd)
+      file_objects = Dir.glob(File.expand_path("*.rb",path)).map do |file_path|
+        #读取 xxx.rb文件
+        Spec.form_file(file_path)
+      end
+      # 便利出每一个pod对安装信息
+      file_objects.each do |file|
+        options = file.pod_requirements
+        self.pod(name, target, options)
+      end
+
+    end
+
   end
 end
