@@ -8,4 +8,3 @@ module LgPodPlugin
   # Your code goes here...
 end
 
-
