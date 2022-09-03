@@ -15,9 +15,6 @@ module LgPodPlugin
 
     def self.download_pod_path(name)
        path = download_director + "/#{name}"
-       unless File::exist?(path) # pp "文件路径不存在"
-         Dir.mkdir(path, 0700)
-       end
        path
     end
 

@@ -2,7 +2,7 @@ module LgPodPlugin
 
   class Spec
 
-    REQUIRED_ATTRS ||= %i[install name version git commit tag path branch].freeze
+    REQUIRED_ATTRS ||= %i[install name git commit tag path branch].freeze
     attr_accessor(*REQUIRED_ATTRS)
     OPTIONAL_ATTRS ||= %i[depth configurations modular_headers subspecs inhibit_warnings testspecs].freeze
     attr_accessor(*OPTIONAL_ATTRS)
@@ -36,9 +36,7 @@ module LgPodPlugin
         return h
       end
       # 集成组件时, 【必选】参数, 必须互斥
-      if version
-        h = { version: version }
-      elsif path
+      if path
         h = { path: path }
       elsif git && commit
         h = { git: git, commit: commit }

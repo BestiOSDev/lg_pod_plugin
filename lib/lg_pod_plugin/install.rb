@@ -9,10 +9,7 @@ module LgPodPlugin
 
     # 预下载处理
     def self.pre_download(name, options = {})
-      git_url = options[:git]
-      commit = options[:commit]
-      branch = options[:branch]
-      GitHelper.git_pre_downloading(name, git_url, branch, commit)
+      GitHelper.git_pre_downloading(name, options)
     end
 
     # @param [Object] name
@@ -21,6 +18,8 @@ module LgPodPlugin
     # @return [Object] nil
     def self.pod(name, target, options = {})
       path = options[:path]
+      tag = options[:tag]
+      commit = options[:commit]
       git_url = options[:git]
       branch = options[:branch]
       depth = options[:depth]
@@ -35,20 +34,10 @@ module LgPodPlugin
         hash_map.delete(:branch)
         # 安装本地私有组件库
         target.store_pod(name, hash_map)
-      elsif !path.nil?
-        hash_map = options
-        hash_map.delete(:path)
-        if depth == true && !branch.nil? && !git_url.nil?
-          pre_download name, options
-          hash_map.delete(:depth)
-          target.store_pod(name, hash_map)
-        else
-          hash_map.delete(:depth)
-          target.store_pod(name, hash_map)
-        end
       else
         hash_map = options
-        if depth == true && !branch.nil? && !git_url.nil?
+        hash_map.delete(:path)
+        if (depth && !git_url.nil?) && (branch || commit || tag)
           pre_download name, options
           hash_map.delete(:depth)
           target.store_pod(name, hash_map)

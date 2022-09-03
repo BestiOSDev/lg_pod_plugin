@@ -41,7 +41,7 @@ class Cache
     result = Pod::Downloader::Response.new
     # result.checkout_options = download_source(target, request.params)
     result.location = target
-    local_specs = {}
+    local_specs = nil
     if request.released_pod?
       result.spec = request.spec
       local_specs = { request.name => request.spec }
