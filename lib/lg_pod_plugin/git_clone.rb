@@ -9,34 +9,37 @@ module LgPodPlugin
 
   class GitHelper
 
-    def self.git_clone(git_url, options = {})
-      tag = options[:tag]
-      branch = options[:branch]
-      commit = options[:commit]
-      if tag
-        system("git clone --depth=1 -b #{tag}  #{git_url} l-temp-pod")
-        Dir.chdir("l-temp-pod")
-        system("echo \"tag:#{tag}\" >> git_log.txt")
-        system("echo git_log.txt >> .gitignore")
-        Dir.chdir("..")
-        return Dir.pwd + "/l-temp-pod"
-      end
-      if commit
-        system("git clone #{git_url} l-temp-pod")
-        Dir.chdir("./l-temp-pod")
-        system("git checkout #{commit}")
-        system("echo \"commit:#{commit}\" >> git_log.txt")
-        system("echo git_log.txt >> .gitignore")
-        Dir.chdir("..")
-        return Dir.pwd + "/l-temp-pod"
-      end
+    def self.git_clone(name ,git_url, branch)
+      # tag = options[:tag]
+      # branch = options[:branch]
+      # commit = options[:commit]
+      # if tag
+      #   system("git clone --depth=1 -b #{tag}  #{git_url} l-temp-pod")
+      #   Dir.chdir("l-temp-pod")
+      #   system("echo \"tag:#{tag}\" >> git_log.txt")
+      #   system("echo git_log.txt >> .gitignore")
+      #   Dir.chdir("..")
+      #   return Dir.pwd + "/l-temp-pod"
+      # end
+      # if commit
+      #   system("git clone #{git_url} l-temp-pod")
+      #   Dir.chdir("./l-temp-pod")
+      #   system("git checkout #{commit}")
+      #   system("echo \"commit:#{commit}\" >> git_log.txt")
+      #   system("echo git_log.txt >> .gitignore")
+      #   Dir.chdir("..")
+      #   return Dir.pwd + "/l-temp-pod"
+      # end
       if branch
+        puts "git clone #{name} #{branch} #{git_url}"
         system("git clone --depth=1 -b #{branch} #{git_url} l-temp-pod")
         Dir.chdir("l-temp-pod")
         system("echo \"branch:#{branch}\" >> git_log.txt")
         system("echo git_log.txt >> .gitignore")
         Dir.chdir("..")
         return Dir.pwd + "/l-temp-pod"
+      else
+        return nil
       end
     end
 
@@ -68,31 +71,33 @@ module LgPodPlugin
       if log_txt.respond_to?(:encoding) && log_txt.encoding.name != 'UTF-8'
         contents.encoding("UTF-8")
       end
-      return log_txt.to_s
+      if log_txt.include?("\n")
+        log_txt = log_txt.delete("\n")
+      end
+      return log_txt
     end
 
-    def self.init_pod_path(name, git_url, branch, tag , commit)
+    def self.init_pod_path(name, git_url, branch)
       root_path = FileManager.download_director
       lg_pod_path =  FileManager.download_pod_path(name)
       if File::exist?(lg_pod_path)
         Dir.chdir(lg_pod_path)
         log_txt = self.read_log_txt
-        if log_txt.include?("\n")
-          log_txt = log_txt.delete("\n")
-        end
-        if tag && log_txt == "tag:#{tag}"
-          return [log_txt ,lg_pod_path]
-        end
-        if commit && log_txt == "commit:#{commit}"
-          return [log_txt ,lg_pod_path]
-        end
-        if commit || tag
-          FileUtils.rm_r(lg_pod_path)
-        end
+        # if tag && log_txt == "tag:#{tag}"
+        #   return [log_txt ,lg_pod_path]
+        # end
+        # if commit && log_txt == "commit:#{commit}"
+        #   return [log_txt ,lg_pod_path]
+        # end
+        # if commit || tag
+        #   FileUtils.rm_r(lg_pod_path)
+        # end
+        # 判断当前branch是否缓存过代码
         if branch && log_txt == "branch:#{branch}"
           return [log_txt, lg_pod_path]
+        else
+          FileUtils.rm_r(lg_pod_path)
         end
-        FileUtils.rm_r(lg_pod_path)
       end
       Dir.chdir(root_path)
       temp_path = root_path + "/tmp"
@@ -102,7 +107,11 @@ module LgPodPlugin
       FileUtils.mkdir(temp_path)
       FileUtils.chdir(temp_path)
       #clone仓库
-      old_name = git_clone(git_url, {:tag => tag, :branch => branch, :commit => commit})
+      old_name = git_clone(name, git_url, branch)
+      #下载 git 仓库失败
+      unless old_name
+        return [nil, nil]
+      end
       #对仓库目录重命名
       mv_git_directory_to_root(old_name, lg_pod_path)
       Dir.chdir(lg_pod_path)
@@ -117,12 +126,12 @@ module LgPodPlugin
       # if name == "l-mapKit-iOS" || name == "LLogger" || name == "LUnityFramework" || name == "LUser"
       #   pp name
       # end
-      tag = options[:tag]
+      # tag = options[:tag]
       git_url = options[:git]
-      commit = options[:commit]
+      # commit = options[:commit]
       branch = options[:branch]
       # 本地 git 下载 pod 目录
-      log_txt, lg_pod_path = self.init_pod_path(name , git_url, branch, tag, commit)
+      log_txt, lg_pod_path = self.init_pod_path(name , git_url, branch)
       # 本地clone代码失败跳出去
       unless File::exist?(lg_pod_path)
         return
@@ -130,29 +139,31 @@ module LgPodPlugin
       # 切换到本地git仓库目录下
       Dir.chdir(lg_pod_path)
       #当前仓库是通过tag或者commit下载的
-      if log_txt == "commit:#{commit}" || log_txt == "tag:#{tag}"
-        git = Git.open('./')
-        if commit == nil
-          commit = git.log(1).to_s
-        end
-        hash_map = {:git => git_url}
-        if log_txt == "tag:#{tag}"
-          hash_map[:tag] = tag
-        end
-        if log_txt == "commit:#{commit}"
-          hash_map[:commit] = commit
-        end
-        LgPodPlugin::Cache.cache_pod(name,lg_pod_path, hash_map)
-        return
-      end
+      # if log_txt == "commit:#{commit}" || log_txt == "tag:#{tag}"
+      #   git = Git.open('./')
+      #   hash_map = {:git => git_url}
+      #   if log_txt == "tag:#{tag}"
+      #     hash_map[:tag] = tag
+      #   end
+      #   if log_txt == "commit:#{commit}"
+      #     if commit == nil
+      #       commit = git.log(1).to_s
+      #     end
+      #     if commit != nil
+      #       hash_map[:commit] = commit
+      #     end
+      #   end
+      #   LgPodPlugin::Cache.cache_pod(name,lg_pod_path, hash_map)
+      #   return
+      # end
       # 使用branch克隆代码
       git = Git.open('./')
       current_branch = git.current_branch
       if current_branch == branch # 要 clone 的分支正好等于当前分支
-        puts "git fetch origin/#{current_branch}\n"
+        puts "git fetch #{name} origin/#{current_branch}\n"
         diff = git.fetch.to_s
         if diff != ""
-          puts "git pull origin/#{current_branch}\n"
+          puts "git pull #{name} origin/#{current_branch}\n"
           git_pull(branch)
         end
         commit = git.log(1).to_s
@@ -166,13 +177,13 @@ module LgPodPlugin
           s.to_s
         }
         if local_branches.include?(branch)
-          puts "git switch #{git_url} -b #{branch}\n"
+          puts "git switch #{name} #{git_url} -b #{branch}\n"
           git_switch(branch)
         else
-          puts "git checkout #{git_url} -b #{branch}\n"
+          puts "git checkout  #{name} #{git_url} -b #{branch}\n"
           git_checkout(branch)
         end
-        puts "git pull #{git_url} -b #{branch}\n"
+        puts "git pull  #{name} #{git_url} -b #{branch}\n"
         git_pull(branch)
         commit = git.log(1).to_s
         hash_map = {:git => git_url}
@@ -201,7 +212,7 @@ module LgPodPlugin
         }
         # 如果有要暂存的内容, 就 git stash save
         if have_changes.count.positive?
-          # pp "当前#{current_branch}分支有未暂存的内容"
+          # "当前#{current_branch}分支有未暂存的内容"
           git.branch.stashes.save(last_stash_message)
         end
         # 这里 checkout到目标分支, 本地有git switch -b xxx, 本地没有 git checkout -b xxx

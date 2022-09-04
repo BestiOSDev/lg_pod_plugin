@@ -23,29 +23,41 @@ module LgPodPlugin
       git_url = options[:git]
       branch = options[:branch]
       depth = options[:depth]
-      if !path.nil? && File.directory?(path)
-        # 找到本地组件库 执行 git pull
+
+      # 找到本地组件库 执行 git pull
+      if path && File.directory?(path)
         Dir.chdir(path) do
           GitHelper.install_local_pod(branch)
         end
         hash_map = options
         hash_map.delete(:tag)
         hash_map.delete(:git)
+        hash_map.delete(:commit)
         hash_map.delete(:branch)
         # 安装本地私有组件库
         target.store_pod(name, hash_map)
-      else
-        hash_map = options
-        hash_map.delete(:path)
-        if (depth && !git_url.nil?) && (branch || commit || tag)
-          pre_download name, options
-          hash_map.delete(:depth)
-          target.store_pod(name, hash_map)
-        else
-          hash_map.delete(:depth)
-          target.store_pod(name, hash_map)
-        end
+        return
       end
+
+      # 根据tag, commit下载文件
+      hash_map = options
+      hash_map.delete(:path)
+      if tag || commit
+        hash_map.delete(:branch)
+        hash_map.delete(:depth)
+        target.store_pod(name, hash_map)
+        return
+      end
+
+      # 根据 branch 下载代码
+      if depth && git_url && branch
+        hash_map.delete(:tag)
+        hash_map.delete(:commit)
+        hash_map.delete(:depth)
+        pre_download name, options
+        target.store_pod(name, hash_map)
+      end
+
 
     end
 
