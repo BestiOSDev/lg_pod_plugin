@@ -7,6 +7,7 @@ require_relative 'git_clone.rb'
 module LgPodPlugin
   class Installer
     def initialize(defined_in_file = nil, target, &block)
+      @defined_in_file = defined_in_file
       @target = target
       if block
         instance_eval(&block)

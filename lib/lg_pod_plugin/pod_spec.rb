@@ -45,7 +45,7 @@ module LgPodPlugin
       elsif git && branch
         # branch is not supported for binary
         puts("\n")
-        puts("`#{name}` is require by `branch`, which is not preferred\n")
+        puts("start download `#{name}`\n")
         h = { git: git, branch: branch, depth: depth }
       else
         puts("VirusFile is not valid, `#{name}` will not be required\n")

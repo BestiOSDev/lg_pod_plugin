@@ -12,7 +12,7 @@ module LgPodPlugin
   end
 
   def self.install_form_spec(target, spec_path = nil)
-    Installer.new(target).install_form_specs(spec_path)
+    return Installer.new(target).install_form_specs(spec_path)
   end
 
 end
