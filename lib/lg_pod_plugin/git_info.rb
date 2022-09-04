@@ -26,8 +26,13 @@ module LgPodPlugin
       @pod_path = value
     end
 
-    def initialize(name, temp_folder)
+    def get_is_first
+      @first
+    end
+
+    def initialize(name, temp_folder,is_first)
       @name = name
+      @first = is_first
       @temp_folder = temp_folder
     end
   end

@@ -15,7 +15,7 @@ module LgPodPlugin
         temp_git_path = "l-temp-pod"
         puts "git clone #{name} #{branch} #{git_url}"
         Git.clone(git_url, Pathname(temp_git_path),branch: branch, depth: 1)
-        git_info = GitRepositoryInfo.new(name, (Dir.pwd + "/#{temp_git_path}"))
+        git_info = GitRepositoryInfo.new(name, (Dir.pwd + "/#{temp_git_path}"), true )
         Dir.chdir(temp_git_path)
         system("echo \"branch:#{branch}\" >> git_log.txt")
         system("echo git_log.txt >> .gitignore")
@@ -68,7 +68,7 @@ module LgPodPlugin
         log_txt = self.read_log_txt
         # 判断当前branch是否缓存过代码
         if branch && log_txt == "branch:#{branch}"
-          git_info = GitRepositoryInfo.new(name, nil)
+          git_info = GitRepositoryInfo.new(name, nil, false )
           git_info.set_pod_path(lg_pod_path)
           git_info.set_log(log_txt)
           return git_info
@@ -130,11 +130,13 @@ module LgPodPlugin
       end
       current_branch = git.current_branch
       if current_branch == branch # 要 clone 的分支正好等于当前分支
-        puts "git fetch #{name} origin/#{current_branch}\n"
-        diff = git.fetch.to_s
-        if diff != ""
-          puts "git pull #{name} origin/#{current_branch}\n"
-          git_pull(branch)
+        unless git_info.get_is_first #不是第一次下载需要 git fetch
+          puts "git fetch #{name} origin/#{current_branch}\n"
+          diff = git.fetch.to_s
+          if diff != ""
+            puts "git pull #{name} origin/#{current_branch}\n"
+            git_pull(branch)
+          end
         end
         commit = git.log(1).to_s
         hash_map = {:git => git_url}
