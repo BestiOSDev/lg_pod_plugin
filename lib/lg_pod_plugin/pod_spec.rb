@@ -44,6 +44,7 @@ module LgPodPlugin
         h = { git: git, tag: tag }
       elsif git && branch
         # branch is not supported for binary
+        puts("\n")
         puts("`#{name}` is require by `branch`, which is not preferred\n")
         h = { git: git, branch: branch, depth: depth }
       else

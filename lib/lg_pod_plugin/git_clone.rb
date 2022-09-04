@@ -1,5 +1,6 @@
 require 'git'
 require 'pp'
+require 'cgi'
 require 'cocoapods'
 require_relative 'cache'
 require_relative 'file_path'
@@ -10,12 +11,29 @@ module LgPodPlugin
 
   class GitHelper
 
+    def self.is_update_pod
+      cgi = CGI.new
+      command_keys = cgi.keys
+      unless command_keys.count > 0
+        return false
+      end
+      first_key = command_keys[0].to_s ||= ""
+      if first_key.include?("install")
+        false
+      elsif first_key.include?("update")
+        true
+      else
+        false
+      end
+    end
+
     def self.git_clone(name ,git_url, branch)
       if branch
+
         temp_git_path = "l-temp-pod"
         puts "git clone #{name} #{branch} #{git_url}"
         Git.clone(git_url, Pathname(temp_git_path),branch: branch, depth: 1)
-        git_info = GitRepositoryInfo.new(name, (Dir.pwd + "/#{temp_git_path}"), true)
+        git_info = GitRepositoryInfo.new(name, (Dir.pwd + "/#{temp_git_path}"))
         Dir.chdir(temp_git_path)
         system("echo \"branch:#{branch}\" >> git_log.txt")
         system("echo git_log.txt >> .gitignore")
@@ -50,14 +68,22 @@ module LgPodPlugin
       unless File::exist?(log_txt_path)
         return nil
       end
-      log_txt = File.open(log_txt_path, 'r:utf-8', &:read)
-      if log_txt.respond_to?(:encoding) && log_txt.encoding.name != 'UTF-8'
-        contents.encoding("UTF-8")
+      contents ||= File.open(log_txt_path, 'r:utf-8', &:read)
+      # Work around for Rubinius incomplete encoding in 1.9 mode
+      if contents.respond_to?(:encoding) && contents.encoding.name != 'UTF-8'
+        contents.encode!('UTF-8')
       end
-      if log_txt.include?("\n")
-        log_txt = log_txt.delete("\n")
+      if contents.tr!('“”‘’‛', %(""'''))
+        # Changes have been made
+        CoreUI.warn "Smart quotes were detected and ignored in your #{path.basename}. " \
+                    'To avoid issues in the future, you should not use ' \
+                    'TextEdit for editing it. If you are not using TextEdit, ' \
+                    'you should turn off smart quotes in your editor of choice.'
       end
-      return log_txt
+      if contents.include?("\n")
+        contents = contents.delete("\n")
+      end
+      return contents
     end
 
     def self.init_pod_path(name, git_url, branch)
@@ -68,7 +94,7 @@ module LgPodPlugin
         log_txt = self.read_log_txt
         # 判断当前branch是否缓存过代码
         if branch && log_txt == "branch:#{branch}"
-          git_info = GitRepositoryInfo.new(name, nil, false)
+          git_info = GitRepositoryInfo.new(name, nil)
           git_info.set_pod_path(lg_pod_path)
           git_info.set_log(log_txt)
           return git_info
@@ -130,7 +156,7 @@ module LgPodPlugin
       end
       current_branch = git.current_branch
       if current_branch == branch # 要 clone 的分支正好等于当前分支
-        unless git_info.get_is_first #不是第一次下载需要 git fetch
+        if self.is_update_pod
           puts "git fetch #{name} origin/#{current_branch}\n"
           diff = git.fetch.to_s
           if diff != ""
