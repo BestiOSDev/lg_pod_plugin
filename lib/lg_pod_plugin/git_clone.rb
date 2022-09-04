@@ -15,7 +15,7 @@ module LgPodPlugin
         temp_git_path = "l-temp-pod"
         puts "git clone #{name} #{branch} #{git_url}"
         Git.clone(git_url, Pathname(temp_git_path),branch: branch, depth: 1)
-        git_info = GitRepositoryInfo.new(name, (Dir.pwd + "/#{temp_git_path}"), true )
+        git_info = GitRepositoryInfo.new(name, (Dir.pwd + "/#{temp_git_path}"), true)
         Dir.chdir(temp_git_path)
         system("echo \"branch:#{branch}\" >> git_log.txt")
         system("echo git_log.txt >> .gitignore")
@@ -68,7 +68,7 @@ module LgPodPlugin
         log_txt = self.read_log_txt
         # 判断当前branch是否缓存过代码
         if branch && log_txt == "branch:#{branch}"
-          git_info = GitRepositoryInfo.new(name, nil, false )
+          git_info = GitRepositoryInfo.new(name, nil, false)
           git_info.set_pod_path(lg_pod_path)
           git_info.set_log(log_txt)
           return git_info
