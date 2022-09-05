@@ -29,7 +29,6 @@ module LgPodPlugin
 
     def self.git_clone(name ,git_url, branch)
       if branch
-
         temp_git_path = "l-temp-pod"
         puts "git clone #{name} #{branch} #{git_url}"
         Git.clone(git_url, Pathname(temp_git_path),branch: branch, depth: 1)
@@ -87,6 +86,7 @@ module LgPodPlugin
     end
 
     def self.init_pod_path(name, git_url, branch)
+      # ls = Git.ls_remote(git_url, :refs => true )
       root_path = FileManager.download_director
       lg_pod_path =  FileManager.download_pod_path(name)
       if File::exist?(lg_pod_path)
@@ -156,12 +156,16 @@ module LgPodPlugin
       end
       current_branch = git.current_branch
       if current_branch == branch # 要 clone 的分支正好等于当前分支
+        is_update = false
         if self.is_update_pod
-          puts "git fetch #{name} origin/#{current_branch}\n"
-          diff = git.fetch.to_s
-          if diff != ""
+          ls = Git.ls_remote("./", :refs => true)
+          local_sha = ls["branches"][current_branch][:sha]
+          remote_branches = ls["remotes"]
+          remote_sha = remote_branches["origin/#{current_branch}"][:sha]
+          if remote_sha != local_sha
             puts "git pull #{name} origin/#{current_branch}\n"
             git_pull(branch)
+            is_update = true
           end
         end
         commit = git.log(1).to_s
@@ -169,7 +173,7 @@ module LgPodPlugin
         if commit
           hash_map[:commit] = commit
         end
-        LgPodPlugin::Cache.cache_pod(name,lg_pod_path, hash_map)
+        LgPodPlugin::Cache.cache_pod(name,lg_pod_path,is_update, hash_map)
       else
         local_branches = git.branches.local.map { |s|
           s.to_s
@@ -188,7 +192,7 @@ module LgPodPlugin
         if commit
           hash_map[:commit] = commit
         end
-          LgPodPlugin::Cache.cache_pod(name,lg_pod_path, hash_map)
+          LgPodPlugin::Cache.cache_pod(name,lg_pod_path,self.is_update_pod, hash_map)
       end
 
     end

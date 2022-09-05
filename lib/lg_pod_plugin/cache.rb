@@ -89,19 +89,22 @@ class Cache
     end
   end
 
-  def self.cache_pod(name, file_path, options = {})
+  def self.cache_pod(name, file_path, is_update, options = {})
 
     target = Pathname(file_path)
     request = download_request(name, options)
-    result, podspecs = get_local_spec(request, target)
+    result, pods_pecs = get_local_spec(request, target)
     result.location = nil
-
-    podspecs.each do |name, spec|
+    pods_pecs.each do |s_name, s_spec|
       destination = path_for_pod(request, {})
-      copy_and_clean(target, destination, spec)
+      if !File.exist?(destination) || is_update
+        copy_and_clean(target, destination, s_spec)
+      end
       cache_pod_spec = path_for_spec(request, {})
-      write_spec(spec, cache_pod_spec)
-      if request.name == name
+      if !File.exist?(cache_pod_spec) || is_update
+        write_spec(s_spec, cache_pod_spec)
+      end
+      if request.name == s_name
         result.location = destination
       end
     end
