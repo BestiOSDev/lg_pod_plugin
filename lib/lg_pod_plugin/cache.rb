@@ -19,15 +19,15 @@ class Cache
     branches = ls["branches"]
     last_commit = branches[branch][:sha]
     if last_commit == nil
-      return
+      return [true , nil]
     end
     request = Cache.download_request(name, {:git => git, :commit => last_commit})
     destination = Cache.path_for_pod(request, {})
     cache_pod_spec = Cache.path_for_spec(request, {})
     if File.exist?(destination) && File.exist?(cache_pod_spec)
-      true
+       [false , last_commit]
     else
-      false
+       [true , last_commit]
     end
   end
 
@@ -110,7 +110,7 @@ class Cache
     end
   end
 
-  def self.cache_pod(name, file_path, is_update, options = {})
+  def self.cache_pod(name, file_path, options = {})
 
     target = Pathname(file_path)
     request = download_request(name, options)
@@ -118,13 +118,9 @@ class Cache
     result.location = nil
     pods_pecs.each do |s_name, s_spec|
       destination = path_for_pod(request, {})
-      if !File.exist?(destination) || is_update
-        copy_and_clean(target, destination, s_spec)
-      end
+      copy_and_clean(target, destination, s_spec)
       cache_pod_spec = path_for_spec(request, {})
-      if !File.exist?(cache_pod_spec) || is_update
-        write_spec(s_spec, cache_pod_spec)
-      end
+      write_spec(s_spec, cache_pod_spec)
       if request.name == s_name
         result.location = destination
       end

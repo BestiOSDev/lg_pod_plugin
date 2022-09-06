@@ -45,12 +45,12 @@ module LgPodPlugin
 
     # 检出 branch
     def self.git_checkout(branch)
-      system("git checkout #{branch}")
+      system("git checkout -b #{branch}")
     end
 
     # git 切换分支
     def self.git_switch(branch)
-      system("git switch  #{branch}")
+      system("git switch #{branch}")
     end
 
     #拉取分支代码
@@ -85,6 +85,7 @@ module LgPodPlugin
       return contents
     end
 
+    #noinspection RubyNilAnalysis
     def self.init_pod_path(name, git_url, branch)
       # ls = Git.ls_remote(git_url, :refs => true )
       root_path = FileManager.download_director
@@ -93,7 +94,7 @@ module LgPodPlugin
         Dir.chdir(lg_pod_path)
         log_txt = self.read_log_txt
         # 判断当前branch是否缓存过代码
-        if branch && log_txt == "branch:#{branch}"
+        if branch && log_txt.include?("branch:")
           git_info = GitRepositoryInfo.new(name, nil)
           git_info.set_pod_path(lg_pod_path)
           git_info.set_log(log_txt)
@@ -139,8 +140,9 @@ module LgPodPlugin
       branch = options[:branch]
       cache = LgPodPlugin::Cache.new
       # 发现本地有缓存, 不需要更新缓存
-      if cache.find_pod_cache(name,git_url, branch)
-        puts "find pod cache #{name}, and cache is valid"
+      need_download, new_commit = cache.find_pod_cache(name, git_url, branch)
+      unless need_download
+        puts "find the cache of `#{name}`, you can use it now."
         return
       end
       # 本地 git 下载 pod 目录
@@ -157,48 +159,40 @@ module LgPodPlugin
       end
       # 使用branch克隆代码
       git = Git.open(Pathname("./"))
-      if git == nil
-        return
-      end
       current_branch = git.current_branch
       if current_branch == branch # 要 clone 的分支正好等于当前分支
-        is_update = false
-        if self.is_update_pod
-          ls = Git.ls_remote("./", :refs => true)
-          local_sha = ls["branches"][current_branch][:sha]
-          remote_branches = ls["remotes"]
-          remote_sha = remote_branches["origin/#{current_branch}"][:sha]
-          if remote_sha != local_sha
-            puts "git pull #{name} origin/#{current_branch}\n"
-            git_pull(branch)
-            is_update = true
-          end
+        current_commit = git.log(1).to_s
+        if new_commit != current_commit
+          puts "git pull #{name} origin/#{current_branch}\n"
+          git_pull(branch)
+          current_commit = new_commit
         end
-        commit = git.log(1).to_s
         hash_map = {:git => git_url}
-        if commit
-          hash_map[:commit] = commit
+        if current_commit
+          hash_map[:commit] = current_commit
         end
-        LgPodPlugin::Cache.cache_pod(name,lg_pod_path,is_update, hash_map)
+        LgPodPlugin::Cache.cache_pod(name,lg_pod_path, hash_map)
       else
-        local_branches = git.branches.local.map { |s|
-          s.to_s
-        }
-        if local_branches.include?(branch)
+        ls = Git.ls_remote(git_url, :refs => true)
+        branch_exist = git.branches.local.find {|e| e.to_s == branch}
+        if branch_exist
           puts "git switch #{name} #{git_url} -b #{branch}\n"
           git_switch(branch)
         else
           puts "git checkout  #{name} #{git_url} -b #{branch}\n"
           git_checkout(branch)
         end
-        puts "git pull  #{name} #{git_url} -b #{branch}\n"
-        git_pull(branch)
-        commit = git.log(1).to_s
-        hash_map = {:git => git_url}
-        if commit
-          hash_map[:commit] = commit
+        current_commit = git.log(1).to_s
+        if current_commit != new_commit
+          puts "git pull  #{name} #{git_url} -b #{branch}\n"
+          git_pull(branch)
+          current_commit = new_commit
         end
-          LgPodPlugin::Cache.cache_pod(name,lg_pod_path,self.is_update_pod, hash_map)
+        hash_map = {:git => git_url}
+        if current_commit
+          hash_map[:commit] = current_commit
+        end
+          LgPodPlugin::Cache.cache_pod(name,lg_pod_path, hash_map)
       end
 
     end
