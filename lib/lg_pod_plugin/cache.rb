@@ -1,4 +1,4 @@
-
+require 'git'
 require 'cocoapods/sandbox'
 require 'cocoapods/downloader.rb'
 require 'cocoapods/downloader/cache.rb'
@@ -8,6 +8,28 @@ require 'cocoapods/downloader/request.rb'
 module LgPodPlugin
 
 class Cache
+
+  def initialize
+    super
+  end
+
+  #判断缓存是否存在且有效命中缓存
+  def find_pod_cache(name ,git, branch)
+    ls = Git.ls_remote(git, :refs => true )
+    branches = ls["branches"]
+    last_commit = branches[branch][:sha]
+    if last_commit == nil
+      return
+    end
+    request = Cache.download_request(name, {:git => git, :commit => last_commit})
+    destination = Cache.path_for_pod(request, {})
+    cache_pod_spec = Cache.path_for_spec(request, {})
+    if File.exist?(destination) && File.exist?(cache_pod_spec)
+      true
+    else
+      false
+    end
+  end
 
   def self.root_path
     path = File.join(Dir.home, "Library/Caches/CocoaPods/Pods")
@@ -35,7 +57,6 @@ class Cache
   rescue JSON::ParserError
     nil
   end
-
 
   def self.get_local_spec(request, target)
     result = Pod::Downloader::Response.new
@@ -108,8 +129,6 @@ class Cache
         result.location = destination
       end
     end
-
-
 
   end
 

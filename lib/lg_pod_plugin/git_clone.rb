@@ -1,10 +1,10 @@
-require 'git'
 require 'pp'
 require 'cgi'
+require 'git'
 require 'cocoapods'
-require_relative 'cache'
 require_relative 'file_path'
 require_relative 'git_info'
+require_relative 'cache.rb'
 
 
 module LgPodPlugin
@@ -137,6 +137,12 @@ module LgPodPlugin
       git_url = options[:git]
       # commit = options[:commit]
       branch = options[:branch]
+      cache = LgPodPlugin::Cache.new
+      # 发现本地有缓存, 不需要更新缓存
+      if cache.find_pod_cache(name,git_url, branch)
+        puts "find pod cache #{name}, and cache is valid"
+        return
+      end
       # 本地 git 下载 pod 目录
       git_info = self.init_pod_path(name , git_url, branch)
       lg_pod_path = git_info.get_pod_path ||= FileManager.download_pod_path(name)
