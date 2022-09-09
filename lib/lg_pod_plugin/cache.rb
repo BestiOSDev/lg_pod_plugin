@@ -7,6 +7,20 @@ require 'cocoapods/downloader/request.rb'
 
 module LgPodPlugin
 
+  class CachePodInfo
+    attr_accessor :sha
+    attr_accessor :tag
+    attr_accessor :name
+    attr_accessor :path
+    attr_accessor :branch
+    attr_accessor :timestamp
+    def initialize
+      super
+    end
+
+
+  end
+
 class Cache
 
   def initialize
@@ -15,10 +29,13 @@ class Cache
 
   #判断缓存是否存在且有效命中缓存
   def find_pod_cache(name ,git, branch)
+    last_commit = nil
     ls = Git.ls_remote(git, :refs => true )
-    branches = ls["branches"]
-    last_commit = branches[branch][:sha]
-    if last_commit == nil
+    find_branch = ls["branches"][branch]
+    if find_branch
+      last_commit = find_branch[:sha]
+    end
+    unless last_commit
       return [true , nil]
     end
     request = Cache.download_request(name, {:git => git, :commit => last_commit})
@@ -28,6 +45,18 @@ class Cache
        [false , last_commit]
     else
        [true , last_commit]
+    end
+  end
+
+  def clean_old_cache(name, git, commit)
+    request = Cache.download_request(name, {:git => git, :commit => commit})
+    destination = Cache.path_for_pod(request, {})
+    cache_pod_spec = Cache.path_for_spec(request, {})
+    if File.exist?(destination)
+      FileUtils.rm_rf(destination)
+    end
+    if File.exist?(cache_pod_spec)
+      FileUtils.rm_rf(cache_pod_spec)
     end
   end
 
@@ -60,12 +89,11 @@ class Cache
 
   def self.get_local_spec(request, target)
     result = Pod::Downloader::Response.new
-    # result.checkout_options = download_source(target, request.params)
     result.location = target
-    local_specs = nil
     if request.released_pod?
       result.spec = request.spec
       local_specs = { request.name => request.spec }
+      return [request, local_specs]
     else
       local_specs = {}
       podspecs = Pod::Sandbox::PodspecFinder.new(target).podspecs
@@ -110,10 +138,8 @@ class Cache
     end
   end
 
-  def self.cache_pod(name, file_path, options = {})
-
-    target = Pathname(file_path)
-    request = download_request(name, options)
+  def self.cache_pod(name, target, options = {})
+    request = Cache.download_request(name, options)
     result, pods_pecs = get_local_spec(request, target)
     result.location = nil
     pods_pecs.each do |s_name, s_spec|
@@ -126,6 +152,26 @@ class Cache
       end
     end
 
+  end
+
+  # 根据下载参数生产缓存的路径
+  def get_download_path(name, git, branch)
+    request = Cache.download_request(name, {:git => git, :branch => branch})
+    self.slug(name, request.params, nil )
+  end
+
+  def slug(name, params, spec)
+    path = FileManager.download_pod_path(name).to_path
+    checksum = spec && spec.checksum && '-' << spec.checksum[0, 5]
+    opts = params.to_a.sort_by(&:first).map { |k, v| "#{k}=#{v}" }.join('-')
+    digest = Digest::MD5.hexdigest(opts)
+    if digest
+      path += "/#{digest}"
+    end
+    if checksum
+      path += "/#{checksum}"
+    end
+    path
   end
 
 end

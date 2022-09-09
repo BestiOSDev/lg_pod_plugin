@@ -44,7 +44,7 @@ module LgPodPlugin
         h = { git: git, tag: tag }
       elsif git && branch
         # branch is not supported for binary
-        puts("prepare pod name `#{name}`\n")
+        puts "prepare pod name `#{name}`\n"
         h = { git: git, branch: branch, depth: depth }
       else
         puts("VirusFile is not valid, `#{name}` will not be required\n")

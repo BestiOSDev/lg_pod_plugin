@@ -15,7 +15,7 @@ Gem::Specification.new do |spec|
   spec.files = Dir["lib/**/*.rb"] + %w{ README.md LICENSE }
   # spec.executables   = %w{ lg_pod_plugin }
   spec.require_paths = %w{ lib }
-
+  spec.add_development_dependency 'sqlite3', '1.4.4'
   spec.add_development_dependency 'bacon', '~> 1.1'
   spec.add_development_dependency 'bundler', '~> 2.0'
   spec.add_development_dependency 'rake', '13.0.6'

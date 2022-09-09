@@ -1,27 +1,33 @@
 require 'pp'
 require 'git'
+require 'sqlite3'
 require 'cocoapods'
+require_relative 'database'
+require_relative 'download'
+require_relative 'git_util'
 require_relative 'pod_spec.rb'
-require_relative 'git_clone.rb'
 
 module LgPodPlugin
   class Installer
-    def initialize(defined_in_file = nil, target, &block)
+    attr_accessor :downloader
+    attr_accessor :git_util
+    def initialize(defined_in_file = nil, profile, &block)
       @defined_in_file = defined_in_file
-      @target = target
+      @target = profile.send(:current_target_definition)
+      self.git_util = GitUtil.new
+      self.downloader = Downloader.new
       if block
         instance_eval(&block)
       end
-    end
-    # 预下载处理
-    def pre_download(name, options = {})
-      GitHelper.git_pre_downloading(name, options)
     end
 
     # @param [Object] name
     # @param [Hash] options
     # @return [Object] nil
     def pod(name, options = {})
+      unless name
+        raise StandardError, 'A dependency requires a name.'
+      end
       if options[0].is_a?(String)
         version = options[0].to_s
         @target.store_pod(name, version)
@@ -33,19 +39,11 @@ module LgPodPlugin
       commit = options[:commit]
       url = options[:git]
       branch = options[:branch]
-      depth = options[:depth]
-      hash_map = options
+      depth = options[:depth] ||= true
+
       # 找到本地组件库 执行 git pull
       if path && File.directory?(path)
-        Dir.chdir(path) do
-          GitHelper.install_local_pod(branch)
-        end
-        hash_map.delete(:tag)
-        hash_map.delete(:git)
-        hash_map.delete(:commit)
-        hash_map.delete(:branch)
-        # 安装本地私有组件库
-        @target.store_pod(name, hash_map)
+        self.install_local_pod(name, options)
         return
       end
 
@@ -60,14 +58,14 @@ module LgPodPlugin
       end
 
       # 根据 branch 下载代码
-      if depth && url && branch
+      if url && branch && depth
         hash_map.delete(:tag)
         hash_map.delete(:commit)
         hash_map.delete(:depth)
-        pre_download name, options
+        self.downloader.download_init(name, options)
+        self.downloader.pre_download_pod(self.git_util)
         @target.store_pod(name, hash_map)
       end
-
 
     end
 
@@ -86,6 +84,30 @@ module LgPodPlugin
         end
       end
 
+    end
+
+    private
+    def install_local_pod(name, options = {})
+      hash_map = options
+      path = options[:path]
+      branch = options[:branch]
+      unless Dir.exist?(path)
+        puts "no such file or directory at path => `#{path}`"
+        return
+      end
+      local_path = Pathname(path)
+      unless local_path.glob("*.git").empty?
+        puts "path => `#{local_path}` 找不到.git目录"
+      end
+      self.git_util.git_init(name, :branch => branch, :path => local_path)
+      self.git_util.git_local_pod_check
+      hash_map.delete(:tag)
+      hash_map.delete(:git)
+      hash_map.delete(:depth)
+      hash_map.delete(:commit)
+      hash_map.delete(:branch)
+      # 安装本地私有组件库
+      @target.store_pod(name, hash_map)
     end
 
   end
