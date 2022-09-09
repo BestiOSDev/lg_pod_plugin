@@ -154,6 +154,7 @@ class Cache
       destination = path_for_pod(request, {})
       if !File.exist?(destination) || is_update
         copy_and_clean(target, destination, s_spec)
+        puts "Copying #{name} from `#{target}` to `#{destination}` "
       end
       cache_pod_spec = path_for_spec(request, {})
       if !File.exist?(cache_pod_spec) || is_update

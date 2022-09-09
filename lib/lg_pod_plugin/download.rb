@@ -51,6 +51,7 @@ module  LgPodPlugin
       self.git_util = git
       is_update = self.is_update_pod
       self.git_util.git_init(self.name, self.options)
+      puts "prepare pod name `#{name}`\n"
       # if name == "LAddressComponents" || name == "LLogger" || name == "LUnityFramework" || name == "LUser"
       #   pp name
       # end
