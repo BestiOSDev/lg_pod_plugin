@@ -36,6 +36,12 @@ class Cache
       if find_branch
         last_commit = find_branch[:sha]
       end
+    else
+      local_pod_path = self.get_download_path(name, git, branch)
+      if Dir.exist?(local_pod_path)
+        local_git = Git.open(Pathname("#{local_pod_path}"))
+        last_commit = local_git.log(1).to_s
+      end
     end
     unless last_commit
       return [true , nil]
