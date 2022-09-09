@@ -26,6 +26,22 @@ module  LgPodPlugin
       self.commit = options[:commit]
     end
 
+    def is_update_pod
+      cgi = CGI.new
+      command_keys = cgi.keys
+      unless command_keys.count > 0
+        return false
+      end
+      first_key = command_keys[0].to_s ||= ""
+      if first_key.include?("install")
+        false
+      elsif first_key.include?("update")
+        true
+      else
+        false
+      end
+    end
+
     def check_cache_valid(name, branch)
       self.db.should_clean_pod_info(name, branch)
     end
@@ -33,24 +49,27 @@ module  LgPodPlugin
     # 预下载处理
     def pre_download_pod(git)
       self.git_util = git
+      is_update = self.is_update_pod
       self.git_util.git_init(self.name, self.options)
-      if name == "LAddressComponents" || name == "LLogger" || name == "LUnityFramework" || name == "LUser"
-        pp name
-      end
+      # if name == "LAddressComponents" || name == "LLogger" || name == "LUnityFramework" || name == "LUser"
+      #   pp name
+      # end
       # tag = options[:tag]
       git_url = options[:git]
       # commit = options[:commit]
       branch = options[:branch]
 
       # 发现本地有缓存, 不需要更新缓存
-      need_download, new_commit = self.cache.find_pod_cache(name, git_url, branch)
+      need_download, new_commit = self.cache.find_pod_cache(name, git_url, branch, is_update)
       unless need_download
         puts "find the cache of `#{name}`, you can use it now."
         return
       end
 
       # 检查是否要清空缓存
-      check_cache_valid(name, branch)
+      if is_update
+        check_cache_valid(name, branch)
+      end
 
       # 本地 git 下载 pod 目录
       pre_down_load_path = self.cache.get_download_path(name, git_url, branch)
@@ -69,7 +88,7 @@ module  LgPodPlugin
       current_branch = git.current_branch
       if current_branch == branch # 要 clone 的分支正好等于当前分支
         current_commit = git.log(1).to_s
-        if new_commit != current_commit
+        if new_commit != current_commit && is_update
           #删除旧的pod 缓存
           self.cache.clean_old_cache(name, git_url, current_commit)
           puts "git pull #{name} origin/#{current_branch}\n"
@@ -81,7 +100,7 @@ module  LgPodPlugin
           hash_map[:commit] = current_commit
         end
         SqliteDb.instance.insert_table(name, branch, current_commit, nil, real_pod_path)
-        LgPodPlugin::Cache.cache_pod(name,real_pod_path, hash_map)
+        LgPodPlugin::Cache.cache_pod(name,real_pod_path,is_update,hash_map)
       else
         branch_exist = git.branches.local.find {|e| e.to_s == branch}
         if branch_exist
@@ -102,7 +121,7 @@ module  LgPodPlugin
           hash_map[:commit] = current_commit
         end
         SqliteDb.instance.insert_table(name, branch, current_commit, nil, real_pod_path)
-        LgPodPlugin::Cache.cache_pod(name,real_pod_path, hash_map)
+        LgPodPlugin::Cache.cache_pod(name,real_pod_path,is_update,hash_map)
       end
 
 

@@ -1,5 +1,6 @@
 require 'pp'
 require 'git'
+require 'cgi'
 require 'sqlite3'
 require 'cocoapods'
 require_relative 'database'

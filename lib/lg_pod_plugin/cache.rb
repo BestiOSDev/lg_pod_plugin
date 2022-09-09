@@ -28,12 +28,14 @@ class Cache
   end
 
   #判断缓存是否存在且有效命中缓存
-  def find_pod_cache(name ,git, branch)
+  def find_pod_cache(name ,git, branch, is_update)
     last_commit = nil
-    ls = Git.ls_remote(git, :refs => true )
-    find_branch = ls["branches"][branch]
-    if find_branch
-      last_commit = find_branch[:sha]
+    if is_update
+      ls = Git.ls_remote(git, :refs => true )
+      find_branch = ls["branches"][branch]
+      if find_branch
+        last_commit = find_branch[:sha]
+      end
     end
     unless last_commit
       return [true , nil]
@@ -138,18 +140,23 @@ class Cache
     end
   end
 
-  def self.cache_pod(name, target, options = {})
+  def self.cache_pod(name, target, is_update, options = {})
     request = Cache.download_request(name, options)
     result, pods_pecs = get_local_spec(request, target)
     result.location = nil
     pods_pecs.each do |s_name, s_spec|
       destination = path_for_pod(request, {})
-      copy_and_clean(target, destination, s_spec)
+      if !File.exist?(destination) || is_update
+        copy_and_clean(target, destination, s_spec)
+      end
       cache_pod_spec = path_for_spec(request, {})
-      write_spec(s_spec, cache_pod_spec)
+      if !File.exist?(cache_pod_spec) || is_update
+        write_spec(s_spec, cache_pod_spec)
+      end
       if request.name == s_name
         result.location = destination
       end
+
     end
 
   end
@@ -162,7 +169,7 @@ class Cache
 
   def slug(name, params, spec)
     path = FileManager.download_pod_path(name).to_path
-    checksum = spec && spec.checksum && '-' << spec.checksum[0, 5]
+    checksum = spec&.checksum && '-' << spec.checksum[0, 5]
     opts = params.to_a.sort_by(&:first).map { |k, v| "#{k}=#{v}" }.join('-')
     digest = Digest::MD5.hexdigest(opts)
     if digest
