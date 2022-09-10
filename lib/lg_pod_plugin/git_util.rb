@@ -36,11 +36,11 @@ module LgPodPlugin
     end
 
     def git_checkout(path, options = {})
-      system("git checkout -b #{branch}")
+        system("git checkout -b #{branch}")
     end
-
+    
     def git_switch(path, options = {})
-      system("git switch #{branch}")
+        system("git switch #{branch}")
     end
 
     #noinspection RubyNilAnalysis
@@ -109,8 +109,8 @@ module LgPodPlugin
     def should_pull(git, branch, new_commit = nil)
       git_url = git.remote.url
       if new_commit == nil
-        ls = Git.ls_remote(git_url, :refs => true)
-        new_commit = ls["branches"][branch][:sha] #远程仓库最新一条 commit hash 值
+        puts "git ls-remote #{git_url} #{branch}"
+        new_commit = %x(git ls-remote #{git_url} #{branch}).split(" ").first
       end
       local_commit = git.log(1).to_s  #本地最后一条 commit hash 值
       if local_commit != new_commit

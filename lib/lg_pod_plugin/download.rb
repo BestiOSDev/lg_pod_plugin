@@ -1,7 +1,6 @@
 require 'git'
-# require 'cocoapods'
-require_relative 'database.rb'
 require_relative 'cache.rb'
+require_relative 'database.rb'
 require_relative 'file_path.rb'
 
 module  LgPodPlugin
@@ -51,7 +50,6 @@ module  LgPodPlugin
       self.git_util = git
       is_update = self.is_update_pod
       self.git_util.git_init(self.name, self.options)
-      puts "prepare pod name `#{name}`\n"
       # if name == "LAddressComponents" || name == "LLogger" || name == "LUnityFramework" || name == "LUser"
       #   pp name
       # end
@@ -59,6 +57,7 @@ module  LgPodPlugin
       git_url = options[:git]
       # commit = options[:commit]
       branch = options[:branch]
+      puts "Pre-downloading: `#{name}` \n"
 
       # 发现本地有缓存, 不需要更新缓存
       need_download, new_commit = self.cache.find_pod_cache(name, git_url, branch, is_update)

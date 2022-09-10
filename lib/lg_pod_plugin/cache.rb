@@ -1,5 +1,4 @@
 require 'git'
-require 'cocoapods/sandbox'
 require 'cocoapods/downloader.rb'
 require 'cocoapods/downloader/cache.rb'
 require 'cocoapods/downloader/response.rb'
@@ -18,7 +17,6 @@ module LgPodPlugin
       super
     end
 
-
   end
 
 class Cache
@@ -30,11 +28,18 @@ class Cache
   #判断缓存是否存在且有效命中缓存
   def find_pod_cache(name ,git, branch, is_update)
     last_commit = nil
+
     if is_update
-      ls = Git.ls_remote(git, :refs => true )
-      find_branch = ls["branches"][branch]
-      if find_branch
-        last_commit = find_branch[:sha]
+      puts "git ls-remote #{git} #{branch}"
+      sha = %x(git ls-remote #{git} #{branch}).split(" ").first
+      if sha
+        last_commit = sha
+      else
+        ls = Git.ls_remote(git, :refs => true )
+        find_branch = ls["branches"][branch]
+        if find_branch
+          last_commit = find_branch[:sha]
+        end
       end
     else
       local_pod_path = self.get_download_path(name, git, branch)
@@ -145,7 +150,7 @@ class Cache
       path.open('w') { |f| f.write spec.to_pretty_json }
     end
   end
-
+  # 拷贝 pod 缓存文件到 sandbox
   def self.cache_pod(name, target, is_update, options = {})
     request = Cache.download_request(name, options)
     result, pods_pecs = get_local_spec(request, target)
@@ -153,8 +158,8 @@ class Cache
     pods_pecs.each do |s_name, s_spec|
       destination = path_for_pod(request, {})
       if !File.exist?(destination) || is_update
-        copy_and_clean(target, destination, s_spec)
         puts "Copying #{name} from `#{target}` to `#{destination}` "
+        copy_and_clean(target, destination, s_spec)
       end
       cache_pod_spec = path_for_spec(request, {})
       if !File.exist?(cache_pod_spec) || is_update
@@ -174,6 +179,7 @@ class Cache
     self.slug(name, request.params, nil )
   end
 
+  # 根据下载参数生产缓存目录
   def slug(name, params, spec)
     path = FileManager.download_pod_path(name).to_path
     checksum = spec&.checksum && '-' << spec.checksum[0, 5]
