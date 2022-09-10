@@ -18,7 +18,7 @@ module LgPodPlugin
         FileUtils.touch("my.db")
       end
       # FileUtils.chdir(root_path)
-      self.db = SQLite3::Database.new(db_file_path)
+      self.db = SQLite3::Database.new(db_file_path.to_path)
       #添加表
       # sql = "create table IF NOT EXISTS LgPodTable (id integer primary key autoincrement not null, name varchar(100), branch varchar(100), commit varchar(100));"
       sql = "create table if not exists lg_pod_table(
