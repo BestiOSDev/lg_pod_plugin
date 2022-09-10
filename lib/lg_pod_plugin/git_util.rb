@@ -27,19 +27,20 @@ module LgPodPlugin
     def git_clone(path)
       if self.branch
         temp_git_path = path.join("l-temp-pod")
-        puts "git clone #{name} #{self.branch} #{self.git}"
-        Git.clone(self.git, temp_git_path,branch: self.branch, depth: 1)
+        puts "git clone --template= --single-branch --depth 1 --branch #{self.branch} #{self.git}\n"
+        system("git clone --template= --single-branch --depth 1 --branch #{self.branch} #{self.git} #{temp_git_path}")
+        puts "\n"
         temp_git_path
       else
          nil
       end
     end
 
-    def git_checkout(path, options = {})
+    def git_checkout(branch)
         system("git checkout -b #{branch}")
     end
     
-    def git_switch(path, options = {})
+    def git_switch(branch)
         system("git switch #{branch}")
     end
 
@@ -73,8 +74,6 @@ module LgPodPlugin
       temp_path.rmdir
       lg_pod_path
     end
-
-    # 本地组件库切换 git 分支操作
 
     # 本地pod库git操作
     def git_local_pod_check

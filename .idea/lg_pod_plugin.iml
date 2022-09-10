@@ -30,6 +30,8 @@
     <orderEntry type="library" scope="PROVIDED" name="cocoapods-try (v1.2.0, ruby-2.6.8-p205) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="colored2 (v3.1.2, ruby-2.6.8-p205) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="concurrent-ruby (v1.1.10, ruby-2.6.8-p205) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="debase (v2.3.8, ruby-2.6.8-p205) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="debase-ruby_core_source (v0.10.16, ruby-2.6.8-p205) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="diff-lcs (v1.5.0, ruby-2.6.8-p205) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="escape (v0.0.4, ruby-2.6.8-p205) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="ethon (v0.15.0, ruby-2.6.8-p205) [gem]" level="application" />
@@ -61,7 +63,7 @@
     <orderEntry type="library" scope="PROVIDED" name="rspec-support (v3.11.0, ruby-2.6.8-p205) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rubocop (v1.35.1, ruby-2.6.8-p205) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rubocop-ast (v1.21.0, ruby-2.6.8-p205) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="ruby-debug-ide (v0.7.3, ruby-2.6.8-p205) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="ruby-debug-ide (v2.3.8, ruby-2.6.8-p205) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="ruby-macho (v2.5.1, ruby-2.6.8-p205) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="ruby-progressbar (v1.11.0, ruby-2.6.8-p205) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="typhoeus (v1.4.0, ruby-2.6.8-p205) [gem]" level="application" />
@@ -72,35 +74,7 @@
   </component>
   <component name="RakeTasksCache">
     <option name="myRootTask">
-      <RakeTaskImpl id="rake">
-        <subtasks>
-          <RakeTaskImpl description="Build lg_pod_plugin-0.1.0.gem into the pkg directory" fullCommand="build" id="build" />
-          <RakeTaskImpl id="build">
-            <subtasks>
-              <RakeTaskImpl description="Generate SHA512 checksum if lg_pod_plugin-0.1.0.gem into the checksums directory" fullCommand="build:checksum" id="checksum" />
-            </subtasks>
-          </RakeTaskImpl>
-          <RakeTaskImpl description="Remove any temporary products" fullCommand="clean" id="clean" />
-          <RakeTaskImpl description="Remove any generated files" fullCommand="clobber" id="clobber" />
-          <RakeTaskImpl description="Build and install lg_pod_plugin-0.1.0.gem into system gems" fullCommand="install" id="install" />
-          <RakeTaskImpl id="install">
-            <subtasks>
-              <RakeTaskImpl description="Build and install lg_pod_plugin-0.1.0.gem into system gems without network access" fullCommand="install:local" id="local" />
-            </subtasks>
-          </RakeTaskImpl>
-          <RakeTaskImpl description="Create tag v0.1.0 and build and push lg_pod_plugin-0.1.0.gem to rubygems.org" fullCommand="release[remote]" id="release[remote]" />
-          <RakeTaskImpl description="Run RSpec code examples" fullCommand="spec" id="spec" />
-          <RakeTaskImpl description="" fullCommand="default" id="default" />
-          <RakeTaskImpl description="" fullCommand="release" id="release" />
-          <RakeTaskImpl id="release">
-            <subtasks>
-              <RakeTaskImpl description="" fullCommand="release:guard_clean" id="guard_clean" />
-              <RakeTaskImpl description="" fullCommand="release:rubygem_push" id="rubygem_push" />
-              <RakeTaskImpl description="" fullCommand="release:source_control_push" id="source_control_push" />
-            </subtasks>
-          </RakeTaskImpl>
-        </subtasks>
-      </RakeTaskImpl>
+      <RakeTaskImpl id="rake" />
     </option>
   </component>
 </module>
