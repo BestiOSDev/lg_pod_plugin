@@ -81,7 +81,7 @@ module LgPodPlugin
       git = Git.open(Pathname("./"))
       current_branch = git.current_branch
       last_stash_message = "#{current_branch}_pod_install_cache"
-      if self.branch == current_branch
+      if self.branch == current_branch || !self.branch
         # 是否恢复储藏内容到暂存区
         self.should_pull(git ,current_branch)
       else
