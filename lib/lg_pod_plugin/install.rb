@@ -44,8 +44,10 @@ module LgPodPlugin
       url = options[:git]
       branch = options[:branch]
       depth = options[:depth] ||= true
-      real_path = Pathname(path).expand_path
-      # real_path = File.expand_path(path, profile_path)
+      real_path = nil
+      if path
+        real_path = Pathname(path).expand_path
+      end
       # 找到本地组件库 执行 git pull
       if real_path && File.directory?(real_path)
         self.install_local_pod(name, options)
