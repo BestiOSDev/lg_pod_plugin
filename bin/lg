@@ -3,6 +3,6 @@ puts "这是我的第一个ruby项目"
 puts ENV["NAME"]
 puts ARGV
 
-require  'command/command'
-
-LgPodPlugin::Command.run(ARGV)
+# require  'command/command'
+#
+# LgPodPlugin::Command.run(ARGV)

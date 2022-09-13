@@ -19,6 +19,6 @@ module LgPodPlugin
     return Installer.new(profile).install_form_specs(spec_path)
   end
 
-  autoload :Command, '../lib/command/command'
+  # autoload :Command, '../lib/command/command'
 end
 

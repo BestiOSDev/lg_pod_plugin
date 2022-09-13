@@ -28,7 +28,6 @@ class Cache
   #判断缓存是否存在且有效命中缓存
   def find_pod_cache(name ,git, branch, is_update)
     last_commit = nil
-
     if is_update
       puts "git ls-remote #{git} #{branch}"
       sha = %x(git ls-remote #{git} #{branch}).split(" ").first
@@ -46,6 +45,12 @@ class Cache
       if Dir.exist?(local_pod_path)
         local_git = Git.open(Pathname("#{local_pod_path}"))
         last_commit = local_git.log(1).to_s
+      else
+        puts "git ls-remote #{git} #{branch}"
+        sha = %x(git ls-remote #{git} #{branch}).split(" ").first
+        if sha
+          last_commit = sha
+        end
       end
     end
     unless last_commit
