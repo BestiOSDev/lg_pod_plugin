@@ -29,28 +29,14 @@ class Cache
   def find_pod_cache(name ,git, branch, is_update)
     last_commit = nil
     if is_update
-      puts "git ls-remote #{git} #{branch}"
-      sha = %x(git ls-remote #{git} #{branch}).split(" ").first
-      if sha
-        last_commit = sha
-      else
-        ls = Git.ls_remote(git, :refs => true )
-        find_branch = ls["branches"][branch]
-        if find_branch
-          last_commit = find_branch[:sha]
-        end
-      end
+      last_commit = GitUtil.git_ls_remote_refs(git, branch)
     else
       local_pod_path = self.get_download_path(name, git, branch)
       if Dir.exist?(local_pod_path)
         local_git = Git.open(Pathname("#{local_pod_path}"))
         last_commit = local_git.log(1).to_s
       else
-        puts "git ls-remote #{git} #{branch}"
-        sha = %x(git ls-remote #{git} #{branch}).split(" ").first
-        if sha
-          last_commit = sha
-        end
+        last_commit = GitUtil.git_ls_remote_refs(git, branch)
       end
     end
     unless last_commit

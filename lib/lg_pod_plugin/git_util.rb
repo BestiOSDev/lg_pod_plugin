@@ -104,12 +104,27 @@ module LgPodPlugin
       end
     end
 
+    # 获取最新的一条 commit 信息
+    def self.git_ls_remote_refs(git, branch)
+      last_commit = nil
+      puts "git ls-remote #{git} #{branch}"
+      sha = %x(git ls-remote #{git} #{branch}).split(" ").first
+      if sha
+        last_commit = sha
+      else
+        ls = Git.ls_remote(git, :refs => true )
+        find_branch = ls["branches"][branch]
+        if find_branch
+          last_commit = find_branch[:sha]
+        end
+      end
+    end
+
     # 是否pull 代码
     def should_pull(git, branch, new_commit = nil)
       git_url = git.remote.url
       if new_commit == nil
-        puts "git ls-remote #{git_url} #{branch}"
-        new_commit = %x(git ls-remote #{git_url} #{branch}).split(" ").first
+        new_commit = GitUtil.git_ls_remote_refs(git_url, branch)
       end
       local_commit = git.log(1).to_s  #本地最后一条 commit hash 值
       if local_commit != new_commit
