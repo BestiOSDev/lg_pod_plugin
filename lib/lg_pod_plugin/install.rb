@@ -10,11 +10,12 @@ require_relative 'pod_spec.rb'
 
 module LgPodPlugin
   class Installer
+    attr_accessor :target
     attr_accessor :downloader
     attr_accessor :git_util
-    def initialize(defined_in_file = nil, profile, &block)
+    def initialize(defined_in_file = nil, target, &block)
       @defined_in_file = defined_in_file
-      @target = profile.send(:current_target_definition)
+      self.target = target
       self.git_util = GitUtil.new
       self.downloader = Downloader.new
       if block

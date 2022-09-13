@@ -50,9 +50,9 @@ module  LgPodPlugin
       self.git_util = git
       is_update = self.is_update_pod
       self.git_util.git_init(self.name, self.options)
-      # if name == "LAddressComponents" || name == "LLogger" || name == "LUnityFramework" || name == "LUser"
-      #   pp name
-      # end
+      if name == "LBase" || name == "LLogger" || name == "LUnityFramework" || name == "LUser"
+        pp name
+      end
       # tag = options[:tag]
       git_url = options[:git]
       # commit = options[:commit]
