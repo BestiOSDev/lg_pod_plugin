@@ -10,14 +10,16 @@ require_relative 'pod_spec.rb'
 
 module LgPodPlugin
   class Installer
+    attr_accessor :profile
     attr_accessor :target
     attr_accessor :downloader
     attr_accessor :git_util
-    def initialize(defined_in_file = nil, target, &block)
+    def initialize(defined_in_file = nil, profile, &block)
       @defined_in_file = defined_in_file
-      self.target = target
+      self.profile = profile
       self.git_util = GitUtil.new
       self.downloader = Downloader.new
+      self.target = profile.send(:current_target_definition)
       if block
         instance_eval(&block)
       end
@@ -42,9 +44,10 @@ module LgPodPlugin
       url = options[:git]
       branch = options[:branch]
       depth = options[:depth] ||= true
-
+      real_path = Pathname(path).expand_path
+      # real_path = File.expand_path(path, profile_path)
       # 找到本地组件库 执行 git pull
-      if path && File.directory?(path)
+      if real_path && File.directory?(real_path)
         self.install_local_pod(name, options)
         return
       end
