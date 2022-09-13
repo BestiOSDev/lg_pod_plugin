@@ -45,8 +45,9 @@ module LgPodPlugin
       branch = options[:branch]
       depth = options[:depth] ||= true
       real_path = nil
-      if path
-        real_path = Pathname(path).expand_path
+      if  path
+        profile_path = self.profile.send(:defined_in_file).dirname
+        real_path = Pathname.new(path).expand_path(profile_path)
       end
       # 找到本地组件库 执行 git pull
       if real_path && File.directory?(real_path)
