@@ -34,7 +34,7 @@ module LgPodPlugin
       end
       if options[0].is_a?(String)
         version = options[0].to_s
-        @target.store_pod(name, version)
+        self.target.store_pod(name, version)
         return
       end
 
@@ -61,7 +61,7 @@ module LgPodPlugin
       if tag || commit
         hash_map.delete(:branch)
         hash_map.delete(:depth)
-        @target.store_pod(name, hash_map)
+        self.target.store_pod(name, hash_map)
         return
       end
 
@@ -72,7 +72,7 @@ module LgPodPlugin
         hash_map.delete(:depth)
         self.downloader.download_init(name, options)
         self.downloader.pre_download_pod(self.git_util)
-        @target.store_pod(name, hash_map)
+        self.target.store_pod(name, hash_map)
       end
 
     end
@@ -115,7 +115,7 @@ module LgPodPlugin
       hash_map.delete(:commit)
       hash_map.delete(:branch)
       # 安装本地私有组件库
-      @target.store_pod(name, hash_map)
+      self.target.store_pod(name, hash_map)
     end
 
   end
