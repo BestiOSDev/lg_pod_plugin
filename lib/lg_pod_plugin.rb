@@ -1,6 +1,7 @@
 require 'git'
 require 'sqlite3'
 require "lg_pod_plugin/version"
+require 'cocoapods/user_interface'
 require_relative 'lg_pod_plugin/database'
 require_relative 'lg_pod_plugin/download'
 require_relative 'lg_pod_plugin/git_util'
@@ -10,17 +11,59 @@ require 'cocoapods-core/podfile/target_definition'
 
 module LgPodPlugin
 
+  class String
+    # colorization
+    def colorize(color_code)
+      "\e[#{color_code}m#{self}\e[0m"
+    end
+
+    def red
+      colorize(31)
+    end
+
+    def green
+      colorize(32)
+    end
+
+    def yellow
+      colorize(33)
+    end
+
+    def blue
+      colorize(34)
+    end
+
+    def pink
+      colorize(35)
+    end
+
+    def light_blue
+      colorize(36)
+    end
+  end
+
   class Error < StandardError; end
-  # 在已经存在target下边安装pod
-  def self.install(defined_in_file = nil, profile, &block)
-     Installer.new(defined_in_file, profile, &block)
+
+  def self.log_red(msg)
+    Pod::CoreUI.puts msg.red
   end
 
-  # 通过spec文件安装
-  def self.install_form_spec(profile, spec_path = nil)
-    return Installer.new(profile).install_form_specs(spec_path)
+  def self.log_blue(msg)
+    Pod::CoreUI.puts msg.blue
   end
 
-  # autoload :Command, '../lib/command/command'
+  def self.log_green(msg)
+    Pod::CoreUI.puts msg.green
+  end
+
+  def self.log(msg)
+    Pod::CoreUI.puts msg
+  end
+
+  # 对 Profile 方法进行拓展
+  def pod(name, *requirements)
+    Installer.new(self, name, requirements)
+  end
+
 end
 

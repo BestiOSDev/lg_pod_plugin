@@ -149,7 +149,7 @@ class Cache
     pods_pecs.each do |s_name, s_spec|
       destination = path_for_pod(request, {})
       if !File.exist?(destination) || is_update
-        puts "Copying #{name} from `#{target}` to `#{destination}` "
+        LgPodPlugin.log_green "Copying #{name} from `#{target}` to `#{destination}` "
         copy_and_clean(target, destination, s_spec)
       end
       cache_pod_spec = path_for_spec(request, {})

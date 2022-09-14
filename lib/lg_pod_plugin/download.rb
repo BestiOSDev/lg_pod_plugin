@@ -3,7 +3,7 @@ require_relative 'cache.rb'
 require_relative 'database.rb'
 require_relative 'file_path.rb'
 
-module  LgPodPlugin
+module LgPodPlugin
 
   class Downloader
     attr_accessor :git_util
@@ -57,12 +57,11 @@ module  LgPodPlugin
       git_url = options[:git]
       # commit = options[:commit]
       branch = options[:branch]
-      puts "Using `#{name}` (#{branch})\n"
-
+      LgPodPlugin.log_green "Using `#{name}` (#{branch})"
       # 发现本地有缓存, 不需要更新缓存
       need_download, new_commit = self.cache.find_pod_cache(name, git_url, branch, is_update)
       unless need_download
-        puts "find the cache of `#{name}`, you can use it now."
+        LgPodPlugin.log_green "find the cache of `#{name}`, you can use it now."
         return
       end
 
@@ -91,7 +90,7 @@ module  LgPodPlugin
         if new_commit != current_commit && is_update
           #删除旧的pod 缓存
           self.cache.clean_old_cache(name, git_url, current_commit)
-          puts "git pull #{name} origin/#{current_branch}\n"
+          LgPodPlugin.log_green "git pull #{name} origin/#{current_branch}"
           self.git_util.should_pull(git, current_branch, new_commit)
           current_commit = new_commit
         end
@@ -104,15 +103,15 @@ module  LgPodPlugin
       else
         branch_exist = git.branches.local.find {|e| e.to_s == branch}
         if branch_exist
-          puts "git switch #{name} #{git_url} -b #{branch}\n"
+          LgPodPlugin.log_green "git switch #{name} #{git_url} -b #{branch}"
           self.git_util.git_switch(branch)
         else
-          puts "git checkout  #{name} #{git_url} -b #{branch}\n"
+          LgPodPlugin.log_green "git checkout  #{name} #{git_url} -b #{branch}"
           self.git_util.git_checkout(branch)
         end
         current_commit = git.log(1).to_s
         if current_commit != new_commit
-          puts "git pull  #{name} #{git_url} -b #{branch}\n"
+          LgPodPlugin.log_green "git pull  #{name} #{git_url} -b #{branch}"
           self.git_util.should_pull(git, current_branch, new_commit)
           current_commit = new_commit
         end

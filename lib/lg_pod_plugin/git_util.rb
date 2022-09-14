@@ -27,9 +27,8 @@ module LgPodPlugin
     def git_clone(path)
       if self.branch
         temp_git_path = path.join("l-temp-pod")
-        puts "git clone --template= --single-branch --depth 1 --branch #{self.branch} #{self.git}\n"
+        LgPodPlugin.log_blue "git clone --template= --single-branch --depth 1 --branch #{self.branch} #{self.git}"
         system("git clone --template= --single-branch --depth 1 --branch #{self.branch} #{self.git} #{temp_git_path}")
-        puts "\n"
         temp_git_path
       else
          nil
@@ -76,8 +75,8 @@ module LgPodPlugin
     end
 
     # 本地pod库git操作
-    def git_local_pod_check
-      FileUtils.chdir(self.path)
+    def git_local_pod_check(path)
+      FileUtils.chdir(path)
       git = Git.open(Pathname("./"))
       current_branch = git.current_branch
       last_stash_message = "#{current_branch}_pod_install_cache"
@@ -107,16 +106,19 @@ module LgPodPlugin
     # 获取最新的一条 commit 信息
     def self.git_ls_remote_refs(git, branch)
       last_commit = nil
-      puts "git ls-remote #{git} #{branch}"
+      LgPodPlugin.log_green "git ls-remote #{git} #{branch}"
       sha = %x(git ls-remote #{git} #{branch}).split(" ").first
       if sha
         last_commit = sha
+        return last_commit
       else
         ls = Git.ls_remote(git, :refs => true )
         find_branch = ls["branches"][branch]
         if find_branch
           last_commit = find_branch[:sha]
+          return last_commit
         end
+        return nil
       end
     end
 
