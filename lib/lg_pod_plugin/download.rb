@@ -6,11 +6,8 @@ require_relative 'file_path'
 module LgPodPlugin
 
   class Downloader
-    # attr_accessor :git_util
-    # attr_accessor :db
-    # attr_accessor :cache
-    #
-    REQUIRED_ATTRS ||= %i[git name commit branch tag options git_util db cache].freeze
+
+    REQUIRED_ATTRS ||= %i[git name commit branch tag options git_util db cache is_cache].freeze
     attr_accessor(*REQUIRED_ATTRS)
     def initialize
       self.cache = Cache.new
@@ -24,6 +21,7 @@ module LgPodPlugin
       self.tag = options[:tag]
       self.branch = options[:branch]
       self.commit = options[:commit]
+      self.is_cache = options[:depth]
     end
 
     def is_update_pod
@@ -51,10 +49,6 @@ module LgPodPlugin
       self.git_util = git
       is_update = self.is_update_pod
       self.git_util.git_init(self.name, self.options)
-      # if name == "LBase" || name == "LLogger" || name == "LUnityFramework" || name == "LUser"
-      #   pp name
-      # end
-      # tag = options[:tag]
       git_url = options[:git]
       # commit = options[:commit]
       branch = options[:branch]
@@ -100,7 +94,7 @@ module LgPodPlugin
           hash_map[:commit] = current_commit
         end
         SqliteDb.instance.insert_table(name, branch, current_commit, nil, real_pod_path)
-        LgPodPlugin::Cache.cache_pod(name,real_pod_path,is_update,hash_map)
+        LgPodPlugin::Cache.cache_pod(name,real_pod_path, is_update, hash_map)
       else
         branch_exist = git.branches.local.find {|e| e.to_s == branch}
         if branch_exist

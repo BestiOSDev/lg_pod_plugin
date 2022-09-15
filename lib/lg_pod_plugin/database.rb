@@ -53,7 +53,7 @@ module LgPodPlugin
         self.delete_table(current_pod.name, current_pod.branch)
       end
       array = self.select_tables(name, branch)
-      if array.count <= 1
+      if array.count <= 2
         return
       end
 

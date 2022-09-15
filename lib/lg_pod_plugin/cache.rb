@@ -48,9 +48,9 @@ class Cache
     destination = Cache.path_for_pod(request, {})
     cache_pod_spec = Cache.path_for_spec(request, {})
     if File.exist?(destination) && File.exist?(cache_pod_spec)
-       [false , last_commit]
+      [false , last_commit]
     else
-       [true , last_commit]
+      [true , last_commit]
     end
   end
 

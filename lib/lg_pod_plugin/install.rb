@@ -11,14 +11,7 @@ require_relative 'pod_spec'
 module LgPodPlugin
 
   class Installer
-    # attr_accessor :name
-    # attr_accessor :version
-    # attr_accessor :options
-    # attr_accessor :profile
-    # attr_accessor :target
-    # attr_accessor :real_name
-    # attr_accessor :downloader
-    # attr_accessor :git_util
+
     REQUIRED_ATTRS ||= %i[name version options profile target real_name downloader git_util].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
@@ -91,7 +84,7 @@ module LgPodPlugin
       path = hash_map[:path]
       commit = hash_map[:commit]
       branch = hash_map[:branch]
-      depth = hash_map[:depth] ||= true
+      is_cache = options[:depth]
       if path
         profile_path = self.profile.send(:defined_in_file).dirname
         real_path = Pathname.new(path).expand_path(profile_path)
@@ -113,12 +106,12 @@ module LgPodPlugin
       end
 
       # 根据 branch 下载代码
-      if url && branch && depth
+      if url && branch
         hash_map.delete(:tag)
         hash_map.delete(:commit)
-        hash_map.delete(:depth)
         self.downloader.download_init(self.name, options)
         self.downloader.pre_download_pod(self.git_util)
+        hash_map.delete(:depth)
         self.target.store_pod(self.real_name, hash_map)
       end
 

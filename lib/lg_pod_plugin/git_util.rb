@@ -1,5 +1,6 @@
 require 'pp'
 require 'git'
+require_relative 'cache'
 
 module LgPodPlugin
 
@@ -11,7 +12,7 @@ module LgPodPlugin
     # attr_accessor :commit
     # attr_accessor :branch
     # attr_accessor :temp_git_path
-    REQUIRED_ATTRS ||= %i[git tag path name commit branch temp_git_path].freeze
+    REQUIRED_ATTRS ||= %i[git tag path name commit branch temp_git_path is_cache].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
     def initialize
@@ -25,12 +26,13 @@ module LgPodPlugin
       self.path = options[:path]
       self.branch = options[:branch]
       self.commit = options[:commit]
+      self.is_cache = options[:depth]
     end
 
     def git_clone(path)
       if self.branch
         temp_git_path = path.join("l-temp-pod")
-        LgPodPlugin.log_blue "git clone --template= --single-branch --depth 1 --branch #{self.branch} #{self.git}"
+        LgPodPlugin.log_green "git clone --template= --single-branch --depth 1 --branch #{self.branch} #{self.git}"
         system("git clone --template= --single-branch --depth 1 --branch #{self.branch} #{self.git} #{temp_git_path}")
         temp_git_path
       else
@@ -56,7 +58,7 @@ module LgPodPlugin
       end
 
       FileUtils.chdir(root_path)
-      temp_path = root_path.join("tmp")
+      temp_path = root_path.join("temp")
       if temp_path.exist?
         FileUtils.rm_r(temp_path)
       end
@@ -68,13 +70,23 @@ module LgPodPlugin
       unless get_temp_folder.exist?
         return nil
       end
-      pod_root_director = FileManager.download_pod_path(name)
-      unless pod_root_director.exist?
-        FileUtils.mkdir(pod_root_director)
+
+      if self.is_cache
+        pod_root_director = FileManager.download_pod_path(name)
+        unless pod_root_director.exist?
+          FileUtils.mkdir(pod_root_director)
+        end
+        FileUtils.mv(get_temp_folder, lg_pod_path)
+        temp_path.rmdir
+        lg_pod_path
+      else
+        commit = GitUtil.git_ls_remote_refs(self.git, self.branch)
+        LgPodPlugin::Cache.cache_pod(self.name, get_temp_folder, true, {:git => self.git, :commit => commit})
+        system("cd ..")
+        system("rm -rf #{get_temp_folder.to_path}")
+        return lg_pod_path
       end
-      FileUtils.mv(get_temp_folder, lg_pod_path)
-      temp_path.rmdir
-      lg_pod_path
+
     end
 
     # 本地pod库git操作
