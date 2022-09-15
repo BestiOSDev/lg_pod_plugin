@@ -56,6 +56,10 @@ module LgPodPlugin
     Pod::CoreUI.puts msg.green
   end
 
+  def self.log_yellow(msg)
+    Pod::CoreUI.puts msg.yellow
+  end
+
   def self.log(msg)
     Pod::CoreUI.puts msg
   end

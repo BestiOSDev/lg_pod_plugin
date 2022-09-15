@@ -68,7 +68,9 @@ module LgPodPlugin
       end
 
       if self.version && self.options
-        self.target.store_pod(self.real_name, self.version, self.options)
+        hash_map = self.options
+        hash_map.delete(:depth)
+        self.target.store_pod(self.real_name, self.version, hash_map)
         return
       end
 
@@ -92,28 +94,30 @@ module LgPodPlugin
       # 找到本地组件库 执行 git pull
       if real_path && File.directory?(real_path)
         hash_map[:path] = real_path
+        hash_map.delete(:depth)
         self.install_local_pod(self.name, hash_map)
         return
       end
 
       # 根据tag, commit下载文件
       hash_map.delete(:path)
-      if tag || commit
-        hash_map.delete(:branch)
+      if (tag && url) || (commit && url)
         hash_map.delete(:depth)
+        hash_map.delete(:branch)
         self.target.store_pod(self.real_name, hash_map)
         return
       end
 
       # 根据 branch 下载代码
-      if url && branch
+      if url
         hash_map.delete(:tag)
         hash_map.delete(:commit)
-        self.downloader.download_init(self.name, options)
+        self.downloader.download_init(self.name, hash_map)
         self.downloader.pre_download_pod(self.git_util)
         hash_map.delete(:depth)
         self.target.store_pod(self.real_name, hash_map)
       end
+
 
     end
 

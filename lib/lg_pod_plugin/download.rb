@@ -9,19 +9,34 @@ module LgPodPlugin
 
     REQUIRED_ATTRS ||= %i[git name commit branch tag options git_util db cache is_cache].freeze
     attr_accessor(*REQUIRED_ATTRS)
+
     def initialize
       self.cache = Cache.new
       self.db = SqliteDb.instance
       super
     end
+
     def download_init(name, options = {})
+      hash_map = options
       self.name = name
-      self.options = options
-      self.git = options[:git]
-      self.tag = options[:tag]
-      self.branch = options[:branch]
-      self.commit = options[:commit]
-      self.is_cache = options[:depth]
+      self.git = hash_map[:git]
+      self.tag = hash_map[:tag]
+      self.branch = hash_map[:branch]
+      self.commit = hash_map[:commit]
+      self.is_cache = hash_map[:depth]
+      # 通过ls-remote获取 head 指向 branch
+      if !self.branch && self.git
+        ls = Git.ls_remote(self.git, :head => true)
+        head_ref = ls["head"][:sha]
+        ls["branches"].each do |key, value|
+          sha = value[:sha]
+          next if sha != head_ref
+          self.branch = key
+          hash_map[:branch] = key
+          break
+        end
+      end
+      self.options = hash_map
     end
 
     def is_update_pod
@@ -89,14 +104,14 @@ module LgPodPlugin
           self.git_util.should_pull(git, current_branch, new_commit)
           current_commit = new_commit
         end
-        hash_map = {:git => git_url}
+        hash_map = { :git => git_url }
         if current_commit
           hash_map[:commit] = current_commit
         end
         SqliteDb.instance.insert_table(name, branch, current_commit, nil, real_pod_path)
-        LgPodPlugin::Cache.cache_pod(name,real_pod_path, is_update, hash_map)
+        LgPodPlugin::Cache.cache_pod(name, real_pod_path, is_update, hash_map)
       else
-        branch_exist = git.branches.local.find {|e| e.to_s == branch}
+        branch_exist = git.branches.local.find { |e| e.to_s == branch }
         if branch_exist
           LgPodPlugin.log_green "git switch #{name} #{git_url} -b #{branch}"
           self.git_util.git_switch(branch)
@@ -110,14 +125,13 @@ module LgPodPlugin
           self.git_util.should_pull(git, current_branch, new_commit)
           current_commit = new_commit
         end
-        hash_map = {:git => git_url}
+        hash_map = { :git => git_url }
         if current_commit
           hash_map[:commit] = current_commit
         end
         SqliteDb.instance.insert_table(name, branch, current_commit, nil, real_pod_path)
-        LgPodPlugin::Cache.cache_pod(name,real_pod_path,is_update,hash_map)
+        LgPodPlugin::Cache.cache_pod(name, real_pod_path, is_update, hash_map)
       end
-
 
     end
 

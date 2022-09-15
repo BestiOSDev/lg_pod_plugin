@@ -32,7 +32,7 @@ module LgPodPlugin
     def git_clone(path)
       if self.branch
         temp_git_path = path.join("l-temp-pod")
-        LgPodPlugin.log_green "git clone --template= --single-branch --depth 1 --branch #{self.branch} #{self.git}"
+        LgPodPlugin.log_yellow "git clone --template= --single-branch --depth 1 --branch #{self.branch} #{self.git}"
         system("git clone --template= --single-branch --depth 1 --branch #{self.branch} #{self.git} #{temp_git_path}")
         temp_git_path
       else
@@ -121,7 +121,7 @@ module LgPodPlugin
     # 获取最新的一条 commit 信息
     def self.git_ls_remote_refs(git, branch)
       last_commit = nil
-      LgPodPlugin.log_green "git ls-remote #{git} #{branch}"
+      LgPodPlugin.log_yellow "git ls-remote #{git} #{branch}"
       sha = %x(git ls-remote #{git} #{branch}).split(" ").first
       if sha
         last_commit = sha
