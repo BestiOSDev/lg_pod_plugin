@@ -127,12 +127,45 @@ class Cache
   def self.copy_and_clean(source, destination, spec)
     specs_by_platform = group_sub_specs_by_platform(spec)
     destination.parent.mkpath
-    Pod::Downloader::Cache.write_lock(destination) do
+    self.write_lock(destination) do
       FileUtils.rm_rf(destination)
       FileUtils.cp_r(source, destination)
       Pod::Installer::PodSourcePreparer.new(spec, destination).prepare!
       Pod::Sandbox::PodDirCleaner.new(destination, specs_by_platform).clean!
     end
+  end
+
+  def self.write_lock(location, &block)
+    self.lock(location, File::LOCK_EX, &block)
+  end
+
+  def self.lock(location, lock_type)
+    raise ArgumentError, 'no block given' unless block_given?
+    lockfile = "#{location}.lock"
+    f = nil
+    loop do
+      f.close if f
+      f = File.open(lockfile, File::CREAT, 0o644)
+      f.flock(lock_type)
+      break if self.valid_lock?(f, lockfile)
+    end
+    begin
+      yield location
+    ensure
+      if lock_type == File::LOCK_SH
+        f.flock(File::LOCK_EX)
+        File.delete(lockfile) if self.valid_lock?(f, lockfile)
+      else
+        File.delete(lockfile)
+      end
+      f.close
+    end
+  end
+
+  def self.valid_lock?(file, filename)
+    file.stat.ino == File.stat(filename).ino
+  rescue Errno::ENOENT
+    false
   end
 
   def self.write_spec(spec, path)
@@ -141,6 +174,7 @@ class Cache
       path.open('w') { |f| f.write spec.to_pretty_json }
     end
   end
+
   # 拷贝 pod 缓存文件到 sandbox
   def self.cache_pod(name, target, is_update, options = {})
     request = Cache.download_request(name, options)
