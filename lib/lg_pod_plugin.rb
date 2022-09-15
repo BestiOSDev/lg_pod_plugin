@@ -60,10 +60,12 @@ module LgPodPlugin
     Pod::CoreUI.puts msg
   end
 
+  public
   # 对 Profile 方法进行拓展
   def pod(name, *requirements)
     Installer.new(self, name, requirements)
   end
+
 
 end
 

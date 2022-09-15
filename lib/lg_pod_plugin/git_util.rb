@@ -4,13 +4,16 @@ require 'git'
 module LgPodPlugin
 
   class GitUtil
-    attr_accessor :git
-    attr_accessor :tag
-    attr_accessor :path
-    attr_accessor :name
-    attr_accessor :commit
-    attr_accessor :branch
-    attr_accessor :temp_git_path
+    # attr_accessor :git
+    # attr_accessor :tag
+    # attr_accessor :path
+    # attr_accessor :name
+    # attr_accessor :commit
+    # attr_accessor :branch
+    # attr_accessor :temp_git_path
+    REQUIRED_ATTRS ||= %i[git tag path name commit branch temp_git_path].freeze
+    attr_accessor(*REQUIRED_ATTRS)
+
     def initialize
       super
     end

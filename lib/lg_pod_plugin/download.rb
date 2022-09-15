@@ -1,15 +1,16 @@
 require 'git'
-require_relative 'cache.rb'
-require_relative 'database.rb'
-require_relative 'file_path.rb'
+require_relative 'cache'
+require_relative 'database'
+require_relative 'file_path'
 
 module LgPodPlugin
 
   class Downloader
-    attr_accessor :git_util
-    attr_accessor :db
-    attr_accessor :cache
-    REQUIRED_ATTRS ||= %i[git name commit branch tag options].freeze
+    # attr_accessor :git_util
+    # attr_accessor :db
+    # attr_accessor :cache
+    #
+    REQUIRED_ATTRS ||= %i[git name commit branch tag options git_util db cache].freeze
     attr_accessor(*REQUIRED_ATTRS)
     def initialize
       self.cache = Cache.new

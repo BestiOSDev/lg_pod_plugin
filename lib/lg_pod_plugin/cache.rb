@@ -1,18 +1,20 @@
 require 'git'
-require 'cocoapods/downloader.rb'
-require 'cocoapods/downloader/cache.rb'
-require 'cocoapods/downloader/response.rb'
-require 'cocoapods/downloader/request.rb'
+require 'cocoapods/downloader'
+require 'cocoapods/downloader/cache'
+require 'cocoapods/downloader/response'
+require 'cocoapods/downloader/request'
 
 module LgPodPlugin
 
   class CachePodInfo
-    attr_accessor :sha
-    attr_accessor :tag
-    attr_accessor :name
-    attr_accessor :path
-    attr_accessor :branch
-    attr_accessor :timestamp
+    # attr_accessor :sha
+    # attr_accessor :tag
+    # attr_accessor :name
+    # attr_accessor :path
+    # attr_accessor :branch
+    # attr_accessor :timestamp
+    REQUIRED_ATTRS ||= %i[sha tag name path branch timestamp].freeze
+    attr_accessor(*REQUIRED_ATTRS)
     def initialize
       super
     end

@@ -6,19 +6,21 @@ require 'cocoapods'
 require_relative 'database'
 require_relative 'download'
 require_relative 'git_util'
-require_relative 'pod_spec.rb'
+require_relative 'pod_spec'
 
 module LgPodPlugin
 
   class Installer
-    attr_accessor :name
-    attr_accessor :version
-    attr_accessor :options
-    attr_accessor :profile
-    attr_accessor :target
-    attr_accessor :real_name
-    attr_accessor :downloader
-    attr_accessor :git_util
+    # attr_accessor :name
+    # attr_accessor :version
+    # attr_accessor :options
+    # attr_accessor :profile
+    # attr_accessor :target
+    # attr_accessor :real_name
+    # attr_accessor :downloader
+    # attr_accessor :git_util
+    REQUIRED_ATTRS ||= %i[name version options profile target real_name downloader git_util].freeze
+    attr_accessor(*REQUIRED_ATTRS)
 
     def initialize(profile, name, *requirements)
       if name.include?("/")
@@ -33,7 +35,7 @@ module LgPodPlugin
       self.target = profile.send(:current_target_definition)
 
       unless requirements && !requirements.empty?
-        self.pod(self.real_name, requirements)
+        self.lg_pod(self.real_name, requirements)
         return
       end
 
@@ -49,16 +51,15 @@ module LgPodPlugin
         self.options = hash_map
       end
 
-      self.pod(name, requirements)
+      self.lg_pod(name, requirements)
 
     end
 
-    private
-
+    public
     # @param [Object] name
     # @param [Hash] options
     # @return [Object] nil
-    def pod(name, *requirements)
+    def lg_pod(name, *requirements)
       unless name
         raise StandardError, 'A dependency requires a name.'
       end
@@ -123,8 +124,7 @@ module LgPodPlugin
 
     end
 
-    private
-
+    public
     def install_form_specs(spec_path = nil)
       spec_path ||= './Specs'
       path = File.expand_path(spec_path, Dir.pwd)
@@ -136,14 +136,13 @@ module LgPodPlugin
       file_objects.each do |file|
         if file.install
           options = file.pod_requirements
-          self.pod(file.name, options)
+          self.lg_pod(file.name, options)
         end
       end
 
     end
 
-    private
-
+    public
     def install_local_pod(name, options = {})
       hash_map = options
       local_path = options[:path]
