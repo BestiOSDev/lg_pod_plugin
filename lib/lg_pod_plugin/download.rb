@@ -7,7 +7,7 @@ module LgPodPlugin
 
   class Downloader
 
-    REQUIRED_ATTRS ||= %i[git name commit branch tag options git_util db cache is_cache].freeze
+    REQUIRED_ATTRS ||= %i[git name commit branch tag options git_util db cache is_cache workspace].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
     def initialize
@@ -63,7 +63,7 @@ module LgPodPlugin
     def pre_download_pod(git)
       self.git_util = git
       is_update = self.is_update_pod
-      self.git_util.git_init(self.name, self.options)
+      self.git_util.git_init(self.name,self.workspace, self.options)
       git_url = options[:git]
       # commit = options[:commit]
       branch = options[:branch]

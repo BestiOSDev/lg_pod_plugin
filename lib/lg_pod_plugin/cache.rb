@@ -208,7 +208,7 @@ class Cache
 
   # 根据下载参数生产缓存目录
   def slug(name, params, spec)
-    path = FileManager.download_pod_path(name).to_path
+    path = FileManager.cache_pod_path(name).to_path
     checksum = spec&.checksum && '-' << spec.checksum[0, 5]
     opts = params.to_a.sort_by(&:first).map { |k, v| "#{k}=#{v}" }.join('-')
     digest = Digest::MD5.hexdigest(opts)

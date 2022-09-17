@@ -12,7 +12,7 @@ module LgPodPlugin
 
   class Installer
 
-    REQUIRED_ATTRS ||= %i[name version options profile target real_name downloader git_util].freeze
+    REQUIRED_ATTRS ||= %i[name version options profile target real_name downloader git_util workspace].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
     def initialize(profile, name, *requirements)
@@ -25,8 +25,9 @@ module LgPodPlugin
       self.profile = profile
       self.git_util = GitUtil.new
       self.downloader = Downloader.new
+      # Pathname("").dirname
       self.target = profile.send(:current_target_definition)
-
+      self.workspace = self.downloader.workspace = self.profile.send(:defined_in_file).dirname
       unless requirements && !requirements.empty?
         self.lg_pod(self.real_name, requirements)
         return

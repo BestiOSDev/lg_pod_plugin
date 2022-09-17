@@ -5,21 +5,15 @@ require_relative 'cache'
 module LgPodPlugin
 
   class GitUtil
-    # attr_accessor :git
-    # attr_accessor :tag
-    # attr_accessor :path
-    # attr_accessor :name
-    # attr_accessor :commit
-    # attr_accessor :branch
-    # attr_accessor :temp_git_path
-    REQUIRED_ATTRS ||= %i[git tag path name commit branch temp_git_path is_cache].freeze
+
+    REQUIRED_ATTRS ||= %i[git tag path name commit branch temp_git_path is_cache workspace].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
     def initialize
       super
     end
 
-    def git_init(name, options = {})
+    def git_init(name, workspace, options = {})
       self.name = name
       self.git = options[:git]
       self.tag = options[:tag]
@@ -27,12 +21,13 @@ module LgPodPlugin
       self.branch = options[:branch]
       self.commit = options[:commit]
       self.is_cache = options[:depth]
+      self.workspace = workspace
     end
 
     def git_clone(path)
       if self.branch
-        temp_git_path = path.join("l-temp-pod")
-        LgPodPlugin.log_yellow "git clone --template= --single-branch --depth 1 --branch #{self.branch} #{self.git}"
+        temp_git_path = path.join(self.name)
+        LgPodPlugin.log_blue "git clone --template= --single-branch --depth 1 --branch #{self.branch} #{self.git}"
         system("git clone --template= --single-branch --depth 1 --branch #{self.branch} #{self.git} #{temp_git_path}")
         temp_git_path
       else
@@ -58,7 +53,7 @@ module LgPodPlugin
       end
 
       FileUtils.chdir(root_path)
-      temp_path = root_path.join("temp")
+      temp_path = FileManager.temp_download_path(self.workspace)
       if temp_path.exist?
         FileUtils.rm_r(temp_path)
       end
@@ -72,7 +67,7 @@ module LgPodPlugin
       end
 
       if self.is_cache
-        pod_root_director = FileManager.download_pod_path(name)
+        pod_root_director = FileManager.cache_pod_path(name)
         unless pod_root_director.exist?
           FileUtils.mkdir(pod_root_director)
         end
@@ -84,6 +79,7 @@ module LgPodPlugin
         LgPodPlugin::Cache.cache_pod(self.name, get_temp_folder, true, {:git => self.git, :commit => commit})
         system("cd ..")
         system("rm -rf #{get_temp_folder.to_path}")
+        temp_path.rename(FileManager.download_director.join("temp"))
         return lg_pod_path
       end
 

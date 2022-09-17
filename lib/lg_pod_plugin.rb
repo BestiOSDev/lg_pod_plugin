@@ -1,5 +1,6 @@
 require 'git'
 require 'sqlite3'
+require 'cocoapods-downloader'
 require "lg_pod_plugin/version"
 require 'cocoapods/user_interface'
 require_relative 'lg_pod_plugin/database'
@@ -72,4 +73,3 @@ module LgPodPlugin
 
 
 end
-
