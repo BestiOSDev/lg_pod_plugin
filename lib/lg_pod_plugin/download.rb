@@ -1,42 +1,22 @@
 require 'git'
-require_relative 'cache'
+require_relative 'l_cache'
 require_relative 'database'
 require_relative 'file_path'
 
 module LgPodPlugin
 
-  class Downloader
+  class LDownloader
 
-    REQUIRED_ATTRS ||= %i[git name commit branch tag options git_util db cache is_cache workspace].freeze
+    REQUIRED_ATTRS ||= %i[git name commit branch tag options].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
-    def initialize
-      self.cache = Cache.new
-      self.db = SqliteDb.instance
-      super
-    end
-
-    def download_init(name, options = {})
-      hash_map = options
+    def initialize(name, options = {})
       self.name = name
-      self.git = hash_map[:git]
-      self.tag = hash_map[:tag]
-      self.branch = hash_map[:branch]
-      self.commit = hash_map[:commit]
-      self.is_cache = hash_map[:depth]
-      # 通过ls-remote获取 head 指向 branch
-      if !self.branch && self.git
-        ls = Git.ls_remote(self.git, :head => true)
-        head_ref = ls["head"][:sha]
-        ls["branches"].each do |key, value|
-          sha = value[:sha]
-          next if sha != head_ref
-          self.branch = key
-          hash_map[:branch] = key
-          break
-        end
-      end
-      self.options = hash_map
+      self.options = options
+      self.git = options[:git]
+      self.tag = options[:tag]
+      self.branch = options[:branch]
+      self.commit = options[:commit]
     end
 
     def is_update_pod
@@ -55,83 +35,73 @@ module LgPodPlugin
       end
     end
 
-    def check_cache_valid(name, branch)
-      self.db.should_clean_pod_info(name, branch)
-    end
+    # def check_cache_valid(name, branch)
+    #   self.db.should_clean_pod_info(name, branch)
+    # end
 
     # 预下载处理
-    def pre_download_pod(git)
-      self.git_util = git
+    def pre_download_pod
       is_update = self.is_update_pod
-      self.git_util.git_init(self.name,self.workspace, self.options)
-      git_url = options[:git]
-      # commit = options[:commit]
-      branch = options[:branch]
       LgPodPlugin.log_green "Using `#{name}` (#{branch})"
       # 发现本地有缓存, 不需要更新缓存
-      need_download, new_commit = self.cache.find_pod_cache(name, git_url, branch, is_update)
+      need_download = LRequest.shared.cache.find_pod_cache(self.name, self.git, self.branch, self.tag, self.commit, is_update)
       unless need_download
         LgPodPlugin.log_green "find the cache of `#{name}`, you can use it now."
         return
       end
 
-      # 检查是否要清空缓存
-      if is_update
-        check_cache_valid(name, branch)
-      end
-
       # 本地 git 下载 pod 目录
-      pre_down_load_path = self.cache.get_download_path(name, git_url, branch)
-      real_pod_path = self.git_util.pre_download_git_remote(pre_down_load_path, branch)
+      LRequest.shared.git_util.pre_download_git_repository
+
       # 本地clone代码失败跳出去
-      unless real_pod_path.exist?
-        return
-      end
-      # 切换到本地git仓库目录下
-      FileUtils.chdir(real_pod_path)
-      unless real_pod_path.glob("*.git")
-        return
-      end
-      # 使用branch克隆代码
-      git = Git.open(Pathname("./"))
-      current_branch = git.current_branch
-      if current_branch == branch # 要 clone 的分支正好等于当前分支
-        current_commit = git.log(1).to_s
-        if new_commit != current_commit && is_update
-          #删除旧的pod 缓存
-          self.cache.clean_old_cache(name, git_url, current_commit)
-          LgPodPlugin.log_green "git pull #{name} origin/#{current_branch}"
-          self.git_util.should_pull(git, current_branch, new_commit)
-          current_commit = new_commit
-        end
-        hash_map = { :git => git_url }
-        if current_commit
-          hash_map[:commit] = current_commit
-        end
-        SqliteDb.instance.insert_table(name, branch, current_commit, nil, real_pod_path)
-        LgPodPlugin::Cache.cache_pod(name, real_pod_path, is_update, hash_map)
-      else
-        branch_exist = git.branches.local.find { |e| e.to_s == branch }
-        if branch_exist
-          LgPodPlugin.log_green "git switch #{name} #{git_url} -b #{branch}"
-          self.git_util.git_switch(branch)
-        else
-          LgPodPlugin.log_green "git checkout  #{name} #{git_url} -b #{branch}"
-          self.git_util.git_checkout(branch)
-        end
-        current_commit = git.log(1).to_s
-        if current_commit != new_commit
-          LgPodPlugin.log_green "git pull  #{name} #{git_url} -b #{branch}"
-          self.git_util.should_pull(git, current_branch, new_commit)
-          current_commit = new_commit
-        end
-        hash_map = { :git => git_url }
-        if current_commit
-          hash_map[:commit] = current_commit
-        end
-        SqliteDb.instance.insert_table(name, branch, current_commit, nil, real_pod_path)
-        LgPodPlugin::Cache.cache_pod(name, real_pod_path, is_update, hash_map)
-      end
+      # unless real_pod_path.exist?
+      #   return
+      # end
+      # # 切换到本地git仓库目录下
+      # FileUtils.chdir(real_pod_path)
+      # unless real_pod_path.glob("*.git")
+      #   return
+      # end
+      # # 使用branch克隆代码
+      # git = Git.open(Pathname("./"))
+      # current_branch = git.current_branch
+      # if current_branch == branch # 要 clone 的分支正好等于当前分支
+      #   current_commit = git.log(1).to_s
+      #   if new_commit != current_commit && is_update
+      #     #删除旧的pod 缓存
+      #     self.cache.clean_old_cache(name, git_url, current_commit)
+      #     LgPodPlugin.log_green "git pull #{name} origin/#{current_branch}"
+      #     self.git_util.should_pull(git, current_branch, new_commit)
+      #     current_commit = new_commit
+      #   end
+      #   hash_map = { :git => git_url }
+      #   if current_commit
+      #     hash_map[:commit] = current_commit
+      #   end
+      #   LSqliteDb.instance.insert_table(name, branch, current_commit, nil, real_pod_path)
+      #   LgPodPlugin::LCache.cache_pod(name, real_pod_path, is_update, hash_map)
+      # else
+      #   branch_exist = git.branches.local.find { |e| e.to_s == branch }
+      #   if branch_exist
+      #     LgPodPlugin.log_green "git switch #{name} #{git_url} -b #{branch}"
+      #     self.git_util.git_switch(branch)
+      #   else
+      #     LgPodPlugin.log_green "git checkout  #{name} #{git_url} -b #{branch}"
+      #     self.git_util.git_checkout(branch)
+      #   end
+      #   current_commit = git.log(1).to_s
+      #   if current_commit != new_commit
+      #     LgPodPlugin.log_green "git pull  #{name} #{git_url} -b #{branch}"
+      #     self.git_util.should_pull(git, current_branch, new_commit)
+      #     current_commit = new_commit
+      #   end
+      #   hash_map = { :git => git_url }
+      #   if current_commit
+      #     hash_map[:commit] = current_commit
+      #   end
+      #   LSqliteDb.instance.insert_table(name, branch, current_commit, nil, real_pod_path)
+      #   LgPodPlugin::LCache.cache_pod(name, real_pod_path, is_update, hash_map)
+      # end
 
     end
 

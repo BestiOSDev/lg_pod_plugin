@@ -3,16 +3,16 @@ require 'git'
 require 'cgi'
 require 'sqlite3'
 require 'cocoapods'
+require_relative 'request'
 require_relative 'database'
 require_relative 'download'
 require_relative 'git_util'
-require_relative 'pod_spec'
 
 module LgPodPlugin
 
   class Installer
 
-    REQUIRED_ATTRS ||= %i[name version options profile target real_name downloader git_util workspace].freeze
+    REQUIRED_ATTRS ||= %i[name version options target real_name workspace].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
     def initialize(profile, name, *requirements)
@@ -22,13 +22,11 @@ module LgPodPlugin
         self.name = name
       end
       self.real_name = name
-      self.profile = profile
-      self.git_util = GitUtil.new
-      self.downloader = Downloader.new
-      # Pathname("").dirname
+      self.workspace = profile.send(:defined_in_file).dirname
       self.target = profile.send(:current_target_definition)
-      self.workspace = self.downloader.workspace = self.profile.send(:defined_in_file).dirname
+
       unless requirements && !requirements.empty?
+        LRequest.shared.setup_pod_info(self.name, self.workspace, nil)
         self.lg_pod(self.real_name, requirements)
         return
       end
@@ -44,33 +42,30 @@ module LgPodPlugin
       if "#{hash_map.class}" == "Hash"
         self.options = hash_map
       end
-
+      LRequest.shared.setup_pod_info(self.name, self.workspace, self.options)
       self.lg_pod(name, requirements)
-
     end
 
     public
-    # @param [Object] name
-    # @param [Hash] options
-    # @return [Object] nil
     def lg_pod(name, *requirements)
       unless name
         raise StandardError, 'A dependency requires a name.'
       end
 
+      # 根据pod name安装, pod 'AFNetworking'
       if !requirements
         self.target.store_pod(self.real_name)
         return
       end
-
+      # 根据name, verison 安装, pod 'AFNetworking', "1.0.1"
       if self.version && !self.options
         self.target.store_pod(self.real_name, self.version)
         return
       end
-
+      # 根据name, verison 安装, pod 'AFNetworking', "1.0.1", :configurations => ["Debug"]
       if self.version && self.options
         hash_map = self.options
-        hash_map.delete(:depth)
+        # hash_map.delete(:cache)
         self.target.store_pod(self.real_name, self.version, hash_map)
         return
       end
@@ -81,85 +76,48 @@ module LgPodPlugin
         return
       end
 
-      real_path = nil
-      tag = hash_map[:tag]
-      url = hash_map[:git]
       path = hash_map[:path]
-      commit = hash_map[:commit]
-      branch = hash_map[:branch]
-      is_cache = options[:depth]
-      if path
-        profile_path = self.profile.send(:defined_in_file).dirname
-        real_path = Pathname.new(path).expand_path(profile_path)
-      end
-      # 找到本地组件库 执行 git pull
-      if real_path && File.directory?(real_path)
-        hash_map[:path] = real_path
-        hash_map.delete(:depth)
-        self.install_local_pod(self.name, hash_map)
+      if path && Dir.exist?(path)
+        self.install_local_pod(name, path, options)
         return
       end
-
-      # 根据tag, commit下载文件
       hash_map.delete(:path)
-      if (tag && url) || (commit && url)
-        hash_map.delete(:depth)
-        hash_map.delete(:branch)
+      git = hash_map[:git]
+      # 根据git_url 下载远程仓库
+      if git
+        LRequest.shared.downloader.pre_download_pod
+        # hash_map.delete(:cache)
         self.target.store_pod(self.real_name, hash_map)
-        return
-      end
-
-      # 根据 branch 下载代码
-      if url
-        hash_map.delete(:tag)
-        hash_map.delete(:commit)
-        self.downloader.download_init(self.name, hash_map)
-        self.downloader.pre_download_pod(self.git_util)
-        hash_map.delete(:depth)
+      else
+        #hash_map.delete(:cache)
         self.target.store_pod(self.real_name, hash_map)
-      end
-
-
-    end
-
-    public
-    def install_form_specs(spec_path = nil)
-      spec_path ||= './Specs'
-      path = File.expand_path(spec_path, Dir.pwd)
-      file_objects = Dir.glob(File.expand_path("*.rb", path)).map do |file_path|
-        #读取 xxx.rb文件
-        Spec.form_file(file_path)
-      end
-      # 便利出每一个pod对安装信息
-      file_objects.each do |file|
-        if file.install
-          options = file.pod_requirements
-          self.lg_pod(file.name, options)
-        end
       end
 
     end
 
     public
-    def install_local_pod(name, options = {})
+    #安装本地pod
+    def install_local_pod(name, relative_path, options = {})
       hash_map = options
-      local_path = options[:path]
       branch = options[:branch]
-      unless Dir.glob(File.expand_path(".git", local_path)).count > 0
-        LgPodPlugin.log_red("pod `#{name}` at path => #{local_path} 找不到.git目录")
+      absolute_path = Pathname.new(relative_path).expand_path(self.workspace)
+      unless absolute_path.exist?
+        LgPodPlugin.log_red("pod `#{name}` at path => #{relative_path} 找不到")
         return
       end
-      unless Dir.glob(File.expand_path("#{name}.podspec", local_path)).count > 0
-        LgPodPlugin.log_red("pod `#{name}` at path => #{local_path} 找不到#{name}.podspec文件")
+      unless Dir.glob(File.expand_path(".git", absolute_path)).count > 0
+        LgPodPlugin.log_red("pod `#{name}` at path => #{absolute_path} 找不到.git目录")
+        return
+      end
+      unless Dir.glob(File.expand_path("#{name}.podspec", absolute_path)).count > 0
+        LgPodPlugin.log_red("pod `#{name}` at path => #{absolute_path} 找不到#{name}.podspec文件")
         return
       end
 
-      self.git_util.git_init(name, :branch => branch, :path => local_path)
-      self.git_util.git_local_pod_check(local_path)
-      hash_map[:path] = local_path.to_path
+      LRequest.shared.git_util.git_local_pod_check(absolute_path)
       hash_map.delete(:tag)
       hash_map.delete(:git)
-      hash_map.delete(:depth)
+      # hash_map.delete(:cache)
       hash_map.delete(:commit)
       hash_map.delete(:branch)
       # 安装本地私有组件库

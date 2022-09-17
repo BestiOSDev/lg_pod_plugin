@@ -1,88 +1,73 @@
 require 'pp'
 require 'git'
-require_relative 'cache'
+require_relative 'request'
+require_relative 'l_cache'
 
 module LgPodPlugin
 
-  class GitUtil
+  class LGitUtil
 
-    REQUIRED_ATTRS ||= %i[git tag path name commit branch temp_git_path is_cache workspace].freeze
+    REQUIRED_ATTRS ||= %i[git tag path name commit branch].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
-    def initialize
-      super
-    end
-
-    def git_init(name, workspace, options = {})
+    def initialize(name, options = {})
       self.name = name
       self.git = options[:git]
       self.tag = options[:tag]
       self.path = options[:path]
       self.branch = options[:branch]
       self.commit = options[:commit]
-      self.is_cache = options[:depth]
-      self.workspace = workspace
     end
 
-    def git_clone(path)
-      if self.branch
-        temp_git_path = path.join(self.name)
-        LgPodPlugin.log_blue "git clone --template= --single-branch --depth 1 --branch #{self.branch} #{self.git}"
-        system("git clone --template= --single-branch --depth 1 --branch #{self.branch} #{self.git} #{temp_git_path}")
-        temp_git_path
+    def git_clone_repository(path)
+      FileUtils.chdir(path)
+      temp_name = "lg_temp_pod"
+      if self.git && self.tag
+        LgPodPlugin.log_blue "git clone  --tag #{self.tag} #{self.git}"
+        system("git clone --depth 1 -b #{self.tag} #{self.git} #{temp_name}")
       else
-         nil
+        LgPodPlugin.log_blue "git clone --depth 1 --branch #{self.branch} #{self.git}"
+        system("git clone --depth 1 --branch #{self.branch} #{self.git} #{temp_name}")
       end
+      return path.join(temp_name)
     end
 
-    def git_checkout(branch)
-        system("git checkout -b #{branch}")
-    end
-    
-    def git_switch(branch)
-        system("git switch #{branch}")
-    end
+    # def git_checkout(branch)
+    #     system("git checkout -b #{branch}")
+    # end
+    #
+    # def git_switch(branch)
+    #     system("git switch #{branch}")
+    # end
 
-    #noinspection RubyNilAnalysis
-    def pre_download_git_remote(path, branch)
-      lg_pod_path = Pathname(path)
-      root_path = FileManager.download_director
-      pod_info_db = SqliteDb.instance.select_table(self.name, branch)
-      if lg_pod_path.exist? && pod_info_db.branch
-        return lg_pod_path
+    def request_params
+      hash_map = {:git => git}
+      if git && tag
+        hash_map[:tag] = tag
+        hash_map[:commit] = self.commit
+      else
+        hash_map[:commit] = commit
       end
+      return hash_map
+    end
 
-      FileUtils.chdir(root_path)
-      temp_path = FileManager.temp_download_path(self.workspace)
+    def pre_download_git_repository
+      temp_path = LFileManager.download_director.join("temp")
       if temp_path.exist?
-        FileUtils.rm_r(temp_path)
+        FileUtils.rm_rf(temp_path)
       end
-      temp_path.mkdir(0700)
-      FileUtils.chdir(temp_path)
-      #clone仓库
-      get_temp_folder = git_clone(temp_path)
+      lg_pod_path = LRequest.shared.cache.cache_root
+      unless lg_pod_path.exist?
+        lg_pod_path.mkdir(0700)
+      end
+      get_temp_folder = git_clone_repository(lg_pod_path)
       #下载 git 仓库失败
       unless get_temp_folder.exist?
         return nil
       end
-
-      if self.is_cache
-        pod_root_director = FileManager.cache_pod_path(name)
-        unless pod_root_director.exist?
-          FileUtils.mkdir(pod_root_director)
-        end
-        FileUtils.mv(get_temp_folder, lg_pod_path)
-        temp_path.rmdir
-        lg_pod_path
-      else
-        commit = GitUtil.git_ls_remote_refs(self.git, self.branch)
-        LgPodPlugin::Cache.cache_pod(self.name, get_temp_folder, true, {:git => self.git, :commit => commit})
-        system("cd ..")
-        system("rm -rf #{get_temp_folder.to_path}")
-        temp_path.rename(FileManager.download_director.join("temp"))
-        return lg_pod_path
-      end
-
+      LgPodPlugin::LCache.cache_pod(self.name, get_temp_folder, true, self.request_params)
+      FileUtils.mkdir(temp_path)
+      lg_pod_path.rename(temp_path)
     end
 
     # 本地pod库git操作
@@ -115,21 +100,24 @@ module LgPodPlugin
     end
 
     # 获取最新的一条 commit 信息
-    def self.git_ls_remote_refs(git, branch)
-      last_commit = nil
-      LgPodPlugin.log_yellow "git ls-remote #{git} #{branch}"
-      sha = %x(git ls-remote #{git} #{branch}).split(" ").first
-      if sha
-        last_commit = sha
-        return last_commit
+    def self.git_ls_remote_refs(git, branch, tag)
+      if branch
+        LgPodPlugin.log_yellow "git ls-remote #{git} #{branch}"
+        commit = %x(git ls-remote #{git} #{branch}).split(" ").first
+        return [branch, commit]
+      end
+      ls = Git.ls_remote(git, :head => true )
+      if tag
+        commit = ls["tags"]["#{tag}"][:sha]
+        return [nil, commit]
       else
-        ls = Git.ls_remote(git, :refs => true )
-        find_branch = ls["branches"][branch]
-        if find_branch
-          last_commit = find_branch[:sha]
-          return last_commit
+        commit = ls["head"][:sha]
+        ls["branches"].each do |key, value|
+          sha = value[:sha]
+          next if sha != commit
+          return [key, commit]
+          break
         end
-        return nil
       end
     end
 
@@ -137,7 +125,7 @@ module LgPodPlugin
     def should_pull(git, branch, new_commit = nil)
       git_url = git.remote.url
       if new_commit == nil
-        new_commit = GitUtil.git_ls_remote_refs(git_url, branch)
+        new_commit = LGitUtil.git_ls_remote_refs(git_url, branch,nil )
       end
       local_commit = git.log(1).to_s  #本地最后一条 commit hash 值
       if local_commit != new_commit

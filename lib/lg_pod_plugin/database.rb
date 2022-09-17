@@ -1,16 +1,16 @@
 require "sqlite3"
 require 'singleton'
-require_relative 'cache'
+require_relative 'l_cache'
 
 module LgPodPlugin
 
-  class SqliteDb
+  class LSqliteDb
     include Singleton
     REQUIRED_ATTRS ||= %i[db table_name].freeze
     attr_accessor(*REQUIRED_ATTRS)
     # 初始化 db
     def initialize
-      root_path = FileManager.download_director.join("database")
+      root_path = LFileManager.download_director.join("database")
       db_file_path = root_path.join("my.db")
       if !root_path.exist? || !db_file_path.exist?
         FileUtils.mkdir(root_path)
@@ -68,7 +68,7 @@ module LgPodPlugin
     end
 
     def select_table(name, branch)
-      pod_info = CachePodInfo.new
+      pod_info = LCachePodInfo.new
       self.db.execute( "select * from #{self.table_name} where name = '#{name}' and branch = '#{branch}'; ") do |row|
         pod_info.name = row[1]
         pod_info.branch = row[2]
@@ -83,7 +83,7 @@ module LgPodPlugin
     def select_tables(name, branch)
       array = []
       self.db.execute( "select * from #{self.table_name} where name = '#{name}' and branch != '#{branch}' order by update_time;") do |row|
-        pod_info = CachePodInfo.new
+        pod_info = LCachePodInfo.new
         pod_info.name = row[1]
         pod_info.branch = row[2]
         pod_info.sha = row[3]
