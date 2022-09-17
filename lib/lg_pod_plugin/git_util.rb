@@ -65,9 +65,9 @@ module LgPodPlugin
       unless get_temp_folder.exist?
         return nil
       end
-      LgPodPlugin::LCache.cache_pod(self.name, get_temp_folder, true, self.request_params)
-      FileUtils.mkdir(temp_path)
-      lg_pod_path.rename(temp_path)
+      LgPodPlugin::LCache.cache_pod(self.name, get_temp_folder, self.request_params)
+      FileUtils.chdir(LFileManager.download_director)
+      FileUtils.rm_rf(lg_pod_path)
     end
 
     # 本地pod库git操作
@@ -108,7 +108,14 @@ module LgPodPlugin
       end
       ls = Git.ls_remote(git, :head => true )
       if tag
-        commit = ls["tags"]["#{tag}"][:sha]
+        map = ls["tags"]
+        keys = map.keys
+        idx = keys.index("#{tag}")
+        unless idx
+          return [nil, nil]
+        end
+        key = keys[idx]
+        commit = map[key][:sha]
         return [nil, commit]
       else
         commit = ls["head"][:sha]
@@ -123,9 +130,10 @@ module LgPodPlugin
 
     # 是否pull 代码
     def should_pull(git, branch, new_commit = nil)
-      git_url = git.remote.url
+      new_barnch = branch ||= self.branch
+      git_url = git.remote.url ||= self.git
       if new_commit == nil
-        new_commit = LGitUtil.git_ls_remote_refs(git_url, branch,nil )
+        new_branch, new_commit = LGitUtil.git_ls_remote_refs(git_url, new_barnch,nil )
       end
       local_commit = git.log(1).to_s  #本地最后一条 commit hash 值
       if local_commit != new_commit

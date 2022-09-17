@@ -29,12 +29,11 @@ module  LgPodPlugin
           commit = new_commit
           hash_map[:commit] = commit
         end
-        self.options = hash_map
-        self.cache = LCache.new(self.workspace)
-        self.downloader = LDownloader.new(name, hash_map)
-        self.git_util = LGitUtil.new(name, hash_map)
       end
-
+      self.options = hash_map
+      self.cache = LCache.new(self.workspace)
+      self.downloader = LDownloader.new(name, hash_map)
+      self.git_util = LGitUtil.new(name, hash_map)
     end
 
     def self.shared

@@ -77,7 +77,7 @@ module LgPodPlugin
       end
 
       path = hash_map[:path]
-      if path && Dir.exist?(path)
+      if path
         self.install_local_pod(name, path, options)
         return
       end
@@ -113,7 +113,7 @@ module LgPodPlugin
         LgPodPlugin.log_red("pod `#{name}` at path => #{absolute_path} 找不到#{name}.podspec文件")
         return
       end
-
+      pp LRequest.shared.git_util
       LRequest.shared.git_util.git_local_pod_check(absolute_path)
       hash_map.delete(:tag)
       hash_map.delete(:git)

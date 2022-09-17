@@ -23,9 +23,6 @@ module LgPodPlugin
     def initialize(workspace)
       self.workspace = workspace
       self.cache_root = LFileManager.cache_workspace(self.workspace)
-      unless self.cache_root.exist?
-        self.cache_root.mkdir(0700)
-      end
     end
 
     #判断缓存是否存在且有效命中缓存
@@ -168,18 +165,18 @@ module LgPodPlugin
     end
 
     # 拷贝 pod 缓存文件到 sandbox
-    def self.cache_pod(name, target, is_update, options = {})
+    def self.cache_pod(name, target, options = {})
       request = LCache.download_request(name, options)
       result, pods_pecs = get_local_spec(request, target)
       result.location = nil
       pods_pecs.each do |s_name, s_spec|
         destination = path_for_pod(request, {})
-        if !File.exist?(destination) || is_update
+        if !File.exist?(destination)
           LgPodPlugin.log_green "Copying #{name} from `#{target}` to `#{destination}` "
           copy_and_clean(target, destination, s_spec)
         end
         cache_pod_spec = path_for_spec(request, {})
-        if !File.exist?(cache_pod_spec) || is_update
+        if !File.exist?(cache_pod_spec)
           write_spec(s_spec, cache_pod_spec)
         end
         if request.name == s_name
