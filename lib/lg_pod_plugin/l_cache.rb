@@ -24,26 +24,41 @@ module LgPodPlugin
       self.workspace = workspace
       self.cache_root = LFileManager.cache_workspace(self.workspace)
     end
-
-    #判断缓存是否存在且有效命中缓存
-    def find_pod_cache(name, git, branch, tag, commit, is_update)
+    
+    #根据git branch commit 返回请求参数用来获取缓存 path
+    def get_request_params(name, git, branch, tag, commit)
       options = { :git => git }
       if git && tag
         options[:tag] = tag
-        options[:commit] = commit
-      elsif git && commit
         options[:commit] = commit
       elsif git && branch
         if commit
           options[:commit] = commit
         else
-          new_commit_id = LGitUtil.git_ls_remote_refs(git, branch, nil)
+          new_commit_id = LGitUtil.git_ls_remote_refs(git, branch, nil, commit)
           options[:commit] = new_commit_id
         end
-      else
-        return true
+      elsif git && commit
+        options[:commit] = commit
       end
-      request = LCache.download_request(name, options)
+      return options
+    end
+    #判断缓存是否存在且有效命中缓存
+    def find_pod_cache(name, git, branch, tag, commit, is_update)
+      hash_map = nil 
+      if is_update
+        hash_map = self.get_request_params(name, git, branch, tag, commit)
+      else 
+        if LRequest.shared.lock_params
+          lock_tag = LRequest.shared.lock_params[:tag]
+          lock_branch = LRequest.shared.lock_params[:branch]
+          lock_commit = LRequest.shared.lock_params[:commit]
+          hash_map = self.get_request_params(name, git, lock_branch, lock_tag, lock_commit)
+        else
+          hash_map = self.get_request_params(name, git, branch, tag, commit)
+        end
+      end
+      request = LCache.download_request(name, hash_map)
       destination = LCache.path_for_pod(request, {})
       cache_pod_spec = LCache.path_for_spec(request, {})
       if File.exist?(destination) && File.exist?(cache_pod_spec)

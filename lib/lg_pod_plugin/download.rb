@@ -18,38 +18,26 @@ module LgPodPlugin
       self.branch = options[:branch]
       self.commit = options[:commit]
     end
-
-    def is_update_pod
-      cgi = CGI.new
-      command_keys = cgi.keys
-      unless command_keys.count > 0
-        return false
-      end
-      first_key = command_keys[0].to_s ||= ""
-      if first_key.include?("install")
-        false
-      elsif first_key.include?("update")
-        true
-      else
-        false
-      end
-    end
-
+    
     # def check_cache_valid(name, branch)
     #   self.db.should_clean_pod_info(name, branch)
     # end
 
     # 预下载处理
     def pre_download_pod
-      is_update = self.is_update_pod
-      LgPodPlugin.log_green "Using `#{name}` (#{branch})"
+      if self.branch
+        LgPodPlugin.log_green "Using `#{name}` (#{branch})"
+      else
+        LgPodPlugin.log_green "Using `#{name}`"
+      end
       # 发现本地有缓存, 不需要更新缓存
-      need_download = LRequest.shared.cache.find_pod_cache(self.name, self.git, self.branch, self.tag, self.commit, is_update)
-      unless need_download
+      need_download = LRequest.shared.cache.find_pod_cache(self.name, self.git, self.branch, self.tag, self.commit, LRequest.shared.is_update)
+      if !need_download
         LgPodPlugin.log_green "find the cache of `#{name}`, you can use it now."
         return
+      else
+        LgPodPlugin.log_green "find the new commit of `#{name}`, Git downloading now."
       end
-
       # 本地 git 下载 pod 目录
       LRequest.shared.git_util.pre_download_git_repository
 

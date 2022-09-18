@@ -37,12 +37,29 @@ module LgPodPlugin
       elsif "#{first.class}" == "Hash"
         self.options = first
       end
-
-      hash_map = requirements[0].last
-      if "#{hash_map.class}" == "Hash"
-        self.options = hash_map
+      hash_map = nil
+      last = requirements[0].last
+      if "#{last.class}" == "Hash"
+        hash_map = last
       end
-      LRequest.shared.setup_pod_info(self.name, self.workspace, self.options)
+      git = hash_map[:git]
+      if hash_map && git
+        tag = hash_map[:tag]
+        branch = hash_map[:branch]
+        commit = hash_map[:commit]
+        if tag
+          hash_map.delete(:branch)
+          hash_map.delete(:commit)
+        elsif commit
+          hash_map.delete(:tag)
+          hash_map.delete(:branch)
+        elsif branch
+          hash_map.delete(:tag)
+          hash_map.delete(:commit)
+        end
+      end
+      self.options = hash_map
+      LRequest.shared.setup_pod_info(self.name, self.workspace, hash_map)
       self.lg_pod(name, requirements)
     end
 
@@ -113,7 +130,6 @@ module LgPodPlugin
         LgPodPlugin.log_red("pod `#{name}` at path => #{absolute_path} 找不到#{name}.podspec文件")
         return
       end
-      pp LRequest.shared.git_util
       LRequest.shared.git_util.git_local_pod_check(absolute_path)
       hash_map.delete(:tag)
       hash_map.delete(:git)

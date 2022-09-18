@@ -23,11 +23,18 @@ module LgPodPlugin
       FileUtils.chdir(path)
       temp_name = "lg_temp_pod"
       if self.git && self.tag
-        LgPodPlugin.log_blue "git clone  --tag #{self.tag} #{self.git}"
-        system("git clone --depth 1 -b #{self.tag} #{self.git} #{temp_name}")
-      else
-        LgPodPlugin.log_blue "git clone --depth 1 --branch #{self.branch} #{self.git}"
-        system("git clone --depth 1 --branch #{self.branch} #{self.git} #{temp_name}")
+        LgPodPlugin.log_blue "git clone --tag #{self.tag} #{self.git}"
+        system("git clone --depth=1 -b #{self.tag} #{self.git} #{temp_name}")
+      elsif self.git && self.branch
+        LgPodPlugin.log_blue "git clone --depth=1 --branch #{self.branch} #{self.git}"
+        system("git clone --depth=1 -b #{self.branch} #{self.git} #{temp_name}")
+      elsif self.git && self.commit
+        LgPodPlugin.log_blue "git clone #{self.git}"
+        git = Git.init(temp_name)
+        FileUtils.chdir(temp_name)
+        system("git remote add origin #{self.git}")
+        system("git fetch origin #{self.commit}")
+        system("git reset --hard FETCH_HEAD")
       end
       return path.join(temp_name)
     end
@@ -100,11 +107,11 @@ module LgPodPlugin
     end
 
     # 获取最新的一条 commit 信息
-    def self.git_ls_remote_refs(git, branch, tag)
+    def self.git_ls_remote_refs(git, branch, tag, commit)
       if branch
         LgPodPlugin.log_yellow "git ls-remote #{git} #{branch}"
-        commit = %x(git ls-remote #{git} #{branch}).split(" ").first
-        return [branch, commit]
+        new_commit = %x(git ls-remote #{git} #{branch}).split(" ").first
+        return [branch, new_commit]
       end
       ls = Git.ls_remote(git, :head => true )
       if tag
@@ -115,16 +122,21 @@ module LgPodPlugin
           return [nil, nil]
         end
         key = keys[idx]
-        commit = map[key][:sha]
-        return [nil, commit]
+        new_commit = map[key][:sha]
+        return [nil, new_commit]
       else
-        commit = ls["head"][:sha]
+        new_commit = nil
+        new_branch = nil 
+        find_commit = commit ||= ls["head"][:sha]
         ls["branches"].each do |key, value|
           sha = value[:sha]
-          next if sha != commit
-          return [key, commit]
+          next if sha != find_commit
+          new_branch = key
+          new_commit = find_commit
+          return [new_branch, new_commit]
           break
         end
+        return [new_branch , new_commit]
       end
     end
 
@@ -133,7 +145,7 @@ module LgPodPlugin
       new_barnch = branch ||= self.branch
       git_url = git.remote.url ||= self.git
       if new_commit == nil
-        new_branch, new_commit = LGitUtil.git_ls_remote_refs(git_url, new_barnch,nil )
+        new_branch, new_commit = LGitUtil.git_ls_remote_refs(git_url, new_barnch,nil, nil)
       end
       local_commit = git.log(1).to_s  #本地最后一条 commit hash 值
       if local_commit != new_commit
