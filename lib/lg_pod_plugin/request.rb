@@ -96,17 +96,17 @@ module LgPodPlugin
           hash_map[:commit] = new_commit
         end
       elsif git && commit
-        hash_map[:commit] = commit
-        # if self.lock_params && !self.is_update
-        # else
-        #   new_branch, new_commit = LGitUtil.git_ls_remote_refs(git, branch, tag, commit)
-        #   if new_commit
-        #     hash_map[:commit] = new_commit
-        #   end
-        #   if new_branch
-        #     hash_map[:branch] = new_branch
-        #   end
-        # end
+        if self.lock_params && !self.is_update
+          hash_map[:commit] = commit
+        else
+          new_branch, new_commit = LGitUtil.git_ls_remote_refs(git, branch, tag, commit)
+          if new_commit
+            hash_map[:commit] = new_commit
+          end
+          if new_branch
+            hash_map[:branch] = new_branch
+          end
+        end
       elsif git && branch
         if self.lock_params && !self.is_update
           lock_branch = self.lock_params[:branch]
