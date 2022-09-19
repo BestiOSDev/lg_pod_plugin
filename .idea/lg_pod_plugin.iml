@@ -106,28 +106,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="bacon (vbundled(1.2.0)) [path][gem]" type="rubylib">
-        <properties>
-          <option name="version" value="4" />
-        </properties>
-        <CLASSES>
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/bacon-1.2.0/bin" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/bacon-1.2.0/lib" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/bacon-1.2.0/test" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/bacon-1.2.0/bin" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/bacon-1.2.0/lib" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/bacon-1.2.0/test" />
-        </SOURCES>
-        <excluded>
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/bacon-1.2.0/bin" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/bacon-1.2.0/test" />
-        </excluded>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
       <library name="claide (vbundled(1.1.0)) [path][gem]" type="rubylib">
         <properties>
           <option name="version" value="4" />
