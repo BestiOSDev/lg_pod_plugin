@@ -5,7 +5,7 @@ require 'sqlite3'
 require 'cocoapods'
 require_relative 'request'
 require_relative 'database'
-require_relative 'download'
+require_relative 'downloader.rb'
 require_relative 'git_util'
 
 module LgPodPlugin

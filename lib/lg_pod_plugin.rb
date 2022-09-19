@@ -8,7 +8,7 @@ require_relative 'lg_pod_plugin/log'
 require_relative 'lg_pod_plugin/install'
 require_relative 'lg_pod_plugin/request'
 require_relative 'lg_pod_plugin/database'
-require_relative 'lg_pod_plugin/download'
+require_relative 'lg_pod_plugin/downloader.rb'
 require_relative 'lg_pod_plugin/git_util'
 
 module LgPodPlugin

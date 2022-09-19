@@ -1,5 +1,8 @@
 require 'pp'
 require 'git'
+require 'zip'
+require 'rubygems'
+require_relative 'aes'
 require_relative 'request'
 require_relative 'l_cache'
 
@@ -19,22 +22,150 @@ module LgPodPlugin
       self.commit = options[:commit]
     end
 
+    def unzip_file (zip_file, dest_dir)
+      begin
+        Zip::File.open(zip_file) do |zip_file|
+          zip_file.each do |f|
+            file_path = File.join(dest_dir, f.name)
+            FileUtils.mkdir_p(File.dirname(file_path))
+            next if file_path.include?("Example")
+            next if file_path.include?("LICENSE")
+            next if file_path.include?(".gitignore")
+            next if file_path.include?("node_modules")
+            next if file_path.include?("package.json")
+            next if file_path.include?(".swiftlint.yml")
+            next if file_path.include?("_Pods.xcodeproj")
+            next if file_path.include?("package-lock.json")
+            zip_file.extract(f, file_path)
+          end
+        end
+        return true
+      rescue => err
+        return false 
+      end
+      
+    end
+
+    # 根据branch 下载 zip 包
+    def git_download_branch_zip(path, temp_name)
+      token = "Vx4BC35fwiL4hAAfNWya"
+      file_name = "#{temp_name}.zip"
+      base_url = self.git[0...self.git.length - 4]
+      project_name = base_url.split("/").last
+      unless project_name
+        return self.git_clone_by_branch(path, temp_name)
+      end
+      download_url = base_url + "/-/archive/" + self.branch + "/#{project_name}-#{self.branch}.zip"
+      LgPodPlugin.log_blue "开始下载 => #{download_url}"
+      system("curl --header PRIVATE-TOKEN:#{token} -o #{file_name} --connect-timeout 15 #{download_url}")
+      unless File.exist?(file_name)
+        LgPodPlugin.log_red("下载zip包失败, 尝试git clone #{self.git}")
+        return self.git_clone_by_branch(path, temp_name)
+      end
+      # 解压文件
+      result = unzip_file(path.join(file_name).to_path, "./")
+      new_file_name = "#{project_name}-#{self.branch}"
+      unless result && File.exist?(new_file_name)
+        LgPodPlugin.log_red("解压文件失败, 尝试git clone #{self.git}")
+        return self.git_clone_by_branch(path, temp_name)
+      end
+      return path.join(new_file_name)
+    end
+    # 通过tag下载zip包
+    def git_download_tag_zip(path, temp_name)
+      token = "Vx4BC35fwiL4hAAfNWya"
+      base_url = self.git[0...self.git.length - 4]
+      project_name = base_url.split("/").last
+      unless project_name
+        return self.git_clone_by_tag(path, temp_name)
+      end
+      download_url = base_url + "/-/archive/" + self.tag + "/#{project_name}-#{self.tag}.zip"
+      file_name = "#{temp_name}.zip"
+      # 下载文件
+      LgPodPlugin.log_blue "开始下载 => #{download_url}"
+      system("curl -s --header PRIVATE-TOKEN:#{token} -o #{file_name} #{download_url}")
+      unless File.exist?(file_name)
+        LgPodPlugin.log_red("下载zip包失败, 尝试git clone #{self.git}")
+        return self.git_clone_by_tag(path, temp_name)
+      end
+      # 解压文件
+      result = unzip_file(path.join(file_name).to_path, "./")
+      new_file_name = "#{project_name}-#{self.tag}"
+      unless result && File.exist?(new_file_name)
+        LgPodPlugin.log_red("解压文件失败, 尝试git clone #{self.git}")
+        return self.git_clone_by_tag(path, temp_name)
+      end
+      return path.join(new_file_name)
+    end
+    # 通过 commit 下载zip包
+    def git_download_commit_zip(path, temp_name)
+      token = "Vx4BC35fwiL4hAAfNWya"
+      base_url = self.git[0...self.git.length - 4]
+      project_name = base_url.split("/").last
+      unless project_name
+        return self.git_clone_by_commit(path, temp_name)
+      end
+      download_url = base_url + "/-/archive/" + self.commit + "/#{project_name}-#{self.commit}.zip"
+      file_name = "#{temp_name}.zip"
+      # 下载文件
+      LgPodPlugin.log_blue "开始下载 => #{download_url}"
+      system("curl -s --header PRIVATE-TOKEN:#{token} -o #{file_name} #{download_url}")
+      unless File.exist?(file_name)
+        LgPodPlugin.log_red("下载zip包失败, 尝试git clone #{self.git}")
+        return self.git_clone_by_commit(path, temp_name)
+      end
+      # 解压文件
+      result = unzip_file(path.join(file_name).to_path, "./")
+      new_file_name = "#{project_name}-#{self.commit}"
+      unless result && File.exist?(new_file_name)
+        LgPodPlugin.log_red("解压文件失败, 尝试git clone #{self.git}")
+        return self.git_clone_by_commit(path, temp_name)
+      end
+      return path.join(new_file_name)
+    end
+
+    def git_clone_by_branch(path, temp_name)
+      LgPodPlugin.log_blue "git clone --depth=1 --branch #{self.branch} #{self.git}"
+      system("git clone --depth=1 -b #{self.branch} #{self.git} #{temp_name}")
+      return path.join(temp_name)
+    end
+
+    def git_clone_by_tag(path, temp_name)
+      LgPodPlugin.log_blue "git clone --tag #{self.tag} #{self.git}"
+      system("git clone --depth=1 -b #{self.tag} #{self.git} #{temp_name}")
+      return path.join(temp_name)
+    end
+
+    def git_clone_by_commit(path, temp_name)
+      LgPodPlugin.log_blue "git clone #{self.git}"
+      git = Git.init(temp_name)
+      FileUtils.chdir(temp_name)
+      system("git remote add origin #{self.git}")
+      system("git fetch origin #{self.commit}")
+      system("git reset --hard FETCH_HEAD")
+      return path.join(temp_name)
+    end
+
+    # clone 代码仓库
     def git_clone_repository(path)
       FileUtils.chdir(path)
       temp_name = "lg_temp_pod"
       if self.git && self.tag
-        LgPodPlugin.log_blue "git clone --tag #{self.tag} #{self.git}"
-        system("git clone --depth=1 -b #{self.tag} #{self.git} #{temp_name}")
+        unless self.git.include?("capp/iOS")
+          return self.git_clone_by_tag(path, temp_name)
+        end
+        return git_download_tag_zip(path, temp_name)
       elsif self.git && self.branch
-        LgPodPlugin.log_blue "git clone --depth=1 --branch #{self.branch} #{self.git}"
-        system("git clone --depth=1 -b #{self.branch} #{self.git} #{temp_name}")
+        unless self.git.include?("capp/iOS")
+          return self.git_clone_by_branch(path, temp_name)
+        end
+        new_path = self.git_download_branch_zip(path, temp_name)
+        return new_path
       elsif self.git && self.commit
-        LgPodPlugin.log_blue "git clone #{self.git}"
-        git = Git.init(temp_name)
-        FileUtils.chdir(temp_name)
-        system("git remote add origin #{self.git}")
-        system("git fetch origin #{self.commit}")
-        system("git reset --hard FETCH_HEAD")
+        unless self.git.include?("capp/iOS")
+          return self.git_clone_by_commit(path, temp_name)
+        end
+        return self.git_download_commit_zip(path, temp_name)
       end
       return path.join(temp_name)
     end
