@@ -1,8 +1,6 @@
 require 'pp'
 require 'git'
-require 'zip'
-require 'rubygems'
-require_relative 'aes'
+require_relative 'l_util'
 require_relative 'request'
 require_relative 'l_cache'
 
@@ -22,33 +20,12 @@ module LgPodPlugin
       self.commit = options[:commit]
     end
 
-    def unzip_file (zip_file, dest_dir)
-      begin
-        Zip::File.open(zip_file) do |zip_file|
-          zip_file.each do |f|
-            file_path = File.join(dest_dir, f.name)
-            FileUtils.mkdir_p(File.dirname(file_path))
-            next if file_path.include?("Example")
-            next if file_path.include?("LICENSE")
-            next if file_path.include?(".gitignore")
-            next if file_path.include?("node_modules")
-            next if file_path.include?("package.json")
-            next if file_path.include?(".swiftlint.yml")
-            next if file_path.include?("_Pods.xcodeproj")
-            next if file_path.include?("package-lock.json")
-            zip_file.extract(f, file_path)
-          end
-        end
-        return true
-      rescue => err
-        return false 
-      end
-      
-    end
-
     # 根据branch 下载 zip 包
     def git_download_branch_zip(path, temp_name)
-      token = "Vx4BC35fwiL4hAAfNWya"
+      token = LRequest.shared.token
+      unless token
+        return self.git_clone_by_branch(path, temp_name)
+      end
       file_name = "#{temp_name}.zip"
       base_url = self.git[0...self.git.length - 4]
       project_name = base_url.split("/").last
@@ -63,24 +40,28 @@ module LgPodPlugin
         return self.git_clone_by_branch(path, temp_name)
       end
       # 解压文件
-      result = unzip_file(path.join(file_name).to_path, "./")
+      result = LUtils.unzip_file(path.join(file_name).to_path, "./")
       new_file_name = "#{project_name}-#{self.branch}"
       unless result && File.exist?(new_file_name)
         LgPodPlugin.log_red("解压文件失败, 尝试git clone #{self.git}")
         return self.git_clone_by_branch(path, temp_name)
       end
-      return path.join(new_file_name)
+      path.join(new_file_name)
     end
+
     # 通过tag下载zip包
     def git_download_tag_zip(path, temp_name)
-      token = "Vx4BC35fwiL4hAAfNWya"
+      token = LRequest.shared.token
+      unless token
+        return self.git_clone_by_tag(path, temp_name)
+      end
       base_url = self.git[0...self.git.length - 4]
       project_name = base_url.split("/").last
       unless project_name
         return self.git_clone_by_tag(path, temp_name)
       end
-      download_url = base_url + "/-/archive/" + self.tag + "/#{project_name}-#{self.tag}.zip"
       file_name = "#{temp_name}.zip"
+      download_url = base_url + "/-/archive/" + self.tag + "/#{project_name}-#{self.tag}.zip"
       # 下载文件
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
       system("curl -s --header PRIVATE-TOKEN:#{token} -o #{file_name} #{download_url}")
@@ -89,24 +70,27 @@ module LgPodPlugin
         return self.git_clone_by_tag(path, temp_name)
       end
       # 解压文件
-      result = unzip_file(path.join(file_name).to_path, "./")
+      result = LUtils.unzip_file(path.join(file_name).to_path, "./")
       new_file_name = "#{project_name}-#{self.tag}"
       unless result && File.exist?(new_file_name)
         LgPodPlugin.log_red("解压文件失败, 尝试git clone #{self.git}")
         return self.git_clone_by_tag(path, temp_name)
       end
-      return path.join(new_file_name)
+      path.join(new_file_name)
     end
     # 通过 commit 下载zip包
     def git_download_commit_zip(path, temp_name)
-      token = "Vx4BC35fwiL4hAAfNWya"
+      token = LRequest.shared.token
+      unless token
+        return self.git_clone_by_commit(path, temp_name)
+      end
       base_url = self.git[0...self.git.length - 4]
       project_name = base_url.split("/").last
       unless project_name
         return self.git_clone_by_commit(path, temp_name)
       end
-      download_url = base_url + "/-/archive/" + self.commit + "/#{project_name}-#{self.commit}.zip"
       file_name = "#{temp_name}.zip"
+      download_url = base_url + "/-/archive/" + self.commit + "/#{project_name}-#{self.commit}.zip"
       # 下载文件
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
       system("curl -s --header PRIVATE-TOKEN:#{token} -o #{file_name} #{download_url}")
@@ -115,35 +99,35 @@ module LgPodPlugin
         return self.git_clone_by_commit(path, temp_name)
       end
       # 解压文件
-      result = unzip_file(path.join(file_name).to_path, "./")
+      result = LUtils.unzip_file(path.join(file_name).to_path, "./")
       new_file_name = "#{project_name}-#{self.commit}"
       unless result && File.exist?(new_file_name)
         LgPodPlugin.log_red("解压文件失败, 尝试git clone #{self.git}")
         return self.git_clone_by_commit(path, temp_name)
       end
-      return path.join(new_file_name)
+      path.join(new_file_name)
     end
 
     def git_clone_by_branch(path, temp_name)
       LgPodPlugin.log_blue "git clone --depth=1 --branch #{self.branch} #{self.git}"
       system("git clone --depth=1 -b #{self.branch} #{self.git} #{temp_name}")
-      return path.join(temp_name)
+      path.join(temp_name)
     end
 
     def git_clone_by_tag(path, temp_name)
       LgPodPlugin.log_blue "git clone --tag #{self.tag} #{self.git}"
       system("git clone --depth=1 -b #{self.tag} #{self.git} #{temp_name}")
-      return path.join(temp_name)
+      path.join(temp_name)
     end
 
     def git_clone_by_commit(path, temp_name)
       LgPodPlugin.log_blue "git clone #{self.git}"
-      git = Git.init(temp_name)
+      Git.init(temp_name)
       FileUtils.chdir(temp_name)
       system("git remote add origin #{self.git}")
       system("git fetch origin #{self.commit}")
       system("git reset --hard FETCH_HEAD")
-      return path.join(temp_name)
+      path.join(temp_name)
     end
 
     # clone 代码仓库
@@ -151,23 +135,24 @@ module LgPodPlugin
       FileUtils.chdir(path)
       temp_name = "lg_temp_pod"
       if self.git && self.tag
-        unless self.git.include?("capp/iOS")
+        if self.git.include?("capp/iOS")
+          return git_download_tag_zip(path, temp_name)
+        else
           return self.git_clone_by_tag(path, temp_name)
         end
-        return git_download_tag_zip(path, temp_name)
       elsif self.git && self.branch
-        unless self.git.include?("capp/iOS")
+        if self.git.include?("capp/iOS")
+          return self.git_download_branch_zip(path, temp_name)
+        else
           return self.git_clone_by_branch(path, temp_name)
         end
-        new_path = self.git_download_branch_zip(path, temp_name)
-        return new_path
       elsif self.git && self.commit
-        unless self.git.include?("capp/iOS")
+        if self.git.include?("capp/iOS")
+          return self.git_download_commit_zip(path, temp_name)
+        else
           return self.git_clone_by_commit(path, temp_name)
         end
-        return self.git_download_commit_zip(path, temp_name)
       end
-      return path.join(temp_name)
     end
 
     # def git_checkout(branch)
@@ -186,7 +171,7 @@ module LgPodPlugin
       else
         hash_map[:commit] = commit
       end
-      return hash_map
+      hash_map
     end
 
     def pre_download_git_repository
@@ -207,7 +192,39 @@ module LgPodPlugin
       FileUtils.chdir(LFileManager.download_director)
       FileUtils.rm_rf(lg_pod_path)
     end
-
+    
+    # 获取最新的一条 commit 信息
+    def self.git_ls_remote_refs(git, branch, tag, commit)
+      if branch
+        LgPodPlugin.log_yellow "git ls-remote #{git} #{branch}"
+        new_commit = %x(git ls-remote #{git} #{branch}).split(" ").first
+        return [branch, new_commit]
+      end
+      ls = Git.ls_remote(git, :head => true )
+      if tag
+        map = ls["tags"]
+        keys = map.keys
+        idx = keys.index("#{tag}")
+        unless idx
+          return [nil, nil]
+        end
+        key = keys[idx]
+        new_commit = map[key][:sha]
+        return [nil, new_commit]
+      else
+        new_commit = new_branch = nil
+        find_commit = commit ? commit : ls["head"][:sha]
+        ls["branches"].each do |key, value|
+          sha = value[:sha]
+          next if sha != find_commit
+          new_branch = key
+          new_commit = find_commit
+          return [new_branch, new_commit]
+        end
+        return [new_branch , new_commit]
+      end
+    end
+    
     # 本地pod库git操作
     def git_local_pod_check(path)
       FileUtils.chdir(path)
@@ -236,47 +253,12 @@ module LgPodPlugin
         self.should_pop_stash(git, current_branch)
       end
     end
-
-    # 获取最新的一条 commit 信息
-    def self.git_ls_remote_refs(git, branch, tag, commit)
-      if branch
-        LgPodPlugin.log_yellow "git ls-remote #{git} #{branch}"
-        new_commit = %x(git ls-remote #{git} #{branch}).split(" ").first
-        return [branch, new_commit]
-      end
-      ls = Git.ls_remote(git, :head => true )
-      if tag
-        map = ls["tags"]
-        keys = map.keys
-        idx = keys.index("#{tag}")
-        unless idx
-          return [nil, nil]
-        end
-        key = keys[idx]
-        new_commit = map[key][:sha]
-        return [nil, new_commit]
-      else
-        new_commit = nil
-        new_branch = nil 
-        find_commit = commit ||= ls["head"][:sha]
-        ls["branches"].each do |key, value|
-          sha = value[:sha]
-          next if sha != find_commit
-          new_branch = key
-          new_commit = find_commit
-          return [new_branch, new_commit]
-          break
-        end
-        return [new_branch , new_commit]
-      end
-    end
-
     # 是否pull 代码
     def should_pull(git, branch, new_commit = nil)
-      new_barnch = branch ||= self.branch
+      new_branch = branch ||= self.branch
       git_url = git.remote.url ||= self.git
       if new_commit == nil
-        new_branch, new_commit = LGitUtil.git_ls_remote_refs(git_url, new_barnch,nil, nil)
+        _, new_commit = LGitUtil.git_ls_remote_refs(git_url, new_branch,nil, nil)
       end
       local_commit = git.log(1).to_s  #本地最后一条 commit hash 值
       if local_commit != new_commit

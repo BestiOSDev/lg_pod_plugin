@@ -1,5 +1,7 @@
-require 'singleton'
 require 'yaml'
+require 'json'
+require 'net/http'
+require 'singleton'
 require_relative 'l_cache'
 require_relative 'git_util'
 require_relative 'downloader.rb'
@@ -7,7 +9,7 @@ module LgPodPlugin
 
   class LRequest
     include Singleton
-    REQUIRED_ATTRS ||= %i[name options workspace cache downloader git_util lock_info lock_params is_update].freeze
+    REQUIRED_ATTRS ||= %i[name options workspace cache downloader git_util lock_info lock_params is_update token].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
     def is_update_pod
@@ -30,10 +32,9 @@ module LgPodPlugin
       lock_file = self.workspace.join("Podfile.lock")
       if lock_file.exist?
         json = YAML.load_file(lock_file.to_path)
-        external_sources = json["EXTERNAL SOURCES"]
-        return external_sources
+        json["EXTERNAL SOURCES"]
       else
-        return nil
+        nil
       end
     end
 
@@ -63,7 +64,7 @@ module LgPodPlugin
       elsif commit == lock_commit
         return { :git => git, :commit => lock_commit }
       else
-        return nil
+        nil
       end
     end
 
@@ -88,11 +89,11 @@ module LgPodPlugin
           if lock_tag == tag && lock_commit
             hash_map[:commit] = lock_commit
           else
-            new_branch, new_commit = LGitUtil.git_ls_remote_refs(git, branch, tag,commit)
+            _, new_commit = LGitUtil.git_ls_remote_refs(git, branch, tag, commit)
             hash_map[:commit] = new_commit
           end
         else
-          new_branch, new_commit = LGitUtil.git_ls_remote_refs(git, branch, tag,commit)
+          _, new_commit = LGitUtil.git_ls_remote_refs(git, branch, tag,commit)
           hash_map[:commit] = new_commit
         end
       elsif git && commit
@@ -114,17 +115,20 @@ module LgPodPlugin
           if branch == lock_branch && lock_commit
             hash_map[:commit] = lock_commit
           else
-            new_branch, new_commit = LGitUtil.git_ls_remote_refs(git, branch, tag, commit)
+            _, new_commit = LGitUtil.git_ls_remote_refs(git, branch, tag, commit)
             hash_map[:commit] = new_commit
           end
         else
-          new_branch, new_commit = LGitUtil.git_ls_remote_refs(git, branch, tag, commit)
+          _, new_commit = LGitUtil.git_ls_remote_refs(git, branch, tag, commit)
           hash_map[:commit] = new_commit
         end
-      else
+      elsif !path
         new_branch, new_commit = LGitUtil.git_ls_remote_refs(git, branch, tag, commit)
         hash_map[:commit] = new_commit
         hash_map[:branch] = new_branch
+      end
+      if self.token == nil
+        self.token = self.request_gitlab_token(git)
       end
       self.options = hash_map
       self.cache = LCache.new(self.workspace)
@@ -134,6 +138,27 @@ module LgPodPlugin
 
     def self.shared
       return LRequest.instance
+    end
+
+    def request_gitlab_token(git)
+      if git == nil
+        return nil
+      end
+      begin
+        #81.69.242.162
+        uri = URI('http://81.69.242.162:8080/v1/member/user/gitlab/token')
+        # uri = URI('http://127.0.0.1:8080/v1/member/user/gitlab/token')
+        params = {"url" => git}
+        res = Net::HTTP.post_form(uri, params)
+        json = JSON.parse(res.body)
+      rescue
+        return nil
+      end
+      unless json
+        return nil
+      end
+      token = json["data"]["token"]
+      return token
     end
 
   end

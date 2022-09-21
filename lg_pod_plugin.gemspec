@@ -5,7 +5,6 @@ Gem::Specification.new do |spec|
   spec.version       = LgPodPlugin::VERSION
   spec.authors       = ["dongzb01"]
   spec.email         = ["1060545231@qq.com"]
-
   spec.summary       = %q{封装了自定义podfile 中pod 方法}
   spec.description   = %q{拦截pod_install 方法, 并设置 pod 方法参数列表}
   spec.homepage      = "https://gitee.com/fmdb_beantech_admin/lg_pod_plugin"
@@ -16,10 +15,11 @@ Gem::Specification.new do |spec|
   # spec.executables   = %w{ lg }
   spec.require_paths = %w{ lib }
   spec.add_development_dependency 'claide', '~> 1.1.0'
-  spec.add_development_dependency 'sqlite3', '~> 1.4.4'
+  # spec.add_development_dependency 'sqlite3', '~> 1.4.4'
   spec.add_development_dependency 'bacon', '~> 1.1'
   spec.add_development_dependency 'bundler', '~> 2.0'
   spec.add_development_dependency 'rake', '~> 13.0.6'
-  spec.add_development_dependency 'git', '~> 1.12.0'
+  # spec.add_development_dependency 'git', '~> 1.12.0'
+  # spec.add_development_dependency 'rubyzip', '~> 2.3.2'
   spec.add_development_dependency 'cocoapods', '~> 1.11.3'
 end

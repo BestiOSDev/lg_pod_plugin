@@ -26,7 +26,7 @@ module LgPodPlugin
     end
     
     #根据git branch commit 返回请求参数用来获取缓存 path
-    def get_request_params(name, git, branch, tag, commit)
+    def get_request_params(git, branch, tag, commit)
       options = { :git => git }
       if git && tag
         options[:tag] = tag
@@ -41,30 +41,29 @@ module LgPodPlugin
       elsif git && commit
         options[:commit] = commit
       end
-      return options
+      options
     end
     #判断缓存是否存在且有效命中缓存
     def find_pod_cache(name, git, branch, tag, commit, is_update)
-      hash_map = nil 
       if is_update
-        hash_map = self.get_request_params(name, git, branch, tag, commit)
+        hash_map = self.get_request_params(git, branch, tag, commit)
       else 
         if LRequest.shared.lock_params
           lock_tag = LRequest.shared.lock_params[:tag]
           lock_branch = LRequest.shared.lock_params[:branch]
           lock_commit = LRequest.shared.lock_params[:commit]
-          hash_map = self.get_request_params(name, git, lock_branch, lock_tag, lock_commit)
+          hash_map = self.get_request_params(git, lock_branch, lock_tag, lock_commit)
         else
-          hash_map = self.get_request_params(name, git, branch, tag, commit)
+          hash_map = self.get_request_params(git, branch, tag, commit)
         end
       end
       request = LCache.download_request(name, hash_map)
       destination = LCache.path_for_pod(request, {})
       cache_pod_spec = LCache.path_for_spec(request, {})
       if File.exist?(destination) && File.exist?(cache_pod_spec)
-        return false
+         false
       else
-        return true
+        true
       end
     end
 
@@ -104,9 +103,9 @@ module LgPodPlugin
         return [request, local_specs]
       else
         local_specs = {}
-        podspecs = Pod::Sandbox::PodspecFinder.new(target).podspecs
-        podspecs[request.name] = request.spec if request.spec
-        podspecs.each do |name, spec|
+        pods_pecs = Pod::Sandbox::PodspecFinder.new(target).podspecs
+        pods_pecs[request.name] = request.spec if request.spec
+        pods_pecs.each do |name, spec|
           if request.name == name
             result.spec = spec
             local_specs[request.name] = spec
@@ -186,12 +185,12 @@ module LgPodPlugin
       result.location = nil
       pods_pecs.each do |s_name, s_spec|
         destination = path_for_pod(request, {})
-        if !File.exist?(destination)
+        unless File.exist?(destination)
           LgPodPlugin.log_green "Copying #{name} from `#{target}` to `#{destination}` "
           copy_and_clean(target, destination, s_spec)
         end
         cache_pod_spec = path_for_spec(request, {})
-        if !File.exist?(cache_pod_spec)
+        unless File.exist?(cache_pod_spec)
           write_spec(s_spec, cache_pod_spec)
         end
         if request.name == s_name
@@ -218,7 +217,7 @@ module LgPodPlugin
     end
 
     # 根据下载参数生产缓存目录
-    def slug(name, params, spec)
+    def slug(params, spec)
       path = ""
       checksum = spec&.checksum && '-' << spec.checksum[0, 5]
       opts = params.to_a.sort_by(&:first).map { |k, v| "#{k}=#{v}" }.join('-')
