@@ -672,6 +672,25 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+      <library name="rubyzip (vbundled(2.3.2)) [path][gem]" type="rubylib">
+        <properties>
+          <option name="version" value="4" />
+        </properties>
+        <CLASSES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rubyzip-2.3.2/lib" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rubyzip-2.3.2/samples" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rubyzip-2.3.2/lib" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rubyzip-2.3.2/samples" />
+        </SOURCES>
+        <excluded>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rubyzip-2.3.2/samples" />
+        </excluded>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
       <library name="typhoeus (vbundled(1.4.0)) [path][gem]" type="rubylib">
         <properties>
           <option name="version" value="4" />

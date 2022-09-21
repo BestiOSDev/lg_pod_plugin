@@ -14,12 +14,14 @@ Gem::Specification.new do |spec|
   spec.files = Dir["lib/**/*.rb"] + %w{ README.md LICENSE }
   # spec.executables   = %w{ lg }
   spec.require_paths = %w{ lib }
-  spec.add_development_dependency 'claide', '~> 1.1.0'
   # spec.add_development_dependency 'sqlite3', '~> 1.4.4'
+  spec.add_runtime_dependency 'git', '~> 1.12.0'
+  spec.add_runtime_dependency 'rubyzip', '~> 2.3.2'
+  spec.add_runtime_dependency 'cocoapods', '~> 1.11.3'
+  spec.add_runtime_dependency 'claide', '>= 1.0.2', '< 2.0'
+
   spec.add_development_dependency 'bacon', '~> 1.1'
   spec.add_development_dependency 'bundler', '~> 2.0'
-  spec.add_development_dependency 'rake', '~> 13.0.6'
-  # spec.add_development_dependency 'git', '~> 1.12.0'
-  # spec.add_development_dependency 'rubyzip', '~> 2.3.2'
-  spec.add_development_dependency 'cocoapods', '~> 1.11.3'
+  spec.add_development_dependency 'rake', '~> 12.3'
+
 end
