@@ -32,7 +32,9 @@ module LgPodPlugin
       lock_file = self.workspace.join("Podfile.lock")
       if lock_file.exist?
         json = YAML.load_file(lock_file.to_path)
-        json["EXTERNAL SOURCES"]
+        external_source = json["EXTERNAL SOURCES"]
+        checkout_options = json["CHECKOUT OPTIONS"]
+        return {"external_source" => external_source, "checkout_options" => checkout_options}
       else
         nil
       end
@@ -42,20 +44,22 @@ module LgPodPlugin
       unless self.lock_info
         return nil
       end
-      current_pod_info = self.lock_info[name]
-      unless current_pod_info
+      external_source = self.lock_info["external_source"][self.name]
+      checkout_options = self.lock_info["checkout_options"][self.name]
+      if !external_source || !checkout_options
         return nil
       end
-      lock_commit = current_pod_info[:commit]
+      lock_tag = external_source[:tag]
+      lock_git = external_source[:git]
+      lock_commit = checkout_options[:commit]
+      lock_branch = external_source[:branch]
       if git && tag
-        lock_tag = current_pod_info[:tag]
         if lock_tag == tag
           return { :git => git, :commit => lock_commit, :tag => lock_tag }
         else
           return nil
         end
       elsif git && branch
-        lock_branch = current_pod_info[:branch]
         if branch == lock_branch
           return { :git => git, :commit => lock_commit, :branch => lock_branch}
         else

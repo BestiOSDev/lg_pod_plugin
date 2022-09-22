@@ -14,7 +14,7 @@ module LgPodPlugin
     REQUIRED_ATTRS ||= %i[name version options target real_name workspace].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
-    def initialize(profile, name, *requirements)
+    def initialize(profile, name, requirements)
       if name.include?("/")
         self.name = name.split("/").first
       else
@@ -30,17 +30,17 @@ module LgPodPlugin
         return
       end
 
-      first = requirements[0].first
-      if "#{first.class}" == "String"
-        self.version = first
-      elsif "#{first.class}" == "Hash"
-        self.options = first
-      end
-      hash_map = nil
-      last = requirements[0].last
-      if "#{last.class}" == "Hash"
-        hash_map = last
-      end
+      # first = requirements[0].first
+      # if first.is_a?(Hash)
+      # if "#{first.class}" == "String"
+      #   self.version = first
+      # elsif "#{first.class}" == "Hash"
+      #   self.options = first
+      # end
+      hash_map = requirements.first.is_a?(Hash) ? requirements.first : {}
+      # if "#{last.class}" == "Hash"
+      #   hash_map = last
+      # end
       git = hash_map[:git]
       if hash_map && git
         tag = hash_map[:tag]
@@ -75,20 +75,20 @@ module LgPodPlugin
       end
       # 根据name, version 安装, pod 'AFNetworking', "1.0.1"
       if self.version && !self.options
-        self.target.store_pod(self.real_name, self.version)
+        # self.target.store_pod(self.real_name, self.version)
         return
       end
       # 根据name, version 安装, pod 'AFNetworking', "1.0.1", :configurations => ["Debug"]
       if self.version && self.options
         hash_map = self.options
         # hash_map.delete(:cache)
-        self.target.store_pod(self.real_name, self.version, hash_map)
+        # self.target.store_pod(self.real_name, self.version, hash_map)
         return
       end
 
       hash_map = self.options
       unless hash_map.is_a?(Hash)
-        self.target.store_pod(self.real_name)
+        # self.target.store_pod(self.real_name)
         return
       end
 
@@ -107,7 +107,7 @@ module LgPodPlugin
       git = options[:git]
       if git
         LRequest.shared.downloader.pre_download_pod
-        self.target.store_pod(self.real_name, options)
+        # self.target.store_pod(self.real_name, options)
       else
         LgPodPlugin.log_red "pod `#{name}` 的参数 path, git , tag , commit不正确"
       end
@@ -143,7 +143,7 @@ module LgPodPlugin
       hash_map.delete(:commit)
       hash_map.delete(:branch)
       # 安装本地私有组件库
-      self.target.store_pod(self.real_name, hash_map)
+      # self.target.store_pod(self.real_name, hash_map)
     end
 
   end

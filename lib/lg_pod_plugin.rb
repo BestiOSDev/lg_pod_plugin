@@ -15,7 +15,9 @@ module LgPodPlugin
 
   public
   # 对 Profile 方法进行拓展
-  def pod(name, *requirements)
-    Installer.new(self, name, requirements)
+  def self.pod(name, profile, *requirements)
+    # pp "pod(name, profile, *requirements)"
+    Installer.new(profile, name, requirements)
   end
+  
 end

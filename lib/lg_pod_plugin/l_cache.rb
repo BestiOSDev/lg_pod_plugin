@@ -47,11 +47,14 @@ module LgPodPlugin
     def find_pod_cache(name, git, branch, tag, commit, is_update)
       if is_update
         hash_map = self.get_request_params(git, branch, tag, commit)
-      else 
+      else
+        # if name == "l-zebra-sdk-ios" || name == "l-video-ios"
+        #   pp name
+        # end
         if LRequest.shared.lock_params
-          lock_tag = LRequest.shared.lock_params[:tag]
-          lock_branch = LRequest.shared.lock_params[:branch]
-          lock_commit = LRequest.shared.lock_params[:commit]
+          lock_tag = LRequest.shared.lock_params[:tag] ||= tag
+          lock_branch = LRequest.shared.lock_params[:branch] ||= branch
+          lock_commit = LRequest.shared.lock_params[:commit] ||= commit
           hash_map = self.get_request_params(git, lock_branch, lock_tag, lock_commit)
         else
           hash_map = self.get_request_params(git, branch, tag, commit)
