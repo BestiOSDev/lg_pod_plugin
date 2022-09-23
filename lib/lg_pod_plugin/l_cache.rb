@@ -30,36 +30,25 @@ module LgPodPlugin
       options = { :git => git }
       if git && tag
         options[:tag] = tag
-        options[:commit] = commit
       elsif git && branch
         if commit
           options[:commit] = commit
         else
           new_commit_id = LGitUtil.git_ls_remote_refs(git, branch, nil, commit)
-          options[:commit] = new_commit_id
+          if new_commit_id
+            options[:commit] = new_commit_id
+          end
         end
       elsif git && commit
+        options[:commit] = commit
+      else
         options[:commit] = commit
       end
       options
     end
     #判断缓存是否存在且有效命中缓存
-    def find_pod_cache(name, git, branch, tag, commit, is_update)
-      if is_update
-        hash_map = self.get_request_params(git, branch, tag, commit)
-      else
-        # if name == "l-zebra-sdk-ios" || name == "l-video-ios"
-        #   pp name
-        # end
-        if LRequest.shared.lock_params
-          lock_tag = LRequest.shared.lock_params[:tag] ||= tag
-          lock_branch = LRequest.shared.lock_params[:branch] ||= branch
-          lock_commit = LRequest.shared.lock_params[:commit] ||= commit
-          hash_map = self.get_request_params(git, lock_branch, lock_tag, lock_commit)
-        else
-          hash_map = self.get_request_params(git, branch, tag, commit)
-        end
-      end
+    def find_pod_cache(name,is_update)
+      hash_map = LRequest.shared.get_cache_key_params
       request = LCache.download_request(name, hash_map)
       destination = LCache.path_for_pod(request, {})
       cache_pod_spec = LCache.path_for_spec(request, {})
@@ -183,16 +172,21 @@ module LgPodPlugin
 
     # 拷贝 pod 缓存文件到 sandbox
     def self.cache_pod(name, target, options = {})
-      request = LCache.download_request(name, options)
+      hash_map = Hash.new.deep_merge(options).reject do|key, val|
+        !key || !val
+      end
+      request = LCache.download_request(name, hash_map)
       result, pods_pecs = get_local_spec(request, target)
       result.location = nil
+      result.checkout_options = hash_map
+      pp "预下载完毕缓存参数 => #{result.checkout_options}"
       pods_pecs.each do |s_name, s_spec|
-        destination = path_for_pod(request, {})
+        destination = path_for_pod(request, :name => name, :params => hash_map)
         unless File.exist?(destination)
           LgPodPlugin.log_green "Copying #{name} from `#{target}` to `#{destination}` "
           copy_and_clean(target, destination, s_spec)
         end
-        cache_pod_spec = path_for_spec(request, {})
+        cache_pod_spec = path_for_spec(request, :name => name, :params => result.checkout_options)
         unless File.exist?(cache_pod_spec)
           write_spec(s_spec, cache_pod_spec)
         end
@@ -205,34 +199,34 @@ module LgPodPlugin
     end
 
     # 根据下载参数生产缓存的路径
-    def get_download_path(name)
-      # hash_map = {:git => git}
-      # if git && tag
-      #   hash_map[:tag] = tag
-      # elsif git && commit
-      #   hash_map[:commit] = commit
-      # elsif git && branch
-      #   hash_map[:commit] = commit
-      # end
-      # request = LCache.download_request(name, hash_map)
-      # self.slug(name, request.params, nil)
-        self.cache_root.join(name)
-    end
+    # def get_download_path(name)
+    #   # hash_map = {:git => git}
+    #   # if git && tag
+    #   #   hash_map[:tag] = tag
+    #   # elsif git && commit
+    #   #   hash_map[:commit] = commit
+    #   # elsif git && branch
+    #   #   hash_map[:commit] = commit
+    #   # end
+    #   # request = LCache.download_request(name, hash_map)
+    #   # self.slug(name, request.params, nil)
+    #     self.cache_root.join(name)
+    # end
 
     # 根据下载参数生产缓存目录
-    def slug(params, spec)
-      path = ""
-      checksum = spec&.checksum && '-' << spec.checksum[0, 5]
-      opts = params.to_a.sort_by(&:first).map { |k, v| "#{k}=#{v}" }.join('-')
-      digest = Digest::MD5.hexdigest(opts)
-      if digest
-        path += "#{digest}"
-      end
-      if checksum
-        path += "#{checksum}"
-      end
-      path
-    end
+    # def slug(params, spec)
+    #   path = ""
+    #   checksum = spec&.checksum && '-' << spec.checksum[0, 5]
+    #   opts = params.to_a.sort_by(&:first).map { |k, v| "#{k}=#{v}" }.join('-')
+    #   digest = Digest::MD5.hexdigest(opts)
+    #   if digest
+    #     path += "#{digest}"
+    #   end
+    #   if checksum
+    #     path += "#{checksum}"
+    #   end
+    #   path
+    # end
 
   end
 

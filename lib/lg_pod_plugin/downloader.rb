@@ -12,11 +12,11 @@ module LgPodPlugin
 
     def initialize(name, options = {})
       self.name = name
-      self.options = options
-      self.git = options[:git]
-      self.tag = options[:tag]
-      self.branch = options[:branch]
-      self.commit = options[:commit]
+      self.options = Hash.new.deep_merge(options)
+      self.git = self.options[:git]
+      self.tag = self.options[:tag]
+      self.branch = self.options[:branch]
+      self.commit = self.options[:commit]
     end
     
     # def check_cache_valid(name, branch)
@@ -31,8 +31,8 @@ module LgPodPlugin
         LgPodPlugin.log_green "Using `#{name}`"
       end
       # 发现本地有缓存, 不需要更新缓存
-      need_download = LRequest.shared.cache.find_pod_cache(self.name, self.git, self.branch, self.tag, self.commit, LRequest.shared.is_update)
-      if !need_download
+      need_download = LRequest.shared.cache.find_pod_cache(name, LRequest.shared.is_update)
+      unless need_download
         LgPodPlugin.log_green "find the cache of `#{name}`, you can use it now."
         return
       else

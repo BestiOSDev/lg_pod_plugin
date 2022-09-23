@@ -23,26 +23,15 @@ module LgPodPlugin
       self.real_name = name
       self.workspace = profile.send(:defined_in_file).dirname
       self.target = profile.send(:current_target_definition)
-
       unless requirements && !requirements.empty?
         LRequest.shared.setup_pod_info(self.name, self.workspace, nil)
         self.lg_pod(self.real_name, requirements)
         return
       end
 
-      # first = requirements[0].first
-      # if first.is_a?(Hash)
-      # if "#{first.class}" == "String"
-      #   self.version = first
-      # elsif "#{first.class}" == "Hash"
-      #   self.options = first
-      # end
       hash_map = requirements.first.is_a?(Hash) ? requirements.first : {}
-      # if "#{last.class}" == "Hash"
-      #   hash_map = last
-      # end
       git = hash_map[:git]
-      if hash_map && git
+      if git
         tag = hash_map[:tag]
         branch = hash_map[:branch]
         commit = hash_map[:commit]
@@ -54,6 +43,10 @@ module LgPodPlugin
           hash_map.delete(:branch)
         elsif branch
           hash_map.delete(:tag)
+          hash_map.delete(:commit)
+        else
+          hash_map.delete(:tag)
+          hash_map.delete(:branch)
           hash_map.delete(:commit)
         end
       end
@@ -104,12 +97,10 @@ module LgPodPlugin
 
     public
     def install_remote_pod(name, options = {})
-      git = options[:git]
-      if git
+      if options[:git]
         LRequest.shared.downloader.pre_download_pod
-        # self.target.store_pod(self.real_name, options)
       else
-        LgPodPlugin.log_red "pod `#{name}` 的参数 path, git , tag , commit不正确"
+        LgPodPlugin.log_red "pod `#{name}` 的参数 path|git|tag|commit不存在"
       end
     end
 
