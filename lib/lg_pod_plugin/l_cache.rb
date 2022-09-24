@@ -24,7 +24,7 @@ module LgPodPlugin
       self.workspace = workspace
       self.cache_root = LFileManager.cache_workspace(self.workspace)
     end
-    
+
     #根据git branch commit 返回请求参数用来获取缓存 path
     def get_request_params(git, branch, tag, commit)
       options = { :git => git }
@@ -46,14 +46,15 @@ module LgPodPlugin
       end
       options
     end
+
     #判断缓存是否存在且有效命中缓存
-    def find_pod_cache(name,is_update)
+    def find_pod_cache(name, is_update)
       hash_map = LRequest.shared.get_cache_key_params
       request = LCache.download_request(name, hash_map)
       destination = LCache.path_for_pod(request, {})
       cache_pod_spec = LCache.path_for_spec(request, {})
       if File.exist?(destination) && File.exist?(cache_pod_spec)
-         false
+        false
       else
         true
       end
@@ -172,7 +173,7 @@ module LgPodPlugin
 
     # 拷贝 pod 缓存文件到 sandbox
     def self.cache_pod(name, target, options = {})
-      hash_map = Hash.new.deep_merge(options).reject do|key, val|
+      hash_map = Hash.new.deep_merge(options).reject do |key, val|
         !key || !val
       end
       request = LCache.download_request(name, hash_map)

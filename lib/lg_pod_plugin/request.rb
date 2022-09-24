@@ -34,7 +34,7 @@ module LgPodPlugin
         json = YAML.load_file(lock_file.to_path)
         external_source = json["EXTERNAL SOURCES"]
         checkout_options = json["CHECKOUT OPTIONS"]
-        return {"external_source" => external_source, "checkout_options" => checkout_options}
+        return { "external_source" => external_source, "checkout_options" => checkout_options }
       else
         nil
       end
@@ -57,17 +57,18 @@ module LgPodPlugin
         if commit
           hash_map[:commit] = commit
         else
-          _ , new_commit_id = LGitUtil.git_ls_remote_refs(git, branch, nil, commit)
+          _, new_commit_id = LGitUtil.git_ls_remote_refs(git, branch, nil, commit)
           hash_map[:commit] = new_commit_id if new_commit_id
         end
       else
-        _ , new_commit_id = LGitUtil.git_ls_remote_refs(git, branch, nil, commit)
+        _, new_commit_id = LGitUtil.git_ls_remote_refs(git, branch, nil, commit)
         hash_map[:commit] = new_commit_id if new_commit_id
       end
       return hash_map
     end
 
     private
+
     def get_lock_params
       unless self.lock_info
         return Hash.new.deep_merge(self.checkout_options)
@@ -107,7 +108,7 @@ module LgPodPlugin
         hash_map[:commit] = commit if commit
         return hash_map
       else
-        new_branch , new_commit = LGitUtil.git_ls_remote_refs(git, branch, tag, commit)
+        new_branch, new_comit = LGitUtil.git_ls_remote_refs(git, branch, tag, commit)
         hash_map[:commit] = new_commit if new_commit
         hash_map[:branch] = new_branch if new_branch
       end
@@ -115,6 +116,7 @@ module LgPodPlugin
     end
 
     private
+
     #获取下载参数
     def get_request_params
       self.is_update = self.is_update_pod
@@ -126,6 +128,7 @@ module LgPodPlugin
     end
 
     public
+
     def setup_pod_info(name, workspace, options = {})
       self.name = name
       tag = options[:tag]
@@ -160,7 +163,7 @@ module LgPodPlugin
         #81.69.242.162
         uri = URI('http://81.69.242.162:8080/v1/member/user/gitlab/token')
         # uri = URI('http://127.0.0.1:8080/v1/member/user/gitlab/token')
-        params = {"url" => git}
+        params = { "url" => git }
         res = Net::HTTP.post_form(uri, params)
         json = JSON.parse(res.body)
       rescue

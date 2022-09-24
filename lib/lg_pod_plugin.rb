@@ -1,4 +1,5 @@
 require 'git'
+require 'claide'
 require 'cocoapods-downloader'
 require "lg_pod_plugin/version"
 require_relative 'lg_pod_plugin/log'
@@ -10,14 +11,15 @@ require_relative 'lg_pod_plugin/downloader'
 require 'cocoapods-core/podfile/target_definition'
 
 module LgPodPlugin
-
+  autoload :Command, 'command/command'
   class Error < StandardError; end
 
-  public
-  # 对 Profile 方法进行拓展
-  def self.pod(name, profile, *requirements)
-    # pp "pod(name, profile, *requirements)"
-    Installer.new(profile, name, requirements)
+  def self.install(options = {})
+    LgPodPlugin::Installer.run("install", options)
   end
-  
+
+  def self.update(options = {})
+    LgPodPlugin::Installer.run("update", options)
+  end
+
 end
