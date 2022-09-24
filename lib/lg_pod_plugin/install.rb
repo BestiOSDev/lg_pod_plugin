@@ -92,7 +92,7 @@ module LgPodPlugin
       work_space = Pathname(Dir.pwd)
       podfile_path = work_space.join("Podfile")
       unless podfile_path.exist?
-        "no such file `Podfile`"
+        LgPodPlugin.log_red "no such file `Podfile`"
         return
       end
 
