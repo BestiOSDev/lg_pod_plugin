@@ -59,7 +59,6 @@ module LgPodPlugin
     end
 
     public
-
     def install_remote_pod(name, options = {})
       if options[:git]
         LRequest.shared.downloader.pre_download_pod

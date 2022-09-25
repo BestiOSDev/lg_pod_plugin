@@ -1,6 +1,5 @@
 require 'git'
 require_relative 'l_cache'
-# require_relative 'database'
 require_relative 'file_path'
 
 module LgPodPlugin
@@ -18,10 +17,6 @@ module LgPodPlugin
       self.branch = self.options[:branch]
       self.commit = self.options[:commit]
     end
-    
-    # def check_cache_valid(name, branch)
-    #   self.db.should_clean_pod_info(name, branch)
-    # end
 
     # 预下载处理
     def pre_download_pod

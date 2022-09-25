@@ -71,13 +71,10 @@ module LgPodPlugin
 
     def get_lock_params
       unless self.lock_info
-        return Hash.new.deep_merge(self.checkout_options)
+        self.lock_info = {"external_source" => {}, "checkout_options" => {}}
       end
-      external_source = self.lock_info["external_source"][self.name]
-      checkout_options = self.lock_info["checkout_options"][self.name]
-      if !external_source || !checkout_options
-        return Hash.new.deep_merge(self.checkout_options)
-      end
+      external_source = self.lock_info["external_source"][self.name] ||= {}
+      checkout_options = self.lock_info["checkout_options"][self.name] ||= {}
 
       git = self.checkout_options[:git]
       tag = self.checkout_options[:tag]
@@ -116,7 +113,6 @@ module LgPodPlugin
     end
 
     private
-
     #获取下载参数
     def get_request_params
       self.is_update = self.is_update_pod
@@ -127,7 +123,6 @@ module LgPodPlugin
     end
 
     public
-
     def setup_pod_info(name, workspace, options = {})
       self.name = name
       tag = options[:tag]

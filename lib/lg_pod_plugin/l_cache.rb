@@ -6,16 +6,6 @@ require 'cocoapods/downloader/request'
 
 module LgPodPlugin
 
-  class LCachePodInfo
-    REQUIRED_ATTRS ||= %i[sha tag name path branch timestamp].freeze
-    attr_accessor(*REQUIRED_ATTRS)
-
-    def initialize
-      super
-    end
-
-  end
-
   class LCache
     REQUIRED_ATTRS ||= %i[workspace cache_root].freeze
     attr_accessor(*REQUIRED_ATTRS)
@@ -23,28 +13,6 @@ module LgPodPlugin
     def initialize(workspace)
       self.workspace = workspace
       self.cache_root = LFileManager.cache_workspace(self.workspace)
-    end
-
-    #根据git branch commit 返回请求参数用来获取缓存 path
-    def get_request_params(git, branch, tag, commit)
-      options = { :git => git }
-      if git && tag
-        options[:tag] = tag
-      elsif git && branch
-        if commit
-          options[:commit] = commit
-        else
-          new_commit_id = LGitUtil.git_ls_remote_refs(git, branch, nil, commit)
-          if new_commit_id
-            options[:commit] = new_commit_id
-          end
-        end
-      elsif git && commit
-        options[:commit] = commit
-      else
-        options[:commit] = commit
-      end
-      options
     end
 
     #判断缓存是否存在且有效命中缓存
@@ -105,7 +73,6 @@ module LgPodPlugin
           end
         end
       end
-
       [result, local_specs]
     end
 
@@ -197,36 +164,6 @@ module LgPodPlugin
       end
 
     end
-
-    # 根据下载参数生产缓存的路径
-    # def get_download_path(name)
-    #   # hash_map = {:git => git}
-    #   # if git && tag
-    #   #   hash_map[:tag] = tag
-    #   # elsif git && commit
-    #   #   hash_map[:commit] = commit
-    #   # elsif git && branch
-    #   #   hash_map[:commit] = commit
-    #   # end
-    #   # request = LCache.download_request(name, hash_map)
-    #   # self.slug(name, request.params, nil)
-    #     self.cache_root.join(name)
-    # end
-
-    # 根据下载参数生产缓存目录
-    # def slug(params, spec)
-    #   path = ""
-    #   checksum = spec&.checksum && '-' << spec.checksum[0, 5]
-    #   opts = params.to_a.sort_by(&:first).map { |k, v| "#{k}=#{v}" }.join('-')
-    #   digest = Digest::MD5.hexdigest(opts)
-    #   if digest
-    #     path += "#{digest}"
-    #   end
-    #   if checksum
-    #     path += "#{checksum}"
-    #   end
-    #   path
-    # end
 
   end
 
