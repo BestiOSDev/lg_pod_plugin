@@ -34,7 +34,7 @@ module LgPodPlugin
         json = YAML.load_file(lock_file.to_path)
         external_source = json["EXTERNAL SOURCES"]
         checkout_options = json["CHECKOUT OPTIONS"]
-        return { "external_source" => external_source, "checkout_options" => checkout_options }
+        { "external_source" => external_source, "checkout_options" => checkout_options }
       else
         nil
       end
@@ -64,7 +64,7 @@ module LgPodPlugin
         _, new_commit_id = LGitUtil.git_ls_remote_refs(git, branch, nil, commit)
         hash_map[:commit] = new_commit_id if new_commit_id
       end
-      return hash_map
+      hash_map
     end
 
     private
@@ -84,8 +84,8 @@ module LgPodPlugin
       commit = self.checkout_options[:commit]
       branch = self.checkout_options[:branch]
 
-      lock_git = external_source[:git]
-      lock_tag = external_source[:tag]
+      # lock_git = external_source[:git]
+      # lock_tag = external_source[:tag]
       lock_commit = checkout_options[:commit]
       lock_branch = external_source[:branch]
       hash_map = Hash.new
@@ -100,7 +100,7 @@ module LgPodPlugin
           return hash_map
         else
           hash_map[:branch] = branch if branch
-          new_branch, new_commit = LGitUtil.git_ls_remote_refs(git, branch, tag, commit)
+          _, new_commit = LGitUtil.git_ls_remote_refs(git, branch, tag, commit)
           hash_map[:commit] = new_commit if new_commit
           return hash_map
         end
@@ -112,7 +112,7 @@ module LgPodPlugin
         hash_map[:commit] = new_commit if new_commit
         hash_map[:branch] = new_branch if new_branch
       end
-      return hash_map
+      hash_map
     end
 
     private
@@ -123,8 +123,7 @@ module LgPodPlugin
       if self.lock_info == nil
         self.lock_info = self.get_lock_info
       end
-      lock_info_map = Hash.new.merge!(self.get_lock_params)
-      return lock_info_map
+      Hash.new.merge!(self.get_lock_params)
     end
 
     public
@@ -172,8 +171,7 @@ module LgPodPlugin
       unless json
         return nil
       end
-      token = json["data"]["token"]
-      return token
+      json["data"]["token"]
     end
 
   end

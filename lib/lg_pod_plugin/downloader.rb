@@ -31,16 +31,15 @@ module LgPodPlugin
         LgPodPlugin.log_green "Using `#{name}`"
       end
       # 发现本地有缓存, 不需要更新缓存
-      need_download = LRequest.shared.cache.find_pod_cache(name, LRequest.shared.is_update)
-      unless need_download
+      need_download = LRequest.shared.cache.find_pod_cache(name)
+      if need_download
+        LgPodPlugin.log_green "find the new commit of `#{name}`, Git downloading now."
+        # 本地 git 下载 pod 目录
+        LRequest.shared.git_util.pre_download_git_repository
+      else
         LRequest.shared.libs.delete(self.name)
         LgPodPlugin.log_green "find the cache of `#{name}`, you can use it now."
-        return
-      else
-        LgPodPlugin.log_green "find the new commit of `#{name}`, Git downloading now."
       end
-      # 本地 git 下载 pod 目录
-      LRequest.shared.git_util.pre_download_git_repository
 
       # 本地clone代码失败跳出去
       # unless real_pod_path.exist?
