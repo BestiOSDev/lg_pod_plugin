@@ -6,6 +6,7 @@ require_relative 'request'
 require_relative 'database'
 require_relative 'git_util'
 require_relative 'downloader.rb'
+require 'cocoapods-core/podfile'
 require 'cocoapods-core/podfile/target_definition'
 module LgPodPlugin
 
@@ -93,13 +94,14 @@ module LgPodPlugin
     #执行lg install/update命令
     def self.run(command, options = {})
       work_space = Pathname(Dir.pwd)
+      LgPodPlugin.log_green "当前工作目录 #{work_space}"
       podfile_path = work_space.join("Podfile")
       unless podfile_path.exist?
         LgPodPlugin.log_red "no such file `Podfile`"
         return
       end
-
       podfile = Pod::Podfile.from_file(podfile_path)
+      # LgPodPlugin.log_red "podfile => #{podfile} podfile_path => #{podfile_path}"
       target = podfile.send(:current_target_definition)
       children = target.children
       install_hash_map = {}

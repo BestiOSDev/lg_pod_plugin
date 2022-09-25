@@ -36,7 +36,7 @@ module LgPodPlugin
       end
       download_url = base_url + "/-/archive/" + branch + "/#{project_name}-#{branch}.zip"
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
-      system("curl --header PRIVATE-TOKEN:#{token} -o #{file_name} --connect-timeout 15 #{download_url}")
+      system("curl --header PRIVATE-TOKEN:#{token} -o #{file_name} --connect-timeout 60 --retry 3 #{download_url}")
       unless File.exist?(file_name)
         LgPodPlugin.log_red("下载zip包失败, 尝试git clone #{self.git}")
         return self.git_clone_by_branch(path, temp_name)
@@ -66,7 +66,7 @@ module LgPodPlugin
       download_url = base_url + "/-/archive/" + self.tag + "/#{project_name}-#{self.tag}.zip"
       # 下载文件
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
-      system("curl -s --header PRIVATE-TOKEN:#{token} -o #{file_name} #{download_url}")
+      system("curl -s --header PRIVATE-TOKEN:#{token} -o #{file_name} --connect-timeout 60 --retry 3 #{download_url}")
       unless File.exist?(file_name)
         LgPodPlugin.log_red("下载zip包失败, 尝试git clone #{self.git}")
         return self.git_clone_by_tag(path, temp_name)
@@ -96,9 +96,9 @@ module LgPodPlugin
       download_url = base_url + "/-/archive/" + self.commit + "/#{project_name}-#{self.commit}.zip"
       # 下载文件
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
-      system("curl -s --header PRIVATE-TOKEN:#{token} -o #{file_name} #{download_url}")
+      system("curl -s --header PRIVATE-TOKEN:#{token} -o #{file_name} --connect-timeout 60 --retry 3 #{download_url}")
       unless File.exist?(file_name)
-        LgPodPlugin.log_red("下载zip包失败, 尝试git clone #{self.git}")
+        LgPodPlugin.log_red("正在尝试git clone #{self.git}")
         return self.git_clone_by_commit(path, temp_name)
       end
       # 解压文件
@@ -125,7 +125,7 @@ module LgPodPlugin
       origin_url = base_url + "/archive/#{branch}.zip"
       download_url = "https://gh.api.99988866.xyz/#{origin_url}"
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
-      system("curl -o #{file_name} --connect-timeout 15 #{download_url}")
+      system("curl -o #{file_name} --connect-timeout 60 --retry 3 #{download_url}")
       unless File.exist?(file_name)
         LgPodPlugin.log_red("下载zip包失败, 尝试git clone #{self.git}")
         return self.git_clone_by_branch(path, temp_name)
@@ -153,14 +153,19 @@ module LgPodPlugin
       download_url = "https://gh.api.99988866.xyz/#{origin_url}"
       # 下载文件
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
-      system("curl -s -o #{file_name} #{download_url}")
+      system("curl -s -o #{file_name} --connect-timeout 60 --retry 3 #{download_url}")
       unless File.exist?(file_name)
-        LgPodPlugin.log_red("下载zip包失败, 尝试git clone #{self.git}")
+        LgPodPlugin.log_red("正在尝试git clone #{self.git}")
         return self.git_clone_by_tag(path, temp_name)
       end
       # 解压文件
       result = LUtils.unzip_file(path.join(file_name).to_path, "./")
-      new_file_name = "#{project_name}-#{self.tag}"
+      if self.tag.include?("v") && self.tag[0...1] == "v"
+        this_tag = self.tag[1...self.tag.length]
+      else
+        this_tag = self.tag
+      end
+      new_file_name = "#{project_name}-#{this_tag}"
       unless result && File.exist?(new_file_name)
         LgPodPlugin.log_red("正在尝试git clone #{self.git}")
         return self.git_clone_by_tag(path, temp_name)
@@ -181,9 +186,9 @@ module LgPodPlugin
       download_url = "https://gh.api.99988866.xyz/#{origin_url}"
       # 下载文件
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
-      system("curl -s -o #{file_name} #{download_url}")
+      system("curl -s -o #{file_name} --connect-timeout 15 --retry 3 #{download_url}")
       unless File.exist?(file_name)
-        LgPodPlugin.log_red("下载zip包失败, 尝试git clone #{self.git}")
+        LgPodPlugin.log_red("正在尝试git clone #{self.git}")
         return self.git_clone_by_commit(path, temp_name)
       end
       # 解压文件
