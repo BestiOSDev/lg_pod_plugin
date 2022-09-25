@@ -180,7 +180,6 @@ module LgPodPlugin
       result, pods_pecs = get_local_spec(request, target)
       result.location = nil
       result.checkout_options = hash_map
-      pp "预下载完毕缓存参数 => #{result.checkout_options}"
       pods_pecs.each do |s_name, s_spec|
         destination = path_for_pod(request, :name => name, :params => hash_map)
         unless File.exist?(destination)

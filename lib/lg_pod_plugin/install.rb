@@ -27,6 +27,7 @@ module LgPodPlugin
       self.workspace = profile.send(:defined_in_file).dirname
       self.target = profile.send(:current_target_definition)
       unless requirements && requirements.is_a?(Hash)
+        LRequest.shared.libs.delete(name)
         LgPodPlugin.log_red "pod `#{name}`, 缺少必要的 [git|commit|tag|branch] 参数"
         return
       end
@@ -63,6 +64,7 @@ module LgPodPlugin
       if options[:git]
         LRequest.shared.downloader.pre_download_pod
       else
+        LRequest.shared.libs.delete(name)
         LgPodPlugin.log_red "pod `#{name}`, 缺少必要的 [git|commit|tag|branch] 参数"
       end
     end
@@ -74,10 +76,12 @@ module LgPodPlugin
       repo_update = options[:repo_update]
       if update
         if libs.empty?
-          LgPodPlugin.log_green "bundle exec arch -x86_64 pod update #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""} "
-          system("bundle exec arch -x86_64 pod update #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""} ")
+          LgPodPlugin.log_red "no external pod update, you can use `pod update` to update --all pods"
+          # LgPodPlugin.log_green "bundle exec arch -x86_64 pod update #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""} "
+          # system("bundle exec arch -x86_64 pod update #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""} ")
         else
           pod_names = libs.join(" ")
+          LgPodPlugin.log_green  libs.join("\n")
           LgPodPlugin.log_green "bundle exec arch -x86_64 pod update #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""} "
           system("bundle exec arch -x86_64 pod update #{pod_names} #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""} ")
         end
@@ -112,7 +116,7 @@ module LgPodPlugin
           install_hash_map[key] = val
         }
       end
-
+      LRequest.shared.libs = install_hash_map
       LgPodPlugin.log_red "预下载Pod"
       install_hash_map.each do |key, val|
         Installer.new(podfile, key, val)
@@ -121,7 +125,7 @@ module LgPodPlugin
       LgPodPlugin.log_red "开始安装pod"
       #切换工作目录到当前工程下, 开始执行pod install
       FileUtils.chdir(podfile_path.dirname)
-      libs = install_hash_map.keys ||= []
+      libs = LRequest.shared.libs.keys ||= []
       # 执行pod install/ update 方法入口
       update_pod = (command == "update")
       run_pod_install(update_pod, libs, options)

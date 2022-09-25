@@ -33,6 +33,7 @@ module LgPodPlugin
       # 发现本地有缓存, 不需要更新缓存
       need_download = LRequest.shared.cache.find_pod_cache(name, LRequest.shared.is_update)
       unless need_download
+        LRequest.shared.libs.delete(self.name)
         LgPodPlugin.log_green "find the cache of `#{name}`, you can use it now."
         return
       else

@@ -9,7 +9,7 @@ module LgPodPlugin
 
   class LRequest
     include Singleton
-    REQUIRED_ATTRS ||= %i[name request_params workspace cache downloader git_util lock_info checkout_options is_update token single_git].freeze
+    REQUIRED_ATTRS ||= %i[name request_params workspace cache downloader git_util lock_info checkout_options is_update token single_git libs].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
     def is_update_pod
