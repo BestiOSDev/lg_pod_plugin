@@ -29,6 +29,7 @@ module LgPodPlugin
       self.target = profile.send(:current_target_definition)
       unless requirements && requirements.is_a?(Hash)
         LRequest.shared.libs.delete(name)
+        LRequest.shared.libs.delete(self.real_name)
         LgPodPlugin.log_red "pod `#{name}`, 缺少必要的 [git|commit|tag|branch] 参数"
         return
       end
@@ -59,6 +60,7 @@ module LgPodPlugin
       end
       self.options = hash_map
       LRequest.shared.setup_pod_info(self.name, self.workspace, hash_map)
+      LRequest.shared.downloader.real_name = self.real_name
       self.install_remote_pod(name, hash_map)
     end
 
@@ -69,6 +71,7 @@ module LgPodPlugin
         LRequest.shared.downloader.pre_download_pod
       else
         LRequest.shared.libs.delete(name)
+        LRequest.shared.libs.delete(self.real_name)
         LgPodPlugin.log_red "pod `#{name}`, 缺少必要的 [git|commit|tag|branch] 参数"
       end
     end
@@ -110,6 +113,7 @@ module LgPodPlugin
       target = podfile.send(:current_target_definition)
       children = target.children
       install_hash_map = {}
+      release_pods = []
       children.each do |s|
         internal_hash = s.send(:internal_hash)
         next unless internal_hash.is_a?(Hash)
@@ -119,10 +123,13 @@ module LgPodPlugin
           next unless e.is_a?(Hash)
           next if (key = e.keys.first) == nil
           next if (val = e[key].last) == nil
-          next unless val.is_a?(Hash)
-          next unless val[:path] == nil
-          next unless val[:podspec] == nil
-          install_hash_map[key] = val
+          if val.is_a?(Hash)
+            next unless val[:path] == nil
+            next unless val[:podspec] == nil
+            install_hash_map[key] = val
+          else
+            release_pods.append(key)
+          end
         }
       end
       LRequest.shared.libs = install_hash_map
@@ -134,7 +141,7 @@ module LgPodPlugin
       LgPodPlugin.log_red "开始安装pod"
       #切换工作目录到当前工程下, 开始执行pod install
       FileUtils.chdir(podfile_path.dirname)
-      libs = LRequest.shared.libs.keys ||= []
+      libs = LRequest.shared.libs.keys.empty? ? release_pods : LRequest.shared.libs.keys
       # 执行pod install/ update 方法入口
       update_pod = (command == "update")
       run_pod_install(update_pod, libs, options)

@@ -6,7 +6,7 @@ module LgPodPlugin
 
   class LDownloader
 
-    REQUIRED_ATTRS ||= %i[git name commit branch tag options].freeze
+    REQUIRED_ATTRS ||= %i[git real_name name commit branch tag options].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
     def initialize(name, options = {})
@@ -32,7 +32,11 @@ module LgPodPlugin
         # 本地 git 下载 pod 目录
         LRequest.shared.git_util.pre_download_git_repository
       else
-        LRequest.shared.libs.delete(self.name)
+        if self.real_name == self.name
+          LRequest.shared.libs.delete(self.name)
+        else
+          LRequest.shared.libs.delete(self.real_name)
+        end
         LgPodPlugin.log_green "find the cache of `#{name}`, you can use it now."
       end
 
