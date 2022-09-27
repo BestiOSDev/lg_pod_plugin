@@ -63,6 +63,7 @@ module LgPodPlugin
     end
 
     public
+
     def install_remote_pod(name, options = {})
       if options[:git]
         LRequest.shared.downloader.pre_download_pod
@@ -73,6 +74,7 @@ module LgPodPlugin
     end
 
     public
+
     # 执行pod install/update命令
     def self.run_pod_install(update, libs, options = {})
       verbose = options[:verbose]
@@ -84,7 +86,7 @@ module LgPodPlugin
           # system("bundle exec arch -x86_64 pod update #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""} ")
         else
           pod_names = libs.join(" ")
-          LgPodPlugin.log_green  libs.join("\n")
+          LgPodPlugin.log_green libs.join("\n")
           LgPodPlugin.log_green "bundle exec arch -x86_64 pod update #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""} "
           system("bundle exec arch -x86_64 pod update #{pod_names} #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""} ")
         end
@@ -110,13 +112,16 @@ module LgPodPlugin
       install_hash_map = {}
       children.each do |s|
         internal_hash = s.send(:internal_hash)
+        next unless internal_hash.is_a?(Hash)
         dependencies = internal_hash["dependencies"]
-        next unless dependencies
+        next unless dependencies.is_a?(Array)
         dependencies.each { |e|
           next unless e.is_a?(Hash)
           next if (key = e.keys.first) == nil
           next if (val = e[key].last) == nil
           next unless val.is_a?(Hash)
+          next unless val[:path] == nil
+          next unless val[:podspec] == nil
           install_hash_map[key] = val
         }
       end
