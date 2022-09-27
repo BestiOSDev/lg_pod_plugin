@@ -32,13 +32,16 @@ module LgPodPlugin
         LgPodPlugin.log_red "pod `#{name}`, 缺少必要的 [git|commit|tag|branch] 参数"
         return
       end
-      hash_map = requirements
-      hash_map.delete(:path)
-      git = hash_map[:git]
+      git = requirements[:git]
+      tag = requirements[:tag]
+      commit = requirements[:commit]
+      branch = requirements[:branch]
+      hash_map = Hash.new
+      hash_map[:git] = git if git
+      hash_map[:tag] = tag if tag
+      hash_map[:commit] = commit if commit
+      hash_map[:branch] = branch if branch
       if git
-        tag = hash_map[:tag]
-        branch = hash_map[:branch]
-        commit = hash_map[:commit]
         if tag
           hash_map.delete(:branch)
           hash_map.delete(:commit)

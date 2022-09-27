@@ -2,6 +2,7 @@ require 'yaml'
 require 'json'
 require 'net/http'
 require 'singleton'
+require_relative 'l_config'
 require_relative 'l_cache'
 require_relative 'git_util'
 require_relative 'downloader.rb'
@@ -9,7 +10,7 @@ module LgPodPlugin
 
   class LRequest
     include Singleton
-    REQUIRED_ATTRS ||= %i[name request_params workspace cache downloader git_util lock_info checkout_options is_update token single_git libs].freeze
+    REQUIRED_ATTRS ||= %i[name request_params workspace cache downloader git_util lock_info checkout_options is_update token single_git libs config].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
     def is_update_pod
@@ -137,9 +138,11 @@ module LgPodPlugin
       end
       self.checkout_options = Hash.new.deep_merge(options)
       self.request_params = self.get_request_params
-      if self.token == nil
-        self.token = self.request_gitlab_token(git)
-      end
+      # if self.token == nil
+      #   self.token = self.request_gitlab_token(git)
+      # end
+      json_file = self.workspace.join("lg_pod_plugin.json")
+      self.config = LConfig.form_json_file(json_file) unless self.config
       self.cache = LCache.new(self.workspace)
       self.git_util = LGitUtil.new(name, self.checkout_options)
       self.downloader = LDownloader.new(name, self.checkout_options)
@@ -147,26 +150,6 @@ module LgPodPlugin
 
     def self.shared
       return LRequest.instance
-    end
-
-    def request_gitlab_token(git)
-      if git == nil
-        return nil
-      end
-      begin
-        #81.69.242.162
-        uri = URI('http://81.69.242.162:8080/v1/member/user/gitlab/token')
-        # uri = URI('http://127.0.0.1:8080/v1/member/user/gitlab/token')
-        params = { "url" => git }
-        res = Net::HTTP.post_form(uri, params)
-        json = JSON.parse(res.body)
-      rescue
-        return nil
-      end
-      unless json
-        return nil
-      end
-      json["data"]["token"]
     end
 
   end
