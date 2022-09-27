@@ -8,6 +8,11 @@ module LgPodPlugin
       begin
         #81.69.242.162
         uri = URI('http://81.69.242.162:8080/v1/member/user/gitlab/token')
+        pp uri.hostname
+        pp uri.host
+        pp uri.methods
+        pp uri.absolute
+        pp uri.relative
         # uri = URI('http://127.0.0.1:8080/v1/member/user/gitlab/token')
         params = { "url" => git }
         res = Net::HTTP.post_form(uri, params)

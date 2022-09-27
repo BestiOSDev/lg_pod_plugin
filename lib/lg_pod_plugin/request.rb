@@ -13,6 +13,7 @@ module LgPodPlugin
     REQUIRED_ATTRS ||= %i[name request_params workspace cache downloader git_util lock_info checkout_options is_update token single_git libs config].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
+    public
     def is_update_pod
       cgi = CGI.new
       command_keys = cgi.keys
@@ -29,6 +30,7 @@ module LgPodPlugin
       end
     end
 
+    public
     def get_lock_info
       lock_file = self.workspace.join("Podfile.lock")
       if lock_file.exist?
@@ -42,6 +44,7 @@ module LgPodPlugin
     end
 
     # 获取缓存用的hash_map
+    public
     def get_cache_key_params
       hash_map = Hash.new
       git = self.checkout_options[:git] ||= self.request_params[:git]
@@ -68,8 +71,7 @@ module LgPodPlugin
       hash_map
     end
 
-    private
-
+    public
     def get_lock_params
       unless self.lock_info
         self.lock_info = {"external_source" => {}, "checkout_options" => {}}
@@ -113,7 +115,7 @@ module LgPodPlugin
       hash_map
     end
 
-    private
+    public
     #获取下载参数
     def get_request_params
       self.is_update = self.is_update_pod
