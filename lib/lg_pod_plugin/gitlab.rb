@@ -1,37 +1,25 @@
 require 'net/http'
+require 'json'
+require_relative 'file_path'
 
 module LgPodPlugin
   class GitLab
 
-    def self.get_projects_with_group_id(token, group_id)
-
+    def self.reqeust_gitlab_accesstoken(username, password, host)
+      hash_map = {"grant_type" => "password", "username" => username, "password" => password}
       begin
-        #81.69.242.162
-        uri = URI('http://81.69.242.162:8080/v1/member/user/gitlab/token')
-        pp uri.hostname
-        pp uri.host
-        pp uri.methods
-        pp uri.absolute
-        pp uri.relative
-        # uri = URI('http://127.0.0.1:8080/v1/member/user/gitlab/token')
-        params = { "url" => git }
-        res = Net::HTTP.post_form(uri, params)
+        uri = URI("#{host}/oauth/token")
+        res = Net::HTTP.post_form(uri, hash_map)
         json = JSON.parse(res.body)
+        raise unless json["error"] == nil
+        str = JSON.generate(json)
+        path = LFileManager.gitlab_accesstoken_path
+        File.open(path, 'w+') { |f| f.write(str) }
       rescue
-        return nil
-      end
-      unless json
-        return nil
-      end
-      json["data"]["token"]
-    end
-    def self.init_gitlab_projects(token, group_id)
-      if token && group_id
-        self.get_projects_with_group_id(token, group_id)
+        LgPodPlugin.log_red "生成 `access_token` 失败"
       end
     end
 
+    end
 
-
-  end
 end

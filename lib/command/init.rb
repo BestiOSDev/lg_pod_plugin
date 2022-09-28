@@ -7,22 +7,26 @@ module LgPodPlugin
       self.command = "init"
       self.abstract_command = false
       self.summary = '初始化gitlab projects 信息'
-      attr_accessor :token
-      attr_accessor :group_id
+      attr_accessor :username
+      attr_accessor :password
+      attr_accessor :host
       self.description = <<-DESC
         Manipulate the download cache for pods, like printing the cache content
         or cleaning the pods cache.
       DESC
 
       def initialize(argv)
-        self.token = argv.option('token')
-        self.group_id = argv.option('group_id')
+        self.host = argv.option('host')
+        self.username = argv.option('username')
+        self.password = argv.option('password')
         super
       end
 
       def run
-        raise unless self.token
-        GitLab.init_gitlab_projects(self.token, self.group_id)
+        raise unless self.host
+        raise unless self.username
+        raise unless self.password
+        GitLab.reqeust_gitlab_accesstoken(self.username, self .password, self.host)
       end
 
     end

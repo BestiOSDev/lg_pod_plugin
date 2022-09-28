@@ -16,7 +16,9 @@ module LgPodPlugin
       end
       cache_path
     end
-
+    def self.gitlab_accesstoken_path
+      return self.download_director.join("gitlab_config.json")
+    end
     # pod缓存工作目录, 根据项目所在路径计算所得 确保唯一
     def self.cache_workspace(root)
       timestamp = "_#{Time.now.to_i}_"

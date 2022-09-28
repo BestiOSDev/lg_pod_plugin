@@ -38,12 +38,12 @@ module LgPodPlugin
       # de_cipher.iv = [iv].pack('H*');
       puts de_cipher.update([data].pack('H*')) << de_cipher.final
     end
-
+    #fe1f9dcfe4bacfb09235449623adc9e4bf0bff94fd5829f5cc80f61502960995
     # 下载 zip 格式文件
     def self.download_zip_file(download_url, token, file_name)
       cmds = ['curl']
       cmds << "-s"
-      cmds << "--header PRIVATE-TOKEN:#{token}" if token
+      cmds << "--header \"Authorization: Bearer #{token}\"" if token
       cmds << "-o #{file_name}"
       cmds << "--connect-timeout 15"
       cmds << "--retry 3"

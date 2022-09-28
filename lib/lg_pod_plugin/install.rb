@@ -111,9 +111,9 @@ module LgPodPlugin
       podfile = Pod::Podfile.from_file(podfile_path)
       # LgPodPlugin.log_red "podfile => #{podfile} podfile_path => #{podfile_path}"
       target = podfile.send(:current_target_definition)
-      children = target.children
-      install_hash_map = {}
       release_pods = []
+      install_hash_map = {}
+      children = target.children
       children.each do |s|
         internal_hash = s.send(:internal_hash)
         next unless internal_hash.is_a?(Hash)
