@@ -26,9 +26,9 @@ module LgPodPlugin
     def gitlab_download_branch_zip(path, temp_name)
       branch = self.branch ||= "master"
       file_name = "#{temp_name}.zip"
-      token = LRequest.shared.config.private_token
-      base_url = LUtils.get_gitlab_base_url(self.git)
-      project_name = base_url.split("/").last
+      token = LRequest.shared.config.access_token
+      base_url = LRequest.shared.config.project.web_url
+      project_name = LRequest.shared.config.project.path
       download_url = LUtils.get_gitlab_download_url(base_url, branch, nil, nil, project_name)
       unless download_url
         return self.git_clone_by_branch(path, temp_name)
@@ -51,14 +51,14 @@ module LgPodPlugin
 
     # 通过tag下载zip包
     def gitlab_download_tag_zip(path, temp_name)
-      token = LRequest.shared.config.private_token
-      base_url = LUtils.get_gitlab_base_url(self.git)
-      project_name = base_url.split("/").last
       file_name = "#{temp_name}.zip"
-      download_url = LUtils.get_gitlab_download_url(base_url, nil , self.tag, nil , project_name)
+      token = LRequest.shared.config.access_token
+      base_url = LRequest.shared.config.project.web_url
+      project_name = LRequest.shared.config.project.path
+      download_url = LUtils.get_gitlab_download_url(base_url, nil, self.tag, nil, project_name)
       # 下载文件
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
-      LUtils.download_zip_file(download_url, token,file_name)
+      LUtils.download_zip_file(download_url, token, file_name)
       unless File.exist?(file_name)
         LgPodPlugin.log_red("下载zip包失败, 尝试git clone #{self.git}")
         return self.git_clone_by_tag(path, temp_name)
@@ -75,11 +75,11 @@ module LgPodPlugin
 
     # 通过 commit 下载zip包
     def gitlab_download_commit_zip(path, temp_name)
-      token = LRequest.shared.config.private_token
-      base_url = LUtils.get_gitlab_base_url(self.git)
-      project_name = base_url.split("/").last
       file_name = "#{temp_name}.zip"
-      download_url = LUtils.get_gitlab_download_url(base_url, nil , nil , self.commit , project_name)
+      token = LRequest.shared.config.access_token
+      base_url = LRequest.shared.config.project.web_url
+      project_name = LRequest.shared.config.project.path
+      download_url = LUtils.get_gitlab_download_url(base_url, nil, nil, self.commit, project_name)
       # 下载文件
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
       LUtils.download_zip_file(download_url, token, file_name)
@@ -111,7 +111,7 @@ module LgPodPlugin
       origin_url = base_url + "/archive/#{branch}.zip"
       download_url = "https://gh.api.99988866.xyz/#{origin_url}"
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
-      LUtils.download_zip_file(download_url,nil, file_name)
+      LUtils.download_zip_file(download_url, nil, file_name)
       unless File.exist?(file_name)
         LgPodPlugin.log_red("下载zip包失败, 尝试git clone #{self.git}")
         return self.git_clone_by_branch(path, temp_name)
@@ -139,7 +139,7 @@ module LgPodPlugin
       download_url = "https://gh.api.99988866.xyz/#{origin_url}"
       # 下载文件
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
-      LUtils.download_zip_file(download_url,nil, file_name)
+      LUtils.download_zip_file(download_url, nil, file_name)
       unless File.exist?(file_name)
         LgPodPlugin.log_red("正在尝试git clone #{self.git}")
         return self.git_clone_by_tag(path, temp_name)
@@ -172,7 +172,7 @@ module LgPodPlugin
       download_url = "https://gh.api.99988866.xyz/#{origin_url}"
       # 下载文件
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
-      LUtils.download_zip_file(download_url,nil, file_name)
+      LUtils.download_zip_file(download_url, nil, file_name)
       unless File.exist?(file_name)
         LgPodPlugin.log_red("正在尝试git clone #{self.git}")
         return self.git_clone_by_commit(path, temp_name)

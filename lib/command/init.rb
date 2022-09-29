@@ -26,7 +26,7 @@ module LgPodPlugin
         raise unless self.host
         raise unless self.username
         raise unless self.password
-        GitLab.reqeust_gitlab_accesstoken(self.username, self .password, self.host)
+        GitLab.request_gitlab_access_token(self.username, self .password, self.host)
       end
 
     end

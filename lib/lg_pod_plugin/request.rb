@@ -14,6 +14,7 @@ module LgPodPlugin
     attr_accessor(*REQUIRED_ATTRS)
 
     public
+
     def is_update_pod
       cgi = CGI.new
       command_keys = cgi.keys
@@ -31,6 +32,7 @@ module LgPodPlugin
     end
 
     public
+
     def get_lock_info
       lock_file = self.workspace.join("Podfile.lock")
       if lock_file.exist?
@@ -44,7 +46,9 @@ module LgPodPlugin
     end
 
     # 获取缓存用的hash_map
+
     public
+
     def get_cache_key_params
       hash_map = Hash.new
       git = self.checkout_options[:git] ||= self.request_params[:git]
@@ -72,9 +76,10 @@ module LgPodPlugin
     end
 
     public
+
     def get_lock_params
       unless self.lock_info
-        self.lock_info = {"external_source" => {}, "checkout_options" => {}}
+        self.lock_info = { "external_source" => {}, "checkout_options" => {} }
       end
       external_source = self.lock_info["external_source"][self.name] ||= {}
       checkout_options = self.lock_info["checkout_options"][self.name] ||= {}
@@ -116,6 +121,7 @@ module LgPodPlugin
     end
 
     public
+
     #获取下载参数
     def get_request_params
       self.is_update = self.is_update_pod
@@ -126,6 +132,7 @@ module LgPodPlugin
     end
 
     public
+
     def setup_pod_info(name, workspace, options = {})
       self.name = name
       tag = options[:tag]
@@ -140,11 +147,7 @@ module LgPodPlugin
       end
       self.checkout_options = Hash.new.deep_merge(options)
       self.request_params = self.get_request_params
-      # if self.token == nil
-      #   self.token = self.request_gitlab_token(git)
-      # end
-      json_file = self.workspace.join("lg_pod_plugin.json")
-      self.config = LConfig.form_json_file(json_file) unless self.config
+      self.config = LConfig.getConfig(git)
       self.cache = LCache.new(self.workspace)
       self.git_util = LGitUtil.new(name, self.checkout_options)
       self.downloader = LDownloader.new(name, self.checkout_options)
