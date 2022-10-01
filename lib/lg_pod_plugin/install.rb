@@ -4,14 +4,14 @@ require 'cgi'
 require 'cocoapods'
 require_relative 'request'
 require_relative 'database'
-require_relative 'git_util'
-require_relative 'downloader.rb'
+require_relative 'downloader'
 require 'cocoapods-core/podfile'
+require_relative 'gitlab_download'
 require 'cocoapods-core/podfile/target_definition'
+
 module LgPodPlugin
 
   class Installer
-
     REQUIRED_ATTRS ||= %i[name version options target real_name workspace].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
@@ -65,7 +65,6 @@ module LgPodPlugin
     end
 
     public
-
     def install_remote_pod(name, options = {})
       if options[:git]
         LRequest.shared.downloader.pre_download_pod
@@ -77,7 +76,6 @@ module LgPodPlugin
     end
 
     public
-
     # 执行pod install/update命令
     def self.run_pod_install(update, libs, options = {})
       verbose = options[:verbose]
@@ -85,8 +83,7 @@ module LgPodPlugin
       if update
         if libs.empty?
           LgPodPlugin.log_red "no external pod update, you can use `pod update` to update --all pods"
-          # LgPodPlugin.log_green "bundle exec arch -x86_64 pod update #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""} "
-          # system("bundle exec arch -x86_64 pod update #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""} ")
+          system("bundle exec arch -x86_64 pod update #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""} ")
         else
           pod_names = libs.join(" ")
           LgPodPlugin.log_green libs.join("\n")
@@ -109,7 +106,6 @@ module LgPodPlugin
         return
       end
       podfile = Pod::Podfile.from_file(podfile_path)
-      # LgPodPlugin.log_red "podfile => #{podfile} podfile_path => #{podfile_path}"
       target = podfile.send(:current_target_definition)
       release_pods = []
       install_hash_map = {}

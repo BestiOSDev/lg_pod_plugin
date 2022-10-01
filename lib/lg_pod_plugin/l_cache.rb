@@ -134,7 +134,9 @@ module LgPodPlugin
     def self.write_spec(spec, path)
       path.dirname.mkpath
       Pod::Downloader::Cache.write_lock(path) do
-        path.open('w') { |f| f.write spec.to_pretty_json }
+        path.open('w') { |f|
+          f.write spec.to_pretty_json
+        }
       end
     end
 

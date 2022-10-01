@@ -3,7 +3,7 @@ require 'uri'
 require 'resolv'
 require "ipaddr"
 require 'io/console'
-require_relative 'gitlab'
+require_relative 'gitlab_api.rb'
 require_relative 'database'
 
 module LgPodPlugin
@@ -33,19 +33,8 @@ module LgPodPlugin
           uri = URL("https://www.baidu.com")
         end
       end
-      begin
-        is_ip = true if ip_address = Resolv.getaddress(uri.host)
-      rescue
-        ip_address = %x(ping #{uri.host} -c 1).split("\n").first
-        if ip_address && ip_address.include?("(") && ip_address.include?("):")
-          ip_address = ip_address.split("(").last.split(")").first
-          is_ip = true if IPAddr.new ip_address
-        else
-          ip_address = ""
-          is_ip = false
-        end
-      end
-      unless is_ip
+      ip_address = LUtils.git_server_ip_address(uri.host)
+      unless ip_address
         LgPodPlugin.log_yellow "找不到 #{git}的IP地址"
         return nil
       end
@@ -61,15 +50,27 @@ module LgPodPlugin
         username = STDIN.gets.chomp
         LgPodPlugin.log_yellow "请输入 `#{uri}` 的密码"
         password = STDIN.noecho(&:gets).chomp
-        GitLab.request_gitlab_access_token(host, username, password)
+        GitLabAPI.request_gitlab_access_token(host, username, password)
         return nil unless user_info = LSqliteDb.shared.query_user_info(user_id)
       end
 
       time = Time.now.to_i
       # 判断 token 是否失效
       if user_info.expires_in <= time
-        new_user_info = GitLab.refresh_gitlab_access_token(host, user_info.refresh_token)
-        return nil unless new_user_info
+        new_user_info = GitLabAPI.refresh_gitlab_access_token(host, user_info.refresh_token)
+        unless new_user_info
+          username = user_info.username
+          password = user_info.password
+          unless username && password
+            LgPodPlugin.log_yellow "请输入 `#{uri}` 的用户名"
+            username = STDIN.gets.chomp
+            LgPodPlugin.log_yellow "请输入 `#{uri}` 的密码"
+            password = STDIN.noecho(&:gets).chomp
+          end
+          GitLabAPI.request_gitlab_access_token(host, username, password)
+          return nil unless user_info = LSqliteDb.shared.query_user_info(user_id)
+          new_user_info = GitLabAPI.refresh_gitlab_access_token(host, user_info.refresh_token)
+        end
         user_info.expires_in = new_user_info.expires_in
         user_info.access_token = new_user_info.access_token
         user_info.access_token = new_user_info.access_token

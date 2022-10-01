@@ -6,8 +6,8 @@ require_relative 'lg_pod_plugin/log'
 require_relative 'lg_pod_plugin/install'
 require_relative 'lg_pod_plugin/request'
 require_relative 'lg_pod_plugin/database'
-require_relative 'lg_pod_plugin/git_util'
 require_relative 'lg_pod_plugin/downloader'
+require_relative 'lg_pod_plugin/gitlab_download'
 require 'cocoapods-core/podfile/target_definition'
 
 module LgPodPlugin

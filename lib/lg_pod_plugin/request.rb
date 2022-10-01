@@ -4,8 +4,8 @@ require 'net/http'
 require 'singleton'
 require_relative 'l_config'
 require_relative 'l_cache'
-require_relative 'git_util'
-require_relative 'downloader.rb'
+require_relative 'downloader'
+require_relative 'gitlab_download'
 module LgPodPlugin
 
   class LRequest
