@@ -3,8 +3,8 @@ require 'uri'
 require 'resolv'
 require "ipaddr"
 require 'io/console'
-require_relative 'gitlab_api.rb'
 require_relative 'database'
+require_relative 'gitlab_api'
 
 module LgPodPlugin
 

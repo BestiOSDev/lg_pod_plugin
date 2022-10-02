@@ -1,7 +1,6 @@
 
 require 'uri'
 require 'net/http'
-require 'httparty'
 require_relative 'podspec'
 require_relative 'request'
 require_relative 'l_util'
@@ -45,7 +44,7 @@ module LgPodPlugin
       token = LRequest.shared.config.access_token
       begin
         encode_fiename = LUtils.url_encode(filename)
-        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.zip?" + "path=#{encode_fiename}&sha=#{sha}"
+        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.zip?" + "path=#{encode_fiename}&&sha=#{sha}"
       rescue => exception
         return nil
       end
@@ -99,7 +98,7 @@ module LgPodPlugin
         file_name = "#{temp_name}.zip"
         download_url = LUtils.get_gitlab_download_url(base_url, branch, nil, nil, project_name)
         raise "download_url不存在" unless download_url
-        LgPodPlugin.log_blue "开始下载 => #{download_url}"
+        # LgPodPlugin.log_blue "开始下载 => #{download_url}"
         LUtils.download_gitlab_zip_file(download_url, token, file_name)
         raise "下载zip包失败, 尝试git clone #{self.git}" unless File.exist?(file_name)
         # 解压文件
@@ -140,7 +139,6 @@ module LgPodPlugin
         file_name = "#{temp_name}.zip"
         download_url = LUtils.get_gitlab_download_url(base_url, nil, tag, nil, project_name)
         raise "download_url不存在" unless download_url
-        LgPodPlugin.log_blue "开始下载 => #{download_url}"
         LUtils.download_gitlab_zip_file(download_url, token, file_name)
         raise "下载zip包失败, 尝试git clone #{self.git}" unless File.exist?(file_name)
         # 解压文件
@@ -180,7 +178,7 @@ module LgPodPlugin
         file_name = "#{temp_name}.zip"
         download_url = LUtils.get_gitlab_download_url(base_url, nil, nil, self.commit, project_name)
         raise "download_url不存在" unless download_url
-        LgPodPlugin.log_blue "开始下载 => #{download_url}"
+        # LgPodPlugin.log_blue "开始下载 => #{download_url}"
         LUtils.download_gitlab_zip_file(download_url, token, file_name)
         raise "下载zip包失败, 尝试git clone #{self.git}" unless File.exist?(file_name)
         # 解压文件

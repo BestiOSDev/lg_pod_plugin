@@ -1,9 +1,10 @@
 require 'zip'
-require 'curb'
 require_relative 'log'
 require_relative 'l_config'
 module LgPodPlugin
   class LUtils
+
+    #判断对象是不是 String
     def self.is_string(obj)
       if "#{obj.class}" == "String"
         return true 
@@ -11,14 +12,14 @@ module LgPodPlugin
         return false 
       end
     end
+
+    # 解压文件
     def self.unzip_file (zip_file, dest_dir)
       begin
-        # LgPodPlugin.log_green "正在解压`.zip`文件"
         Zip::File.open(zip_file, true) do |file|
           file.each do |f|
             file_path = File.join(dest_dir, f.name)
             FileUtils.mkdir_p(File.dirname(file_path))
-            # next if file_path.include?("LICENSE")
             next if file_path.include?("Example")
             next if file_path.include?(".gitignore")
             next if file_path.include?("node_modules")
@@ -32,35 +33,25 @@ module LgPodPlugin
         end
         return true
       rescue => err
-        # LgPodPlugin.log_red "解压zip失败, error => #{err}"
         return false
       end
 
     end
 
-    def self.aes_decrypt(key, data)
-      de_cipher = OpenSSL::Cipher::Cipher.new("AES-128-CBC")
-      de_cipher.decrypt
-      de_cipher.key = [key].pack('H*')
-      # de_cipher.iv = [iv].pack('H*');
-      puts de_cipher.update([data].pack('H*')) << de_cipher.final
-    end
-
     # 下载 zip 格式文件
     def self.download_gitlab_zip_file(download_url, token, file_name)
-      begin
-        http = Curl.get(download_url) do |http|
-          http.headers['Authorization'] = "Bearer #{token}"
-        end
-        File.open(file_name, 'wb') do|f|
-          http.on_body {|data| f << data; data.size }
-          http.perform
-        end
-      rescue => error
-        pp error
-      end
+      cmds = ['curl']
+      cmds << "--header \"Authorization: Bearer #{token}\"" if token
+      # cmds << "--progress-bar"
+      cmds << "-o #{file_name}"
+      cmds << "--connect-timeout 15"
+      cmds << "--retry 3"
+      cmds << download_url
+      cmds_to_s = cmds.join(" ")
+      system(cmds_to_s)
     end
 
+    # gitlab 下载压缩文件
     def self.download_github_zip_file(download_url, file_name)
       cmds = ['curl']
       cmds << "-o #{file_name}"
@@ -90,6 +81,7 @@ module LgPodPlugin
       end
     end
 
+    #截取git-url 拿到项目名称
     def self.get_git_project_name(git)
       self.get_gitlab_base_url(git).split("/").last
     end

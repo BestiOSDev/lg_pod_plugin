@@ -1,7 +1,5 @@
 require 'json'
 require 'net/http'
-require 'gitlab'
-require 'expect'
 require_relative 'database'
 require_relative 'file_path'
 
@@ -49,31 +47,35 @@ module LgPodPlugin
 
     #获取用户所有项目
     def self.get_user_projects(access_token, host, page)
-      # Gitlab.endpoint = "#{host}/api/v4"
-      # Gitlab.private_token = access_token
-      ENV['GITLAB_API_HTTPARTY_OPTIONS'] = '{read_timeout: 60}'
-      g = Gitlab.client(
-        endpoint: "#{host}/api/v4",
-        private_token: access_token,
-        httparty: {
-          headers: { 'Cookie' => 'gitlab_canary=true' }
-        }
-      )
-      projects = g.projects(per_page: 100, page: page)
-      projects.each do |hash|
-        json = hash.send(:data)
-        id = json["id"]
-        name = json["name"]
-        path = json["path"]
-        web_url = json["web_url"]
-        description = json["description"]
-        ssh_url_to_repo = json["ssh_url_to_repo"]
-        http_url_to_repo = json["http_url_to_repo"]
-        project = ProjectModel.new(id, name, description, path, ssh_url_to_repo, http_url_to_repo, web_url)
-        LSqliteDb.shared.insert_project(project)
+      begin
+        hash_map = Hash.new
+        hash_map["access_token"] = access_token
+        hash_map["page"] = page
+        hash_map["per_page"] = 100
+        uri = URI("#{host}/api/v4/projects")
+        uri.query = URI.encode_www_form(hash_map)
+        res = Net::HTTP.get_response(uri)
+        array = JSON.parse(res.body) if res.body
+        unless array.is_a?(Array)
+          return
+        end
+        # pp array
+        array.each do |json|
+          id = json["id"]
+          name = json["name"]
+          path = json["path"]
+          web_url = json["web_url"]
+          description = json["description"]
+          ssh_url_to_repo = json["ssh_url_to_repo"]
+          http_url_to_repo = json["http_url_to_repo"]
+          project = ProjectModel.new(id, name, description, path, ssh_url_to_repo, http_url_to_repo, web_url)
+          LSqliteDb.shared.insert_project(project)
+        end
+        if array.count >= 100
+          GitLab.get_user_projects(access_token, host, page + 1)
+        end
+
       end
-      return unless projects.has_next_page?
-      self.get_user_projects(access_token, host,(page + 1))
     end
 
     # 刷新gitlab_token
@@ -108,59 +110,41 @@ module LgPodPlugin
 
     # 通过名称搜索项目信息
     def self.request_project_info(host, project_name, access_token)
-      ENV['GITLAB_API_HTTPARTY_OPTIONS'] = '{read_timeout: 60}'
-      g = Gitlab.client(
-        endpoint: "#{host}/api/v4",
-        private_token: access_token,
-        httparty: {
-          headers: { 'Cookie' => 'gitlab_canary=true' }
-        }
-      )
-      projects = g.search_projects(project_name)
-      projects.each do |hash|
-        json = hash.send(:data)
-        path = json["path"] ||= ""
-        next unless (name != project_name || path != project_name)
-        id = json["id"]
-        name = json["name"] ||= ""
-        web_url = json["web_url"]
-        description = json["description"]
-        ssh_url_to_repo = json["ssh_url_to_repo"]
-        http_url_to_repo = json["http_url_to_repo"]
-        project = ProjectModel.new
-        project.id = id
-        project.path = path
-        project.name = name
-        project.web_url = web_url
-        project.description = description
-        project.ssh_url_to_repo = ssh_url_to_repo
-        project.http_url_to_repo = http_url_to_repo
-        LSqliteDb.shared.insert_project(project)
-        return project
-      end
-      return nil 
-    end
-
-    # 获取一个仓库归档压缩包
-    def self.repo_archive(host, token, porject_id, filename, ref, format)
-      ENV['GITLAB_API_HTTPARTY_OPTIONS'] = '{read_timeout: 60}'
-      g = Gitlab.client(
-        endpoint: "#{host}/api/v4",
-        private_token: token,
-        httparty: {
-          headers: { 'Cookie' => 'gitlab_canary=true' }
-        }
-      )
       begin
-        response = g.repo_archive(porject_id, ref, "zip").to_hash
-        downlaod_file_name = response[:filename]
-        downlaod_file_stream = response[:data]
-        pp downlaod_file_stream
-      rescue => exception
-        pp exception
+        hash_map = Hash.new
+        hash_map["search"] = project_name
+        hash_map["access_token"] = access_token
+        uri = URI("#{host}/api/v4/projects")
+        uri.query = URI.encode_www_form(hash_map)
+        res = Net::HTTP.get_response(uri)
+        array = JSON.parse(res.body) if res.body
+        return nil unless array.is_a?(Array)
+        array.each do |json|
+          path = json["path"] ||= ""
+          next unless (name != project_name || path != project_name)
+          id = json["id"]
+          name = json["name"] ||= ""
+          web_url = json["web_url"]
+          description = json["description"]
+          ssh_url_to_repo = json["ssh_url_to_repo"]
+          http_url_to_repo = json["http_url_to_repo"]
+          project = ProjectModel.new
+          project.id = id
+          project.path = path
+          project.name = name
+          project.web_url = web_url
+          project.description = description
+          project.ssh_url_to_repo = ssh_url_to_repo
+          project.http_url_to_repo = http_url_to_repo
+          LSqliteDb.shared.insert_project(project)
+          return project
+        end
+      rescue
+        return nil
       end
-
     end
+
   end
+
 
 end
