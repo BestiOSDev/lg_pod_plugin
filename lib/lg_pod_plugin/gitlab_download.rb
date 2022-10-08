@@ -134,9 +134,7 @@ module LgPodPlugin
         map = ls["tags"]
         keys = map.keys
         idx = keys.index("#{tag}")
-        unless idx
-          return [nil, nil]
-        end
+        return [nil, nil] unless idx
         key = keys[idx]
         new_commit = map[key][:sha]
         return [nil, new_commit]

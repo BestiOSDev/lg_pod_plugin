@@ -17,11 +17,9 @@ module LgPodPlugin
     attr_accessor :project
 
     def initialize
-
     end
 
     public
-
     def self.getConfig(git)
       return nil if git.include?("github.com") || git.include?("gitee.com") || git.include?("coding.net") || git.include?("code.aliyun.com")
       begin
@@ -68,17 +66,13 @@ module LgPodPlugin
             password = STDIN.noecho(&:gets).chomp
           end
           GitLabAPI.request_gitlab_access_token(host, username, password)
-          return nil unless user_info = LSqliteDb.shared.query_user_info(user_id)
-          new_user_info = GitLabAPI.refresh_gitlab_access_token(host, user_info.refresh_token)
+          return nil unless new_user_info = LSqliteDb.shared.query_user_info(user_id)
         end
-        user_info.expires_in = new_user_info.expires_in
-        user_info.access_token = new_user_info.access_token
-        user_info.access_token = new_user_info.access_token
-        LSqliteDb.shared.insert_user_info(user_info)
+
         config = LConfig.new
         config.host = host
-        config.access_token = user_info.access_token
-        config.refresh_token = user_info.refresh_token
+        config.access_token = new_user_info.access_token
+        config.refresh_token = new_user_info.refresh_token
         config.base_url = LUtils.get_gitlab_base_url(git)
         config.project_name = LUtils.get_git_project_name(git)
         config.project = LSqliteDb.shared.query_project_info(config.project_name)

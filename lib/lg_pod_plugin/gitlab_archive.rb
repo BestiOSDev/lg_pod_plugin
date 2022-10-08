@@ -1,7 +1,6 @@
 
 require 'uri'
 require 'net/http'
-require_relative 'podspec'
 require_relative 'request'
 require_relative 'l_util'
 require_relative 'l_config'

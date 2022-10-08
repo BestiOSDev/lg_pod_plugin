@@ -1,0 +1,12 @@
+module LgPodPlugin
+
+  class LCache
+
+    #判断缓存是否存在且有效命中缓存
+    def find_pod_cache: (String name) -> bool
+    # 拷贝 pod 缓存文件到 sandbox
+    def self.cache_pod: (String name, target, Hash: options) -> void
+
+  end
+
+end

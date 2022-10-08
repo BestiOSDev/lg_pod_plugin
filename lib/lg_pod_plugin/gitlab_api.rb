@@ -49,9 +49,9 @@ module LgPodPlugin
     def self.get_user_projects(access_token, host, page)
       begin
         hash_map = Hash.new
-        hash_map["access_token"] = access_token
         hash_map["page"] = page
         hash_map["per_page"] = 100
+        hash_map["access_token"] = access_token
         uri = URI("#{host}/api/v4/projects")
         uri.query = URI.encode_www_form(hash_map)
         res = Net::HTTP.get_response(uri)
@@ -72,7 +72,7 @@ module LgPodPlugin
           LSqliteDb.shared.insert_project(project)
         end
         if array.count >= 100
-          GitLab.get_user_projects(access_token, host, page + 1)
+          GitLabAPI.get_user_projects(access_token, host, page + 1)
         end
 
       end
@@ -88,9 +88,7 @@ module LgPodPlugin
         uri = URI("#{host}/oauth/token")
         res = Net::HTTP.post_form(uri, hash_map)
         json = JSON.parse(res.body) if res.body
-        unless json.is_a?(Hash)
-          return nil
-        end
+        return nil unless json.is_a?(Hash)
         error = json["error"]
         if error != nil
           error_description = json["error_description"]
@@ -100,7 +98,12 @@ module LgPodPlugin
         refresh_token = json["refresh_token"]
         expires_in = json["expires_in"] ||= 7200
         created_at = json["created_at"] ||= Time.now.to_i
-        user_model = LUserAuthInfo.new(nil, nil, nil, host, access_token, refresh_token, (created_at + expires_in))
+        user_id = LUserAuthInfo.get_user_id(host)
+        user_model = LSqliteDb.shared.query_user_info(user_id)
+        user_model.expires_in = (created_at + expires_in)
+        user_model.access_token = access_token
+        user_model.refresh_token = refresh_token
+        LSqliteDb.shared.insert_user_info(user_model)
         return user_model
       rescue => exception
         LgPodPlugin.log_yellow "刷新 `access_token` 失败, error => #{exception.to_s}"
@@ -109,7 +112,7 @@ module LgPodPlugin
     end
 
     # 通过名称搜索项目信息
-    def self.request_project_info(host, project_name, access_token)
+    def self.request_project_info(host,project_name, access_token)
       begin
         hash_map = Hash.new
         hash_map["search"] = project_name

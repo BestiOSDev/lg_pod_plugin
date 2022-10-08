@@ -1,0 +1,27 @@
+module LgPodPlugin
+
+  class LUserAuthInfo
+    public
+    # 创建一个userId
+    def self.get_user_id: (String host) -> String
+
+  end
+
+  class LSqliteDb
+    public
+    def insert_user_info: (LUserAuthInfo user) -> void
+
+    public
+    def query_user_info: (String user_id) -> LUserAuthInfo
+
+    public
+    # 保存项目信息到数据库
+    def insert_project: (ProjectModel project) -> void
+
+    public
+    # 通过名称查询项目信息
+    def query_project_info: (String name) -> ProjectModel
+
+  end
+
+end

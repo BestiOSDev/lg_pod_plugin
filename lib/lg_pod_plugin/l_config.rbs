@@ -1,0 +1,13 @@
+module LgPodPlugin
+
+  class LConfig
+    attr_accessor host: String
+    attr_accessor base_url: String
+    attr_accessor project_name: String
+    attr_accessor access_token: String
+    attr_accessor refresh_token: String
+    attr_accessor project: String
+    public
+    def self.getConfig: (String git) -> LConfig
+  end
+end

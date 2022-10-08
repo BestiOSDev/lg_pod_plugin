@@ -140,5 +140,6 @@ module LgPodPlugin
     def self.url_encode(url)
       url.to_s.b.gsub(/[^a-zA-Z0-9_\-.~]/n) { |m| sprintf('%%%02X', m.unpack1('C')) }
     end
+
   end
 end

@@ -10,11 +10,34 @@ module LgPodPlugin
 
   class LRequest
     include Singleton
-    REQUIRED_ATTRS ||= %i[name request_params workspace cache downloader git_util lock_info checkout_options is_update token single_git libs config].freeze
-    attr_accessor(*REQUIRED_ATTRS)
+    # pod name
+    attr_accessor :name
+    # 当前token
+    attr_accessor :token
+    # 缓存
+    attr_accessor :cache
+    # 配置
+    attr_accessor :config
+    # 是否更新
+    attr_accessor :is_update
+    # 工作目录
+    attr_accessor :workspace
+    # 是否是还有 git 地址参数
+    attr_accessor :single_git
+    # git 工具类
+    attr_accessor :git_util
+    # 需要更新的 pod 集合
+    attr_accessor :libs
+    # 下载类
+    attr_accessor :downloader
+    # lock_info
+    attr_accessor :lock_info
+    # 实际下载请求参数
+    attr_accessor :request_params
+    # 传入的请求参数
+    attr_accessor :checkout_options
 
     public
-
     def is_update_pod
       cgi = CGI.new
       command_keys = cgi.keys
@@ -89,8 +112,6 @@ module LgPodPlugin
       commit = self.checkout_options[:commit]
       branch = self.checkout_options[:branch]
 
-      # lock_git = external_source[:git]
-      # lock_tag = external_source[:tag]
       lock_commit = checkout_options[:commit]
       lock_branch = external_source[:branch]
       hash_map = Hash.new

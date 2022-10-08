@@ -20,16 +20,16 @@ module LgPodPlugin
 
   end
 
-  class GitLabBlackList
-    REQUIRED_ATTRS ||= %i[id uri is_available].freeze
-    attr_accessor(*REQUIRED_ATTRS)
-
-    def initialize(id, uri, available)
-      self.id = id
-      self.uri = uri
-      self.is_available = available
-    end
-  end
+  # class GitLabBlackList
+  #   REQUIRED_ATTRS ||= %i[id uri is_available].freeze
+  #   attr_accessor(*REQUIRED_ATTRS)
+  #
+  #   def initialize(id, uri, available)
+  #     self.id = id
+  #     self.uri = uri
+  #     self.is_available = available
+  #   end
+  # end
 
   class LUserAuthInfo
     REQUIRED_ATTRS ||= %i[id username password host access_token refresh_token expires_in].freeze
@@ -38,8 +38,8 @@ module LgPodPlugin
     def initialize(id = nil, name = nil, pwd = nil, host = nil, token = nil, refresh_token = nil, time = nil)
       self.id = id
       self.host = host
-      self.username = name
       self.password = pwd
+      self.username = name
       self.expires_in = time
       self.access_token = token
       self.refresh_token = refresh_token
@@ -59,8 +59,6 @@ module LgPodPlugin
     attr_accessor(*REQUIRED_ATTRS)
     K_USER_TABLE = "user_tab"
     K_USER_PROJECTS = "user_projects"
-    K_GIT_BLACK_LIST = "gitlab_black_list"
-
     def self.shared
       return LSqliteDb.instance
     end
@@ -100,11 +98,11 @@ module LgPodPlugin
       self.db.execute(sql2)
 
       #添加项目表
-      sql3 = "create table if not exists #{K_GIT_BLACK_LIST}(
-        id varchar(100) primary key not null,
-        uri varchar(100),
-	      is_available Integer);"
-      self.db.execute(sql3)
+      # sql3 = "create table if not exists #{K_GIT_BLACK_LIST}(
+      #   id varchar(100) primary key not null,
+      #   uri varchar(100),
+	    #   is_available Integer);"
+      # self.db.execute(sql3)
 
       super
     end

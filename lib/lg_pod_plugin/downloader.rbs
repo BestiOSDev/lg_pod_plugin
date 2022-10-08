@@ -1,0 +1,11 @@
+
+module LgPodPlugin
+
+class LDownloader
+
+# 预下载处理
+def pre_download_pod: -> void
+
+end
+
+end
