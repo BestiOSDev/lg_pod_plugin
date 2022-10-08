@@ -20,7 +20,7 @@ module LgPodPlugin
 
     public
     # 通过名称查询项目信息
-    def query_project_info: (String name) -> ProjectModel
+    def query_project_info: (String name, String git) -> ProjectModel
 
   end
 

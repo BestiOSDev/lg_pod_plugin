@@ -81,9 +81,15 @@ module LgPodPlugin
       end
     end
 
-    #截取git-url 拿到项目名称
+    #截取git-url 拿到项目绝对名称 比如 l-base-ios
     def self.get_git_project_name(git)
       self.get_gitlab_base_url(git).split("/").last
+    end
+
+    # 获取相对项目名称 app/iOS/l-base-ios 项目组+项目名称
+    def self.get_gitlab_relative_project_name(git)
+      base_url = self.get_gitlab_base_url(git)
+      pp base_url
     end
 
     # 是否能够使用 gitlab 下载 zip 文件
@@ -91,19 +97,10 @@ module LgPodPlugin
       return false if git.include?("https://github.com") || git.include?("https://gitee.com")
       config = LRequest.shared.config
       return false if (!config || !config.access_token)
-      project_name = config.project_name || self.get_git_project_name(git)
-      project = LSqliteDb.shared.query_project_info(project_name)
-      if project
-        return true
-      else
-        project = GitLabAPI.request_project_info(config.host, project_name, config.access_token)
-        if project
-          LRequest.shared.config.project = project
-          return true
-        else
-          return false
-        end
-      end
+      return true if project = config.project
+      project_name = self.get_git_project_name(git)
+      LRequest.shared.config.project = GitLabAPI.request_project_info(config.host, project_name, config.access_token, git)
+      return true if LRequest.shared.config.project
     end
 
     # 截取 url

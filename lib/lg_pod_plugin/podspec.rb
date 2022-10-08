@@ -1,6 +1,6 @@
 require 'cocoapods'
-require_relative 'string'
 require 'cocoapods-core'
+
 module LgPodPlugin
 
   class PodSpec

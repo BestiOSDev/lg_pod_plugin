@@ -18,10 +18,10 @@ module LgPodPlugin
 
     #截取git-url 拿到项目名称
     def self.get_git_project_name: (String git) -> String
-
+    # 获取相对项目名称 app/iOS/l-base-ios 项目组+项目名称
+    def self.get_gitlab_relative_project_name: (String git) -> String
     # 是否能够使用 gitlab 下载 zip 文件
     def self.is_use_gitlab_archive_file: (String git) -> bool
-
     # 截取 url
     def self.get_gitlab_base_url: (String git) -> String
 

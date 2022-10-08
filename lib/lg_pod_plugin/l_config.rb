@@ -75,7 +75,7 @@ module LgPodPlugin
         config.refresh_token = new_user_info.refresh_token
         config.base_url = LUtils.get_gitlab_base_url(git)
         config.project_name = LUtils.get_git_project_name(git)
-        config.project = LSqliteDb.shared.query_project_info(config.project_name)
+        config.project = LSqliteDb.shared.query_project_info(config.project_name, git)
         return config
       else
         config = LConfig.new
@@ -84,7 +84,7 @@ module LgPodPlugin
         config.refresh_token = user_info.refresh_token
         config.base_url = LUtils.get_gitlab_base_url(git)
         config.project_name = LUtils.get_git_project_name(git)
-        config.project = LSqliteDb.shared.query_project_info(config.project_name)
+        config.project = LSqliteDb.shared.query_project_info(config.project_name, git)
         return config
       end
 

@@ -5,10 +5,10 @@ require_relative 'l_cache'
 module LgPodPlugin
 
   class ProjectModel
-    REQUIRED_ATTRS ||= %i[id name path description ssh_url_to_repo http_url_to_repo web_url].freeze
+    REQUIRED_ATTRS ||= %i[id name path description ssh_url_to_repo http_url_to_repo web_url path_with_namespace name_with_namespace].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
-    def initialize(id = nil, name = nil, description = nil, path = nil, ssh_url_to_repo = nil, http_url_to_repo = nil, web_url = nil)
+    def initialize(id = nil, name = nil, description = nil, path = nil, ssh_url_to_repo = nil, http_url_to_repo = nil, web_url = nil, name_with_namespace = nil, path_with_namespace = nil)
       self.id = id
       self.path = path
       self.name = name
@@ -16,6 +16,8 @@ module LgPodPlugin
       self.description = description
       self.ssh_url_to_repo = ssh_url_to_repo
       self.http_url_to_repo = http_url_to_repo
+      self.path_with_namespace = path_with_namespace
+      self.name_with_namespace = name_with_namespace
     end
 
   end
@@ -93,7 +95,9 @@ module LgPodPlugin
 	      path varchar(100),
         ssh_url_to_repo varchar(100),
         http_url_to_repo varchar(100),
-        web_url varchar(100)
+        web_url varchar(100),
+        name_with_namespace varchar(100),
+        path_with_namespace varchar(100)
        );"
       self.db.execute(sql2)
 
@@ -123,7 +127,6 @@ module LgPodPlugin
     end
 
     public
-
     def query_user_info(user_id)
       user_info = nil
       self.db.execute("select * from #{K_USER_TABLE} where id = '#{user_id}';") do |row|
@@ -141,20 +144,24 @@ module LgPodPlugin
 
     # 保存项目信息到数据库
     def insert_project(project)
-      if self.query_project_info(project.name) != nil
+      if self.query_project_info(project.name, project.http_url_to_repo) != nil
         self.db.execute_batch(
-          "UPDATE #{K_USER_PROJECTS} SET name = (:name), desc = (:desc), path = (:path), ssh_url_to_repo = (:ssh_url_to_repo), http_url_to_repo = (:http_url_to_repo), web_url = (:web_url) where (id = :id)", { "name" => project.name, "desc" => project.description, "path" => project.path, "ssh_url_to_repo" => project.ssh_url_to_repo, :http_url_to_repo => project.http_url_to_repo, :web_url => project.web_url, :id => project.id }
+          "UPDATE #{K_USER_PROJECTS} SET name = (:name), desc = (:desc), path = (:path), ssh_url_to_repo = (:ssh_url_to_repo), http_url_to_repo = (:http_url_to_repo), web_url = (:web_url), name_with_namespace = (:name_with_namespace), path_with_namespace = (:path_with_namespace) where (id = :id)", { "name" => project.name, "desc" => project.description, "path" => project.path, "ssh_url_to_repo" => project.ssh_url_to_repo, :http_url_to_repo => project.http_url_to_repo, :web_url => project.web_url, :id => project.id , :path_with_namespace => project.path_with_namespace, :name_with_namespace => project.name_with_namespace}
         )
       else
-        self.db.execute("INSERT INTO #{K_USER_PROJECTS} (id, name, desc, path, ssh_url_to_repo, http_url_to_repo, web_url)
-            VALUES (?, ?, ?, ?, ?, ?, ?)", [project.id, project.name, project.description, project.path, project.ssh_url_to_repo, project.http_url_to_repo, project.web_url])
+        self.db.execute("INSERT INTO #{K_USER_PROJECTS} (id, name, desc, path, ssh_url_to_repo, http_url_to_repo, web_url,name_with_namespace, path_with_namespace)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", [project.id, project.name, project.description, project.path, project.ssh_url_to_repo, project.http_url_to_repo, project.web_url, project.name_with_namespace, project.path_with_namespace])
       end
     end
 
     # 通过名称查询项目信息
-    def query_project_info(name)
-      project_info = ProjectModel.new
+    def query_project_info(name, git = nil)
+      project_info = nil
       self.db.execute("select * from #{K_USER_PROJECTS} where name = '#{name}' or path = '#{name}' ;") do |row|
+        name_with_namespace = row[7]
+        path_with_namespace = row[8]
+        next unless git.include?(name_with_namespace) || git.include?(path_with_namespace)
+        project_info = ProjectModel.new
         project_info.id = row[0]
         project_info.name = row[1]
         project_info.description = row[2]
@@ -162,8 +169,11 @@ module LgPodPlugin
         project_info.ssh_url_to_repo = row[4]
         project_info.http_url_to_repo = row[5]
         project_info.web_url = row[6]
+        project_info.name_with_namespace = name_with_namespace
+        project_info.path_with_namespace = path_with_namespace
+        return project_info
       end
-      return project_info if project_info.id != nil
+      return project_info
     end
 
   end
