@@ -41,7 +41,7 @@ module LgPodPlugin
     # 公共解析解析subspec
     def parse_subspec_with(hash)
       set = Set[]
-      source_files = self.parse_source_files(hash["source_files"] ||= hash["source_files"])
+      source_files = self.parse_source_files(hash["source_files"])
       set.merge(source_files) unless source_files.empty?
       resources = self.parse_resource_files(hash["resource"] ||= hash["resources"])
       set.merge(resources) unless resources.empty?
