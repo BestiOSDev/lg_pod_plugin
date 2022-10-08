@@ -67,7 +67,7 @@ module LgPodPlugin
       begin
         return Resolv.getaddress(host)
       rescue
-        ip_address = %x(ping #{uri.host} -c 1).split("\n").first
+        ip_address = %x(ping #{host} -c 1).split("\n").first
         if ip_address && ip_address.include?("(") && ip_address.include?("):")
           ip_address = ip_address.split("(").last.split(")").first
           begin
