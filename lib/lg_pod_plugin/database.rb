@@ -161,16 +161,14 @@ module LgPodPlugin
         name_with_namespace = row[7]
         path_with_namespace = row[8]
         next unless git.include?(name_with_namespace) || git.include?(path_with_namespace)
-        project_info = ProjectModel.new
-        project_info.id = row[0]
-        project_info.name = row[1]
-        project_info.description = row[2]
-        project_info.path = row[3]
-        project_info.ssh_url_to_repo = row[4]
-        project_info.http_url_to_repo = row[5]
-        project_info.web_url = row[6]
-        project_info.name_with_namespace = name_with_namespace
-        project_info.path_with_namespace = path_with_namespace
+        id = row[0]
+        path = row[3]
+        name = row[1]
+        web_url = row[6]
+        description = row[2]
+        ssh_url_to_repo = row[4]
+        http_url_to_repo =  row[5]
+        project_info = ProjectModel.new(id, name, description, path, ssh_url_to_repo, http_url_to_repo, web_url, name_with_namespace, path_with_namespace)
         return project_info
       end
       return project_info

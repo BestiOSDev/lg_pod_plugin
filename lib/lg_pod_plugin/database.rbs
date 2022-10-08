@@ -7,6 +7,10 @@ module LgPodPlugin
 
   end
 
+  class ProjectModel
+
+  end
+
   class LSqliteDb
     public
     def insert_user_info: (LUserAuthInfo user) -> void

@@ -123,13 +123,12 @@ module LgPodPlugin
         uri.query = URI.encode_www_form(hash_map)
         res = Net::HTTP.get_response(uri)
         array = JSON.parse(res.body) if res.body
-        pp array.to_s
         return nil unless array.is_a?(Array)
         array.each do |json|
           path = json["path"] ||= ""
           path_with_namespace = json["path_with_namespace"] ||= ""
           name_with_namespace = (json["name_with_namespace"] ||= "").gsub(/[ ]/, '')
-          next unless (name != project_name || path != project_name)
+          next unless (name == project_name || path == project_name)
           next unless git.include?(name_with_namespace) || git.include?(path_with_namespace)
           id = json["id"]
           name = json["name"] ||= ""
@@ -137,16 +136,7 @@ module LgPodPlugin
           description = json["description"]
           ssh_url_to_repo = json["ssh_url_to_repo"]
           http_url_to_repo = json["http_url_to_repo"]
-          project = ProjectModel.new
-          project.id = id
-          project.path = path
-          project.name = name
-          project.web_url = web_url
-          project.description = description
-          project.ssh_url_to_repo = ssh_url_to_repo
-          project.http_url_to_repo = http_url_to_repo
-          project.path_with_namespace = path_with_namespace
-          project.name_with_namespace = name_with_namespace
+          project = ProjectModel.new(id, name, description, path, ssh_url_to_repo, http_url_to_repo, web_url, name_with_namespace, path_with_namespace)
           LSqliteDb.shared.insert_project(project)
           return project
         end

@@ -1,7 +1,5 @@
 
 module LgPodPlugin
-  class ProjectModel
-  end
 
   class GitLabAPI
 
