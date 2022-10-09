@@ -22,7 +22,7 @@ module LgPodPlugin
     end
 
     # 下载某个文件zip格式
-    def gitlab_download_file_by_name(path,filename, temp_name)
+    def gitlab_download_file_by_name(path, filename, temp_name, project_name)
       host = LRequest.shared.config.host
       project = LRequest.shared.config.project
       unless host
@@ -45,6 +45,7 @@ module LgPodPlugin
       begin
         encode_fiename = LUtils.url_encode(filename)
         download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.zip#{"\\?"}" + "path#{"\\="}#{encode_fiename}#{"\\&"}sha#{"\\="}#{sha}"
+        # download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.zip#{"\\?"}" + "sha#{"\\="}#{sha}"
       rescue => exception
         return nil
       end
@@ -55,15 +56,17 @@ module LgPodPlugin
       path.each_child do |f|
         ftype = File::ftype(f)
         next unless ftype == "directory"
-        next unless f.to_path.include?("#{filename}")
+        next unless f.to_path.include?("#{filename}") || f.to_path.include?("#{project_name}")
         temp_zip_folder = f
         break
       end
       return nil unless temp_zip_folder && temp_zip_folder.exist?
       begin
         FileUtils.chdir(temp_zip_folder)
-        real_file_path = temp_zip_folder.join(filename)
-        FileUtils.mv(real_file_path, path)
+        temp_zip_folder.each_child do |f|
+          ftype = File::ftype(f)
+          FileUtils.mv(f, path)
+        end
         FileUtils.chdir(path)
         FileUtils.rm_rf(temp_zip_folder)
         FileUtils.rm_rf("./#{temp_name}")
@@ -88,7 +91,7 @@ module LgPodPlugin
       project_name = LRequest.shared.config.project.path
       podspec_name = self.name + ".podspec"
       LgPodPlugin.log_blue "开始下载 => #{base_url}"
-      self.gitlab_download_file_by_name(project_path, podspec_name,"#{podspec_name}.zip")
+      self.gitlab_download_file_by_name(project_path, podspec_name,"#{podspec_name}.zip", project_name)
       podspec_path = project_path.join(podspec_name)
       return nil unless File.exist?(podspec_path)
       begin
@@ -111,7 +114,8 @@ module LgPodPlugin
         return root_path.join(new_file_name)
       end
       need_download_files.each do |file|
-        self.gitlab_download_file_by_name(project_path, file,"#{file}.zip")
+        next if project_path.join(file).exist?
+        self.gitlab_download_file_by_name(project_path, file,"#{file}.zip", project_name)
       end
       return project_path
     end
@@ -128,7 +132,7 @@ module LgPodPlugin
       project_name = LRequest.shared.config.project.path
       podspec_name = self.name + ".podspec"
       LgPodPlugin.log_blue "开始下载 => #{base_url}"
-      self.gitlab_download_file_by_name(project_path, podspec_name,"#{podspec_name}.zip")
+      self.gitlab_download_file_by_name(project_path, podspec_name,"#{podspec_name}.zip", project_name)
       podspec_path = project_path.join(podspec_name)
       return nil unless File.exist?(podspec_path)
       begin
@@ -151,7 +155,7 @@ module LgPodPlugin
         return root_path.join(new_file_name)
       end
       need_download_files.each do |file|
-        self.gitlab_download_file_by_name(project_path, file,"#{file}.zip")
+        self.gitlab_download_file_by_name(project_path, file,"#{file}.zip", project_name)
       end
       return project_path
     end
@@ -168,7 +172,7 @@ module LgPodPlugin
       project_name = LRequest.shared.config.project.path
       podspec_name = self.name + ".podspec"
       LgPodPlugin.log_blue "开始下载 => #{base_url}"
-      self.gitlab_download_file_by_name(project_path, podspec_name,"#{podspec_name}.zip")
+      self.gitlab_download_file_by_name(project_path, podspec_name,"#{podspec_name}.zip", project_name)
       podspec_path = project_path.join(podspec_name)
       return nil unless File.exist?(podspec_path)
       begin
@@ -191,7 +195,7 @@ module LgPodPlugin
         return root_path.join(new_file_name)
       end
       need_download_files.each do |file|
-        self.gitlab_download_file_by_name(project_path, file,"#{file}.zip")
+        self.gitlab_download_file_by_name(project_path, file,"#{file}.zip", project_name)
       end
       return project_path
     end
