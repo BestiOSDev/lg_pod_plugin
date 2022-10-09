@@ -457,40 +457,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="httparty (vbundled(0.20.0)) [path][gem]" type="rubylib">
-        <properties>
-          <option name="version" value="4" />
-        </properties>
-        <CLASSES>
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/bin" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/lib" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/docs" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/script" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/.github" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/website" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/examples" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/bin" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/lib" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/docs" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/script" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/.github" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/website" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/examples" />
-        </SOURCES>
-        <excluded>
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/bin" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/docs" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/script" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/.github" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/website" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/httparty-0.20.0/examples" />
-        </excluded>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
       <library name="httpclient (vbundled(2.8.3)) [path][gem]" type="rubylib">
         <properties>
           <option name="version" value="4" />
@@ -670,6 +636,28 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+      <library name="rake (vbundled(13.0.6)) [path][gem]" type="rubylib">
+        <properties>
+          <option name="version" value="4" />
+        </properties>
+        <CLASSES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rake-13.0.6/doc" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rake-13.0.6/exe" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rake-13.0.6/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rake-13.0.6/doc" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rake-13.0.6/exe" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rake-13.0.6/lib" />
+        </SOURCES>
+        <excluded>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rake-13.0.6/doc" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rake-13.0.6/exe" />
+        </excluded>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
       <library name="rchardet (vbundled(1.8.0)) [path][gem]" type="rubylib">
         <properties>
           <option name="version" value="4" />
@@ -830,7 +818,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" scope="PROVIDED" name="bundler (v2.3.22, RVM: ruby-2.7.6 [cocoapods]) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="rake (v13.0.6, RVM: ruby-2.7.6 [cocoapods]) [gem]" level="application" />
   </component>
   <component name="RakeTasksCache">
     <option name="myRootTask">

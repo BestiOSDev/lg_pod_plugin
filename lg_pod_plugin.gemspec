@@ -15,13 +15,10 @@ Gem::Specification.new do |spec|
   spec.executables = %w{ lg }
   spec.require_paths = %w{ lib }
   spec.add_runtime_dependency 'git', '~> 1.12.0'
-  spec.add_runtime_dependency 'rubyzip', '~> 2.3.2'
+  spec.add_runtime_dependency 'archive-zip', '~> 0.12.0'
   spec.add_runtime_dependency 'cocoapods', '~> 1.11.3'
   spec.add_runtime_dependency 'claide', '>= 1.0.2', '< 2.0'
   spec.add_runtime_dependency 'sqlite3', '~> 1.5'
-  spec.add_runtime_dependency 'httparty', '~> 0.20.0'
-  # spec.add_runtime_dependency 'gitlab', '~> 4.19'
-  # spec.add_runtime_dependency 'curb', '~> 0.9.9'
   spec.add_development_dependency 'bacon', '~> 1.1'
   spec.add_development_dependency 'bundler', '~> 2.0'
   spec.add_development_dependency 'rake', '~> 12.3'

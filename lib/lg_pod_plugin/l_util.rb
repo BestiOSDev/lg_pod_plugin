@@ -1,4 +1,4 @@
-require 'zip'
+require 'archive/zip'
 require_relative 'log'
 require_relative 'l_config'
 module LgPodPlugin
@@ -16,21 +16,11 @@ module LgPodPlugin
     # 解压文件
     def self.unzip_file (zip_file, dest_dir)
       begin
-        Zip::File.open(zip_file, true) do |file|
-          file.each do |f|
-            file_path = File.join(dest_dir, f.name)
-            FileUtils.mkdir_p(File.dirname(file_path))
-            next if file_path.include?("Example")
-            next if file_path.include?(".gitignore")
-            next if file_path.include?("node_modules")
-            next if file_path.include?("package.json")
-            next if file_path.include?(".swiftlint.yml")
-            next if file_path.include?("_Pods.xcodeproj")
-            next if file_path.include?("package-lock.json")
-            next if file_path.include?("commitlint.config.js")
-            file.extract(f, file_path)
-          end
-        end
+        Archive::Zip.extract(
+          zip_file,
+          dest_dir,
+          :symlinks => true
+        )
         return true
       rescue => err
         return false
