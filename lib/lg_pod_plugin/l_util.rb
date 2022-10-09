@@ -77,10 +77,10 @@ module LgPodPlugin
     end
 
     # 获取相对项目名称 app/iOS/l-base-ios 项目组+项目名称
-    def self.get_gitlab_relative_project_name(git)
-      base_url = self.get_gitlab_base_url(git)
-      pp base_url
-    end
+    # def self.get_gitlab_relative_project_name(git)
+    #   base_url = self.get_gitlab_base_url(git)
+    #   pp base_url
+    # end
 
     # 是否能够使用 gitlab 下载 zip 文件
     def self.is_use_gitlab_archive_file(git)
