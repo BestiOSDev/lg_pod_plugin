@@ -38,24 +38,6 @@ module LgPodPlugin
     attr_accessor :checkout_options
 
     public
-    def is_update_pod
-      cgi = CGI.new
-      command_keys = cgi.keys
-      unless command_keys.count > 0
-        return false
-      end
-      first_key = command_keys[0].to_s ||= ""
-      if first_key.include?("install")
-        false
-      elsif first_key.include?("update")
-        true
-      else
-        false
-      end
-    end
-
-    public
-
     def get_lock_info
       lock_file = self.workspace.join("Podfile.lock")
       if lock_file.exist?
@@ -64,14 +46,12 @@ module LgPodPlugin
         checkout_options = json["CHECKOUT OPTIONS"]
         { "external_source" => external_source, "checkout_options" => checkout_options }
       else
-        nil
+        { "external_source" => { } , "checkout_options" => { } }
       end
     end
 
     # 获取缓存用的hash_map
-
     public
-
     def get_cache_key_params
       hash_map = Hash.new
       git = self.checkout_options[:git] ||= self.request_params[:git]
@@ -99,21 +79,22 @@ module LgPodPlugin
     end
 
     public
-
     def get_lock_params
-      unless self.lock_info
-        self.lock_info = { "external_source" => {}, "checkout_options" => {} }
+      begin
+        _external_source = self.lock_info["external_source"][self.name] ||= {}
+        _checkout_options = self.lock_info["checkout_options"][self.name] ||= {}
+      rescue
+        _external_source = {}
+        _checkout_options = {}
       end
-      external_source = self.lock_info["external_source"][self.name] ||= {}
-      checkout_options = self.lock_info["checkout_options"][self.name] ||= {}
 
       git = self.checkout_options[:git]
       tag = self.checkout_options[:tag]
       commit = self.checkout_options[:commit]
       branch = self.checkout_options[:branch]
 
-      lock_commit = checkout_options[:commit]
-      lock_branch = external_source[:branch]
+      lock_commit = _checkout_options[:commit] ||= ""
+      lock_branch = _external_source[:branch] ||= ""
       hash_map = Hash.new
       hash_map[:git] = git if git
       if git && tag
@@ -145,7 +126,6 @@ module LgPodPlugin
 
     #获取下载参数
     def get_request_params
-      self.is_update = self.is_update_pod
       if self.lock_info == nil
         self.lock_info = self.get_lock_info
       end
@@ -153,7 +133,6 @@ module LgPodPlugin
     end
 
     public
-
     def setup_pod_info(name, workspace, options = {})
       self.name = name
       tag = options[:tag]

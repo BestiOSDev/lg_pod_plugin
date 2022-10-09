@@ -105,6 +105,7 @@ module LgPodPlugin
         LgPodPlugin.log_red "no such file `Podfile`"
         return
       end
+      LRequest.shared.is_update = (command == "update")
       podfile = Pod::Podfile.from_file(podfile_path)
       target = podfile.send(:current_target_definition)
       release_pods = []
