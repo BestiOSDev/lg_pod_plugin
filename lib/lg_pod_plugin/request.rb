@@ -42,11 +42,11 @@ module LgPodPlugin
       lock_file = self.workspace.join("Podfile.lock")
       if lock_file.exist?
         json = YAML.load_file(lock_file.to_path)
-        external_source = json["EXTERNAL SOURCES"]
-        checkout_options = json["CHECKOUT OPTIONS"]
+        external_source = json["EXTERNAL SOURCES"] ||= {}
+        checkout_options = json["CHECKOUT OPTIONS"] ||= {}
         { "external_source" => external_source, "checkout_options" => checkout_options }
       else
-        { "external_source" => { } , "checkout_options" => { } }
+        { "external_source" => {}, "checkout_options" => {} }
       end
     end
 
