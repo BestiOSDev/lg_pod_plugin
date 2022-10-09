@@ -110,7 +110,7 @@ module LgPodPlugin
       end
       get_temp_folder = git_clone_repository(lg_pod_path)
       #下载 git 仓库失败
-      unless get_temp_folder.exist?
+      unless get_temp_folder && get_temp_folder.exist?
         return nil
       end
       if LRequest.shared.single_git
