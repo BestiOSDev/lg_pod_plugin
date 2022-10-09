@@ -44,7 +44,7 @@ module LgPodPlugin
       token = LRequest.shared.config.access_token
       begin
         encode_fiename = LUtils.url_encode(filename)
-        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.zip?" + "path=#{encode_fiename}&&sha=#{sha}"
+        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.zip#{"\\?"}" + "path#{"\\="}#{encode_fiename}#{"\\&"}sha#{"\\="}#{sha}"
       rescue => exception
         return nil
       end
@@ -53,8 +53,11 @@ module LgPodPlugin
       return nil unless (result = LUtils.unzip_file(temp_name, "./"))
       temp_zip_folder = nil
       path.each_child do |f|
-        next unless f.to_path.include?("-#{filename}")
+        ftype = File::ftype(f)
+        next unless ftype == "directory"
+        next unless f.to_path.include?("#{filename}")
         temp_zip_folder = f
+        break
       end
       return nil unless temp_zip_folder && temp_zip_folder.exist?
       begin
