@@ -41,7 +41,11 @@ module LgPodPlugin
     def get_lock_info
       lock_file = self.workspace.join("Podfile.lock")
       if lock_file.exist?
-        json = YAML.load_file(lock_file.to_path)
+        begin
+          json = YAML.load_file(lock_file.to_path)
+        rescue
+          json = {}
+        end
         external_source = json["EXTERNAL SOURCES"] ||= {}
         checkout_options = json["CHECKOUT OPTIONS"] ||= {}
         { "external_source" => external_source, "checkout_options" => checkout_options }
