@@ -21,13 +21,9 @@ module LgPodPlugin
     public
     def self.getConfig(git)
       return nil if git.include?("github.com") || git.include?("gitee.com") || git.include?("coding.net") || git.include?("code.aliyun.com")
-      unless LRequest.shared.net_ping
-        http = Ping.new(git)
-        http.network_ok = http.ping
-        LRequest.shared.net_ping = http
-      end
       ip_address = LRequest.shared.net_ping.ip
-      return nil unless ip_address && LRequest.shared.net_ping.network_ok
+      network_ok =  LRequest.shared.net_ping.network_ok
+      return nil unless ip_address && network_ok
       if git.include?("ssh") || git.include?("git@gitlab") || git.include?("git@")
         host = "http://" + ip_address
       else

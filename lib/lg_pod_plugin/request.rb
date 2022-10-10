@@ -4,6 +4,7 @@ require 'net/http'
 require 'singleton'
 require_relative 'l_config'
 require_relative 'l_cache'
+require_relative 'net-ping'
 require_relative 'downloader'
 require_relative 'gitlab_download'
 module LgPodPlugin
@@ -147,6 +148,8 @@ module LgPodPlugin
       else
         self.single_git = true
       end
+      self.net_ping = Ping.new(git)
+      self.net_ping.network_ok = self.net_ping.ping
       self.checkout_options = Hash.new.deep_merge(options)
       self.request_params = self.get_request_params
       self.config = LConfig.getConfig(git)

@@ -124,10 +124,9 @@ module LgPodPlugin
 
     # 获取最新的一条 commit 信息
     def self.git_ls_remote_refs(git, branch, tag, commit)
-      http = Ping.new(git)
-      http.network_ok = http.ping
-      LRequest.shared.net_ping = http
-      return [nil , nil] unless (http.ip && http.network_ok)
+      ip = LRequest.shared.net_ping.ip
+      network_ok = LRequest.shared.net_ping.network_ok
+      return [nil , nil] unless (ip && network_ok)
       if branch
         LgPodPlugin.log_blue "git ls-remote #{git} #{branch}"
         result = %x(timeout 5 git ls-remote #{git} #{branch})
