@@ -36,7 +36,9 @@ module LgPodPlugin
     attr_accessor :request_params
     # 传入的请求参数
     attr_accessor :checkout_options
-
+    # ip 地址
+    attr_accessor :ip_address
+    attr_accessor :network_ok
     public
     def get_lock_info
       lock_file = self.workspace.join("Podfile.lock")
@@ -71,13 +73,11 @@ module LgPodPlugin
       elsif git && branch
         if commit
           hash_map[:commit] = commit
-        else
-          _, new_commit_id = LGitUtil.git_ls_remote_refs(git, branch, nil, commit)
-          hash_map[:commit] = new_commit_id if new_commit_id
         end
-      else
-        _, new_commit_id = LGitUtil.git_ls_remote_refs(git, branch, nil, commit)
-        hash_map[:commit] = new_commit_id if new_commit_id
+        # _, new_commit_id = LGitUtil.git_ls_remote_refs(git, branch, nil, commit)
+        # hash_map[:commit] = new_commit_id if new_commit_id
+        # _, new_commit_id = LGitUtil.git_ls_remote_refs(git, branch, nil, commit)
+        # hash_map[:commit] = new_commit_id if new_commit_id
       end
       hash_map
     end

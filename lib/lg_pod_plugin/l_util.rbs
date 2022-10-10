@@ -14,12 +14,11 @@ module LgPodPlugin
     def self.download_github_zip_file: (String download_url, String file_name) -> void
 
     # 将一个host 转成ip 地址
-    def self.git_server_ip_address: (String host) -> String
+    def self.git_server_ip_address: (String git) -> [String, bool]
 
     #截取git-url 拿到项目名称
     def self.get_git_project_name: (String git) -> String
-    # 获取相对项目名称 app/iOS/l-base-ios 项目组+项目名称
-    # def self.get_gitlab_relative_project_name: (String git) -> String
+
     # 是否能够使用 gitlab 下载 zip 文件
     def self.is_use_gitlab_archive_file: (String git) -> bool
     # 截取 url
@@ -28,6 +27,7 @@ module LgPodPlugin
     # 根据参数生成下载 url
     def self.get_gitlab_download_url: (String base_url, String branch, String tag, String commit, String project_name) -> String
 
+    def self.git_to_uri:(String git) -> URI
     def self.url_encode: (String url) -> String
 
   end

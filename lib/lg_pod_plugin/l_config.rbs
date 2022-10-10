@@ -7,6 +7,8 @@ module LgPodPlugin
     attr_accessor access_token: String
     attr_accessor refresh_token: String
     attr_accessor project: String
+    # ip 地址
+    attr_accessor ip_address: String
     public
     def self.getConfig: (String git) -> LConfig
   end

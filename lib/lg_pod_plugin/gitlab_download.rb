@@ -123,32 +123,57 @@ module LgPodPlugin
 
     # 获取最新的一条 commit 信息
     def self.git_ls_remote_refs(git, branch, tag, commit)
+      ip_address, is_ok = LUtils.git_server_ip_address(git)
+      LRequest.shared.network_ok = is_ok
+      LRequest.shared.ip_address = ip_address
+      return [nil , nil] unless (ip_address && is_ok)
       if branch
         LgPodPlugin.log_yellow "git ls-remote #{git} #{branch}"
-        result = %x(git ls-remote #{git} #{branch})
+        result = %x(timeout 5 git ls-remote #{git} #{branch})
         new_commit = result.split(" ").first if result
         return [branch, new_commit]
       elsif tag
         LgPodPlugin.log_yellow "git ls-remote #{git}"
-        ls = Git.ls_remote(git, :head => true)
-        map = ls["tags"]
-        keys = map.keys
-        idx = keys.index("#{tag}")
-        return [nil, nil] unless idx
-        key = keys[idx]
-        new_commit = map[key][:sha]
+        result = %x(timeout 5 git ls-remote --tags #{git})
+        return [nil, nil] if !result || result == ""
+        refs = result.split("\n")
+        return [nil , nil ] unless refs.is_a?(Array) || refs.count > 0
+        hash_map = Hash.new
+        refs.each do |e|
+          array = e.split("\t")
+          key = array.last
+          val = array.first
+          next unless key || val
+          hash_map[key] = val
+        end
+        new_commit = hash_map["refs/tags/#{tag}^{}"] ||= hash_map["refs/tags/#{tag}"]
         return [nil, new_commit]
       else
         if commit
           return nil, commit
         else
           LgPodPlugin.log_yellow "git ls-remote #{git}"
-          ls = Git.ls_remote(git, :head => true)
-          find_commit = ls["head"][:sha]
-          ls["branches"].each do |key, value|
-            sha = value[:sha]
+          result = %x(timeout 5 git ls-remote --symref -q #{git})
+          return [nil, nil] if !result || result == ""
+          refs = result.split("\n")
+          return [nil , nil ] unless refs.is_a?(Array) || refs.count > 0
+          hash_map = Hash.new
+          refs.each do |e|
+            array = e.split("\t")
+            key = array.last
+            val = array.first
+            next unless key || val
+            next if key.include?("refs/tags")
+            next if key.include?("refs/merge-requests")
+            hash_map[key] = val
+          end
+          find_commit = hash_map["HEAD"] ||= ""
+          hash_map.delete("HEAD")
+          hash_map.each do |key, value|
+            sha = value
             next if sha != find_commit
-            return [key, find_commit]
+            new_branch = key.split("refs/heads/").last
+            return [new_branch, find_commit]
           end
           return nil, find_commit
         end

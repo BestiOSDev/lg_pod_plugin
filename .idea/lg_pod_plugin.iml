@@ -87,6 +87,25 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+      <library name="archive-zip (vbundled(0.12.0)) [path][gem]" type="rubylib">
+        <properties>
+          <option name="version" value="4" />
+        </properties>
+        <CLASSES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/archive-zip-0.12.0/lib" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/archive-zip-0.12.0/spec" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/archive-zip-0.12.0/lib" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/archive-zip-0.12.0/spec" />
+        </SOURCES>
+        <excluded>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/archive-zip-0.12.0/spec" />
+        </excluded>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
       <library name="atomos (vbundled(0.1.3)) [path][gem]" type="rubylib">
         <properties>
           <option name="version" value="4" />
@@ -102,6 +121,28 @@
         </SOURCES>
         <excluded>
           <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/atomos-0.1.3/bin" />
+        </excluded>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="bacon (vbundled(1.2.0)) [path][gem]" type="rubylib">
+        <properties>
+          <option name="version" value="4" />
+        </properties>
+        <CLASSES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/bacon-1.2.0/bin" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/bacon-1.2.0/lib" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/bacon-1.2.0/test" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/bacon-1.2.0/bin" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/bacon-1.2.0/lib" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/bacon-1.2.0/test" />
+        </SOURCES>
+        <excluded>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/bacon-1.2.0/bin" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/bacon-1.2.0/test" />
         </excluded>
       </library>
     </orderEntry>
@@ -306,6 +347,67 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+      <library name="debase (vbundled(0.2.4.1)) [path][gem]" type="rubylib">
+        <properties>
+          <option name="version" value="4" />
+        </properties>
+        <CLASSES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/debase-0.2.4.1/ext" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/debase-0.2.4.1/lib" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/debase-0.2.4.1/test" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/debase-0.2.4.1/ext" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/debase-0.2.4.1/lib" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/debase-0.2.4.1/test" />
+        </SOURCES>
+        <excluded>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/debase-0.2.4.1/ext" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/debase-0.2.4.1/test" />
+        </excluded>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="debase-ruby_core_source (vbundled(0.10.17)) [path][gem]" type="rubylib">
+        <properties>
+          <option name="version" value="4" />
+        </properties>
+        <CLASSES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/debase-ruby_core_source-0.10.17/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/debase-ruby_core_source-0.10.17/lib" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="diff-lcs (vbundled(1.5.0)) [path][gem]" type="rubylib">
+        <properties>
+          <option name="version" value="4" />
+        </properties>
+        <CLASSES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/diff-lcs-1.5.0/bin" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/diff-lcs-1.5.0/lib" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/diff-lcs-1.5.0/docs" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/diff-lcs-1.5.0/spec" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/diff-lcs-1.5.0/bin" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/diff-lcs-1.5.0/lib" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/diff-lcs-1.5.0/docs" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/diff-lcs-1.5.0/spec" />
+        </SOURCES>
+        <excluded>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/diff-lcs-1.5.0/bin" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/diff-lcs-1.5.0/docs" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/diff-lcs-1.5.0/spec" />
+        </excluded>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
       <library name="escape (vbundled(0.0.4)) [path][gem]" type="rubylib">
         <properties>
           <option name="version" value="4" />
@@ -496,6 +598,25 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+      <library name="io-like (vbundled(0.3.1)) [path][gem]" type="rubylib">
+        <properties>
+          <option name="version" value="4" />
+        </properties>
+        <CLASSES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/io-like-0.3.1/lib" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/io-like-0.3.1/spec" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/io-like-0.3.1/lib" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/io-like-0.3.1/spec" />
+        </SOURCES>
+        <excluded>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/io-like-0.3.1/spec" />
+        </excluded>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
       <library name="json (vbundled(2.6.2)) [path][gem]" type="rubylib">
         <properties>
           <option name="version" value="4" />
@@ -582,6 +703,31 @@
         </SOURCES>
         <excluded>
           <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/nap-1.1.0/support" />
+        </excluded>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="net-ping (vbundled(2.0.8)) [path][gem]" type="rubylib">
+        <properties>
+          <option name="version" value="4" />
+        </properties>
+        <CLASSES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/net-ping-2.0.8/doc" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/net-ping-2.0.8/lib" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/net-ping-2.0.8/test" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/net-ping-2.0.8/examples" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/net-ping-2.0.8/doc" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/net-ping-2.0.8/lib" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/net-ping-2.0.8/test" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/net-ping-2.0.8/examples" />
+        </SOURCES>
+        <excluded>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/net-ping-2.0.8/doc" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/net-ping-2.0.8/test" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/net-ping-2.0.8/examples" />
         </excluded>
       </library>
     </orderEntry>
@@ -691,6 +837,103 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
+      <library name="rspec (vbundled(3.11.0)) [path][gem]" type="rubylib">
+        <properties>
+          <option name="version" value="4" />
+        </properties>
+        <CLASSES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rspec-3.11.0/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rspec-3.11.0/lib" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="rspec-core (vbundled(3.11.0)) [path][gem]" type="rubylib">
+        <properties>
+          <option name="version" value="4" />
+        </properties>
+        <CLASSES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rspec-core-3.11.0/exe" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rspec-core-3.11.0/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rspec-core-3.11.0/exe" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rspec-core-3.11.0/lib" />
+        </SOURCES>
+        <excluded>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rspec-core-3.11.0/exe" />
+        </excluded>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="rspec-expectations (vbundled(3.11.1)) [path][gem]" type="rubylib">
+        <properties>
+          <option name="version" value="4" />
+        </properties>
+        <CLASSES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rspec-expectations-3.11.1/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rspec-expectations-3.11.1/lib" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="rspec-mocks (vbundled(3.11.1)) [path][gem]" type="rubylib">
+        <properties>
+          <option name="version" value="4" />
+        </properties>
+        <CLASSES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rspec-mocks-3.11.1/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rspec-mocks-3.11.1/lib" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="rspec-support (vbundled(3.11.1)) [path][gem]" type="rubylib">
+        <properties>
+          <option name="version" value="4" />
+        </properties>
+        <CLASSES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rspec-support-3.11.1/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rspec-support-3.11.1/lib" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="ruby-debug-ide (vbundled(0.7.3)) [path][gem]" type="rubylib">
+        <properties>
+          <option name="version" value="4" />
+        </properties>
+        <CLASSES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/ruby-debug-ide-0.7.3/bin" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/ruby-debug-ide-0.7.3/ext" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/ruby-debug-ide-0.7.3/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/ruby-debug-ide-0.7.3/bin" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/ruby-debug-ide-0.7.3/ext" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/ruby-debug-ide-0.7.3/lib" />
+        </SOURCES>
+        <excluded>
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/ruby-debug-ide-0.7.3/bin" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/ruby-debug-ide-0.7.3/ext" />
+        </excluded>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
       <library name="ruby-macho (vbundled(2.5.1)) [path][gem]" type="rubylib">
         <properties>
           <option name="version" value="4" />
@@ -702,25 +945,6 @@
         <SOURCES>
           <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/ruby-macho-2.5.1/lib" />
         </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="rubyzip (vbundled(2.3.2)) [path][gem]" type="rubylib">
-        <properties>
-          <option name="version" value="4" />
-        </properties>
-        <CLASSES>
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rubyzip-2.3.2/lib" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rubyzip-2.3.2/samples" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rubyzip-2.3.2/lib" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rubyzip-2.3.2/samples" />
-        </SOURCES>
-        <excluded>
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/rubyzip-2.3.2/samples" />
-        </excluded>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
@@ -804,16 +1028,16 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="zeitwerk (vbundled(2.6.0)) [path][gem]" type="rubylib">
+      <library name="zeitwerk (vbundled(2.6.1)) [path][gem]" type="rubylib">
         <properties>
           <option name="version" value="4" />
         </properties>
         <CLASSES>
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/zeitwerk-2.6.0/lib" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/zeitwerk-2.6.1/lib" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/zeitwerk-2.6.0/lib" />
+          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/zeitwerk-2.6.1/lib" />
         </SOURCES>
       </library>
     </orderEntry>

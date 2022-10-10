@@ -1,6 +1,4 @@
-
 require 'uri'
-require 'net/http'
 require_relative 'request'
 require_relative 'l_util'
 require_relative 'l_config'
@@ -28,10 +26,8 @@ module LgPodPlugin
       unless host
         uri = URI(project.web_url)
         host = uri.scheme + "://" + uri.hostname
-        ip_address = LUtils.git_server_ip_address(host)
-        if ip_address == nil
-          return
-        end
+        ip_address, _ = LUtils.git_server_ip_address(host)
+        return nil unless ip_address
       end
 
       if self.git && self.tag
@@ -45,7 +41,6 @@ module LgPodPlugin
       begin
         encode_fiename = LUtils.url_encode(filename)
         download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.zip#{"\\?"}" + "path#{"\\="}#{encode_fiename}#{"\\&"}sha#{"\\="}#{sha}"
-        # download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.zip#{"\\?"}" + "sha#{"\\="}#{sha}"
       rescue => exception
         return nil
       end

@@ -1,8 +1,7 @@
 require 'json'
 require 'uri'
-require 'resolv'
-require "ipaddr"
 require 'io/console'
+require_relative 'request'
 require_relative 'database'
 require_relative 'gitlab_api'
 
@@ -15,30 +14,28 @@ module LgPodPlugin
     attr_accessor :access_token
     attr_accessor :refresh_token
     attr_accessor :project
-
+   
     def initialize
     end
 
     public
     def self.getConfig(git)
       return nil if git.include?("github.com") || git.include?("gitee.com") || git.include?("coding.net") || git.include?("code.aliyun.com")
-      begin
-        uri = URI(git)
-      rescue
-        if git.include?("git@") && git.include?(":")
-          uri = URI("http://" + git[4...git.length].split(":").first)
-        else
-          uri = URL("https://www.baidu.com")
-        end
-      end
-      ip_address = LUtils.git_server_ip_address(uri.host)
+      network_ok = LRequest.shared.network_ok
+      ip_address = LRequest.shared.ip_address
       unless ip_address
-        LgPodPlugin.log_yellow "找不到 #{git}的IP地址"
-        return nil
+        ip_address, network_ok =  LUtils.git_server_ip_address(git)
+        LRequest.shared.ip_address = ip_address
+        LRequest.shared.network_ok = network_ok
       end
-      if uri.scheme.include?("ssh") || git.include?("git@gitlab") || git.include?("git@")
+      return nil unless ip_address && network_ok
+      if git.include?("ssh") || git.include?("git@gitlab") || git.include?("git@")
         host = "http://" + ip_address
       else
+        uri = LUtils.git_to_uri(git)
+        unless uri
+          uri = URI("https://www.baidu.com")
+        end
         host = "#{uri.scheme}://" + ip_address
       end
       user_id = LUserAuthInfo.get_user_id(host)

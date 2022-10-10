@@ -1,6 +1,9 @@
+require 'resolv'
+require "ipaddr"
 require 'archive/zip'
 require_relative 'log'
 require_relative 'l_config'
+
 module LgPodPlugin
   class LUtils
 
@@ -52,22 +55,47 @@ module LgPodPlugin
       system(cmds_to_s)
     end
 
-    # 将一个host 转成ip 地址
-    def self.git_server_ip_address(host)
+    def self.git_to_uri(git)
       begin
-        return Resolv.getaddress(host)
+        uri = URI(git)
       rescue
-        ip_address = %x(ping #{host} -c 1).split("\n").first
-        if ip_address && ip_address.include?("(") && ip_address.include?("):")
-          ip_address = ip_address.split("(").last.split(")").first
-          begin
-            return ip_address if IPAddr.new ip_address
-          rescue
-            return nil
-          end
+        if git.include?("git@") && git.include?(":")
+          uri = URI("http://" + git[4...git.length].split(":").first)
         else
           return nil
         end
+      end
+    end
+
+    # 将一个host 转成ip 地址
+    def self.git_server_ip_address(git)
+      return [nil, false ] unless uri = self.git_to_uri(git)
+      ip_address = %x(ping #{uri.host} -t 1)
+      if ip_address.include?("timeout")
+        return [ip_address, false]
+      end
+      if ip_address && ip_address.include?("(") && ip_address.include?("):")
+        ip_address = ip_address.split("(").last.split(")").first
+        begin
+          if IPAddr.new ip_address
+            return [ip_address, true]
+          else
+            return [ip_address, false]
+          end
+        rescue
+          return [ip_address, false]
+        end
+      else
+        return [nil, false]
+      end
+    end
+    
+    def self.ping(host)
+      ip_address = %x(ping #{host} -c 1).slice(/(\.|\d|\/)+\//).split('/')
+      if ip_address
+        return true 
+      else 
+        return false 
       end
     end
 
@@ -75,12 +103,6 @@ module LgPodPlugin
     def self.get_git_project_name(git)
       self.get_gitlab_base_url(git).split("/").last
     end
-
-    # 获取相对项目名称 app/iOS/l-base-ios 项目组+项目名称
-    # def self.get_gitlab_relative_project_name(git)
-    #   base_url = self.get_gitlab_base_url(git)
-    #   pp base_url
-    # end
 
     # 是否能够使用 gitlab 下载 zip 文件
     def self.is_use_gitlab_archive_file(git)
