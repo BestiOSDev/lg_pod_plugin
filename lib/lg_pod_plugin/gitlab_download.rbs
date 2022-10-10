@@ -16,7 +16,7 @@ module LgPodPlugin
     def pre_download_git_repository: -> void
 
     # 获取最新的一条 commit 信息
-    def self.git_ls_remote_refs: (String git, String branch, String tag, String commit) -> [String, String]
+    def self.git_ls_remote_refs: (String name, String git, String branch, String tag, String commit) -> [String, String]
 
   end
 end

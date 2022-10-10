@@ -5,6 +5,7 @@ require_relative 'l_util'
 require_relative 'request'
 require_relative 'l_cache'
 require_relative 'net-ping'
+require_relative 'database'
 require_relative 'gitlab_archive'
 
 module LgPodPlugin
@@ -124,28 +125,53 @@ module LgPodPlugin
     end
 
     # 获取最新的一条 commit 信息
-    def self.git_ls_remote_refs(git, branch, tag, commit)
+    def self.git_ls_remote_refs(name,git, branch, tag, commit)
       ip = LRequest.shared.net_ping.ip
       network_ok = LRequest.shared.net_ping.network_ok
       return [nil, nil] unless (ip && network_ok)
       if branch
         LgPodPlugin.log_blue "git ls-remote --refs #{git} #{branch}"
         result = %x(timeout 5 git ls-remote --refs #{git} #{branch})
+        unless result && result != ""
+          id = LPodLatestRefs.get_pod_id(name, git, branch, tag)
+          pod_info = LSqliteDb.shared.query_pod_refs(id)
+          new_commit = pod_info.commit if pod_info
+          return [branch, new_commit]
+        end
         new_commit = LUtils.commit_from_ls_remote(result, branch)
+        if new_commit
+          LSqliteDb.shared.insert_pod_refs(name, git, branch, tag, new_commit)
+        end
         return [branch, new_commit]
       elsif tag
         LgPodPlugin.log_blue "git ls-remote --tags #{git}"
         result = %x(timeout 5 git ls-remote --tags #{git})
-        return [nil, nil] if !result || result == ""
+        unless result && result != ""
+          id = LPodLatestRefs.get_pod_id(name, git, branch, tag)
+          pod_info = LSqliteDb.shared.query_pod_refs(id)
+          new_commit = pod_info.commit if pod_info
+          return [nil, new_commit]
+        end
         new_commit = LUtils.commit_from_ls_remote(result, tag)
+        if new_commit
+          LSqliteDb.shared.insert_pod_refs(name, git, branch, tag, new_commit)
+        end
         return [nil, new_commit]
       elsif commit
         return nil, commit
       else
         LgPodPlugin.log_blue "git ls-remote --refs #{git}"
         result = %x(timeout 5 git ls-remote -- #{git})
-        return [nil, nil] if !result || result == ""
+        unless result && result != ""
+          id = LPodLatestRefs.get_pod_id(name, git, branch, tag)
+          pod_info = LSqliteDb.shared.query_pod_refs(id)
+          new_commit = pod_info.commit if pod_info
+          return [nil, new_commit]
+        end
         new_commit = LUtils.commit_from_ls_remote(result, "HEAD")
+        if new_commit
+          LSqliteDb.shared.insert_pod_refs(name, git, branch, tag, new_commit)
+        end
         return nil, new_commit
       end
     end

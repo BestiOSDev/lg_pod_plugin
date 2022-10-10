@@ -22,16 +22,37 @@ module LgPodPlugin
 
   end
 
-  # class GitLabBlackList
-  #   REQUIRED_ATTRS ||= %i[id uri is_available].freeze
-  #   attr_accessor(*REQUIRED_ATTRS)
-  #
-  #   def initialize(id, uri, available)
-  #     self.id = id
-  #     self.uri = uri
-  #     self.is_available = available
-  #   end
-  # end
+  class LPodLatestRefs
+    attr_accessor :id
+    attr_accessor :name
+    attr_accessor :tag
+    attr_accessor :git
+    attr_accessor :branch
+    attr_accessor :commit
+
+    def initialize(id, name, git, branch, tag, commit)
+      self.id = id
+      self.git = git
+      self.tag = tag
+      self.name = name
+      self.branch = branch
+      self.commit = commit
+    end
+
+    def self.get_pod_id(name, git, branch, tag)
+      if git && branch
+        key = name + git + branch
+        return Digest::MD5.hexdigest(key)
+      elsif git && tag
+        key = name + git + tag
+        return Digest::MD5.hexdigest(key)
+      else
+        key = name + git
+        return Digest::MD5.hexdigest(key)
+      end
+    end
+
+  end
 
   class LUserAuthInfo
     REQUIRED_ATTRS ||= %i[id username password host access_token refresh_token expires_in].freeze
@@ -61,6 +82,8 @@ module LgPodPlugin
     attr_accessor(*REQUIRED_ATTRS)
     K_USER_TABLE = "user_tab"
     K_USER_PROJECTS = "user_projects"
+    K_POD_LATEST_REFS = "user_pod_latest_refs"
+
     def self.shared
       return LSqliteDb.instance
     end
@@ -102,11 +125,15 @@ module LgPodPlugin
       self.db.execute(sql2)
 
       #添加项目表
-      # sql3 = "create table if not exists #{K_GIT_BLACK_LIST}(
-      #   id varchar(100) primary key not null,
-      #   uri varchar(100),
-	    #   is_available Integer);"
-      # self.db.execute(sql3)
+      sql3 = "create table if not exists #{K_POD_LATEST_REFS}(
+        id varchar(100) primary key not null,
+        name varchar(100),
+	      git varchar(100),
+	      branch varchar(100),
+        tag varchar(100),
+        sha varchar(100)
+        );"
+      self.db.execute(sql3)
 
       super
     end
@@ -172,6 +199,34 @@ module LgPodPlugin
         return project_info
       end
       return project_info
+    end
+
+    def insert_pod_refs(name, git, branch, tag , commit)
+      id = LPodLatestRefs.get_pod_id(name, git, branch, tag)
+      pod = LPodLatestRefs.new(id, name, git, branch, tag, commit)
+      if self.query_pod_refs(id) != nil
+        self.db.execute_batch(
+          "UPDATE #{K_POD_LATEST_REFS} SET name = (:name), git = (:git), branch = (:branch), tag = (:tag), sha = (:sha) where (id = :id)", { "name" => pod.name, "git" => pod.git, "sha" => pod.commit, "branch" => pod.branch, :tag => pod.tag, :id => pod.id}
+        )
+      else
+        self.db.execute("INSERT INTO #{K_POD_LATEST_REFS} (id, name, git, branch, tag, sha)
+            VALUES (?, ?, ?, ?, ?, ?)", [pod.id, pod.name, pod.git, pod.branch, pod.tag, pod.commit])
+      end
+
+    end
+
+    def query_pod_refs(id)
+      pod_info = nil
+      self.db.execute("select * from #{K_POD_LATEST_REFS} where id = '#{id}';") do |row|
+        id = row[0]
+        name = row[1]
+        git = row[2]
+        branch = row[3]
+        tag = row[4]
+        commit = row[5]
+        pod_info = LPodLatestRefs.new(id, name, git, branch, tag, commit)
+      end
+      return pod_info
     end
 
   end

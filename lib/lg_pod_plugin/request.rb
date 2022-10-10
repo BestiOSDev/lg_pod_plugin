@@ -110,7 +110,7 @@ module LgPodPlugin
           return hash_map
         else
           hash_map[:branch] = branch if branch
-          _, new_commit = LGitUtil.git_ls_remote_refs(git, branch, tag, commit)
+          _, new_commit = LGitUtil.git_ls_remote_refs(self.name, git, branch, tag, commit)
           hash_map[:commit] = new_commit if new_commit
           return hash_map
         end
@@ -118,7 +118,7 @@ module LgPodPlugin
         hash_map[:commit] = commit if commit
         return hash_map
       else
-        new_branch, new_commit = LGitUtil.git_ls_remote_refs(git, branch, tag, commit)
+        new_branch, new_commit = LGitUtil.git_ls_remote_refs(self.name, git, branch, tag, commit)
         hash_map[:commit] = new_commit if new_commit
         hash_map[:branch] = new_branch if new_branch
       end
