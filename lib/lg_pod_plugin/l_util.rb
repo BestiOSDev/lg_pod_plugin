@@ -70,12 +70,12 @@ module LgPodPlugin
     # 将一个host 转成ip 地址
     def self.git_server_ip_address(git)
       return [nil, false ] unless uri = self.git_to_uri(git)
-      ip_address = %x(ping #{uri.host} -t 1)
-      if ip_address.include?("timeout")
-        return [ip_address, false]
+      result = %x(ping #{uri.host} -t 3)
+      if result.include?("timeout")
+        return [nil, false]
       end
-      if ip_address && ip_address.include?("(") && ip_address.include?("):")
-        ip_address = ip_address.split("(").last.split(")").first
+      if result && result.include?("(") && result.include?("):")
+        ip_address = result.split("(").last.split(")").first
         begin
           if IPAddr.new ip_address
             return [ip_address, true]
@@ -83,7 +83,7 @@ module LgPodPlugin
             return [ip_address, false]
           end
         rescue
-          return [ip_address, false]
+          return [nil, false]
         end
       else
         return [nil, false]
