@@ -133,7 +133,7 @@ module LgPodPlugin
         new_commit = result.split(" ").first if result
         return [branch, new_commit]
       elsif tag
-        LgPodPlugin.log_yellow "git ls-remote #{git}"
+        LgPodPlugin.log_yellow "git ls-remote --tags #{git}"
         result = %x(timeout 5 git ls-remote --tags #{git})
         return [nil, nil] if !result || result == ""
         refs = result.split("\n")
@@ -152,8 +152,8 @@ module LgPodPlugin
         if commit
           return nil, commit
         else
-          LgPodPlugin.log_yellow "git ls-remote #{git}"
-          result = %x(timeout 5 git ls-remote --symref -q #{git})
+          LgPodPlugin.log_yellow "git ls-remote --refs #{git}"
+          result = %x(timeout 5 git ls-remote --refs -q #{git})
           return [nil, nil] if !result || result == ""
           refs = result.split("\n")
           return [nil , nil ] unless refs.is_a?(Array) || refs.count > 0

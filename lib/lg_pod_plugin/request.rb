@@ -70,10 +70,8 @@ module LgPodPlugin
         hash_map[:commit] = commit
       elsif git && tag
         hash_map[:tag] = tag
-      elsif git && branch
-        if commit
-          hash_map[:commit] = commit
-        end
+      elsif git && branch && commit
+        hash_map[:commit] = commit
         # _, new_commit_id = LGitUtil.git_ls_remote_refs(git, branch, nil, commit)
         # hash_map[:commit] = new_commit_id if new_commit_id
         # _, new_commit_id = LGitUtil.git_ls_remote_refs(git, branch, nil, commit)
