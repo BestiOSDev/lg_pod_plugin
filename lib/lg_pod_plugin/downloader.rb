@@ -25,17 +25,27 @@ module LgPodPlugin
       else
         LgPodPlugin.log_green "Using `#{name}`"
       end
+      hash_map = LRequest.shared.get_cache_key_params
       # 发现本地有缓存, 不需要更新缓存
-      need_download = LRequest.shared.cache.find_pod_cache(name)
+      if LRequest.shared.single_git
+        need_download = LRequest.shared.cache.find_pod_cache(name, hash_map)
+        unless need_download
+          hash_map.delete(:commit)
+          need_download = LRequest.shared.cache.find_pod_cache(name, hash_map)
+        end
+      else
+        need_download = LRequest.shared.cache.find_pod_cache(name, hash_map)
+      end
       if need_download
         LgPodPlugin.log_green "find the new commit of `#{name}`, Git downloading now."
         # 本地 git 下载 pod 目录
         LRequest.shared.git_util.pre_download_git_repository
       else
+        is_delete = LRequest.shared.request_params["is_delete"] ||= false
         if self.real_name == self.name
-          LRequest.shared.libs.delete(self.name)
+          LRequest.shared.libs.delete(self.name) if is_delete
         else
-          LRequest.shared.libs.delete(self.real_name)
+          LRequest.shared.libs.delete(self.real_name) if is_delete
         end
         LgPodPlugin.log_green "find the cache of `#{name}`, you can use it now."
       end

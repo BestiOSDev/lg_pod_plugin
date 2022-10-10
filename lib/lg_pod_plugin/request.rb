@@ -73,10 +73,6 @@ module LgPodPlugin
         hash_map[:tag] = tag
       elsif git && branch && commit
         hash_map[:commit] = commit
-        # _, new_commit_id = LGitUtil.git_ls_remote_refs(git, branch, nil, commit)
-        # hash_map[:commit] = new_commit_id if new_commit_id
-        # _, new_commit_id = LGitUtil.git_ls_remote_refs(git, branch, nil, commit)
-        # hash_map[:commit] = new_commit_id if new_commit_id
       end
       hash_map
     end
@@ -110,17 +106,26 @@ module LgPodPlugin
           return hash_map
         else
           hash_map[:branch] = branch if branch
-          _, new_commit = LGitUtil.git_ls_remote_refs(self.name, git, branch, tag, commit)
-          hash_map[:commit] = new_commit if new_commit
-          return hash_map
+          _, new_commit = LGitUtil.git_ls_remote_refs(self.name ,git, branch, tag, commit)
+          if new_commit && (new_commit != lock_commit)
+            hash_map[:commit] = new_commit
+            hash_map["is_delete"] = false
+          else
+            hash_map["is_delete"] = true
+          end
         end
       elsif git && commit
         hash_map[:commit] = commit if commit
         return hash_map
       else
-        new_branch, new_commit = LGitUtil.git_ls_remote_refs(self.name, git, branch, tag, commit)
-        hash_map[:commit] = new_commit if new_commit
-        hash_map[:branch] = new_branch if new_branch
+        _, new_commit = LGitUtil.git_ls_remote_refs(self.name ,git, branch, tag, commit)
+        if (new_commit != lock_commit)
+          hash_map[:commit] = new_commit
+          hash_map["is_delete"] = false
+        else
+          hash_map[:commit] = new_commit if new_commit
+          hash_map["is_delete"] = true
+        end
       end
       hash_map
     end
