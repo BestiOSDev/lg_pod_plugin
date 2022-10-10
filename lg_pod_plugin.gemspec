@@ -14,7 +14,6 @@ Gem::Specification.new do |spec|
   spec.files = Dir["lib/**/*.rb"] + %w{ README.md LICENSE bin/lg}
   spec.executables = %w{ lg }
   spec.require_paths = %w{ lib }
-  spec.add_runtime_dependency 'net-ping', '~> 2.0'
   spec.add_runtime_dependency 'git', '~> 1.12.0'
   spec.add_runtime_dependency 'archive-zip', '~> 0.12.0'
   spec.add_runtime_dependency 'cocoapods', '~> 1.11.3'
