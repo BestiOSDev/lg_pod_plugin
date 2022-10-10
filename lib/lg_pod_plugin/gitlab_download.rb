@@ -25,20 +25,21 @@ module LgPodPlugin
 
     def git_clone_by_branch(path, temp_name)
       if self.git && self.branch
-        LgPodPlugin.log_blue "git clone --depth=1 --branch #{self.branch} #{self.git}"
-        system("git clone --depth=1 -b #{self.branch} #{self.git} #{temp_name}")
+        LgPodPlugin.log_blue "git clone --template= --single-branch --depth 1 -b #{self.branch} #{self.git}"
+        system("git clone --template= --single-branch --depth 1 -b #{self.branch} #{self.git} #{temp_name}")
       else
-        LgPodPlugin.log_blue "git clone --depth=1 #{self.git}"
-        system("git clone --depth=1 #{self.git} #{temp_name}")
+        LgPodPlugin.log_blue "git clone --template= --single-branch --depth 1 #{self.git}"
+        system("git clone --template= --single-branch --depth 1 #{self.git} #{temp_name}")
       end
       path.join(temp_name)
     end
 
     def git_clone_by_tag(path, temp_name)
-      LgPodPlugin.log_blue "git clone --tag #{self.tag} #{self.git}"
-      system("git clone --depth=1 -b #{self.tag} #{self.git} #{temp_name}")
+      LgPodPlugin.log_blue "git clone --template= --single-branch --depth 1 -b #{self.tag} #{self.git}"
+      system("git clone --template= --single-branch --depth 1 -b #{self.tag} #{self.git} #{temp_name}")
       path.join(temp_name)
     end
+
     # git clone commit
     def git_clone_by_commit(path, temp_name)
       Git.init(temp_name)
