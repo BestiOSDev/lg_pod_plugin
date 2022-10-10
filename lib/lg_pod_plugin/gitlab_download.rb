@@ -129,8 +129,8 @@ module LgPodPlugin
       network_ok = LRequest.shared.net_ping.network_ok
       return [nil , nil] unless (ip && network_ok)
       if branch
-        LgPodPlugin.log_blue "git ls-remote #{git} #{branch}"
-        result = %x(timeout 5 git ls-remote #{git} #{branch})
+        LgPodPlugin.log_blue "git ls-remote --refs #{git} #{branch}"
+        result = %x(timeout 5 git ls-remote --refs #{git} #{branch})
         new_commit = result.split(" ").first if result
         return [branch, new_commit]
       elsif tag
