@@ -15,7 +15,7 @@ module LgPodPlugin
 
     def ping
       return false unless self.uri
-      result = %x(ping #{uri.host} -t 2)
+      result = %x(ping #{uri.host} -t 1)
       if result.include?("timeout")
         return false
       end
