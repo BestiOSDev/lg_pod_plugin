@@ -14,7 +14,7 @@ module LgPodPlugin
     def self.download_github_zip_file: (String download_url, String file_name) -> void
 
     # 将一个host 转成ip 地址
-    def self.git_server_ip_address: (String git) -> [String, bool]
+    # def self.git_server_ip_address: (String git) -> [String, bool]
 
     #截取git-url 拿到项目名称
     def self.get_git_project_name: (String git) -> String

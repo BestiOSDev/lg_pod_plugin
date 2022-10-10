@@ -4,6 +4,7 @@ require_relative 'l_config'
 require_relative 'l_util'
 require_relative 'request'
 require_relative 'l_cache'
+require_relative 'net-ping'
 require_relative 'gitlab_archive'
 
 module LgPodPlugin
@@ -123,10 +124,10 @@ module LgPodPlugin
 
     # 获取最新的一条 commit 信息
     def self.git_ls_remote_refs(git, branch, tag, commit)
-      ip_address, is_ok = LUtils.git_server_ip_address(git)
-      LRequest.shared.network_ok = is_ok
-      LRequest.shared.ip_address = ip_address
-      return [nil , nil] unless (ip_address && is_ok)
+      http = Ping.new(git)
+      http.network_ok = http.ping
+      LRequest.shared.net_ping = http
+      return [nil , nil] unless (http.ip && http.network_ok)
       if branch
         LgPodPlugin.log_blue "git ls-remote #{git} #{branch}"
         result = %x(timeout 5 git ls-remote #{git} #{branch})

@@ -21,17 +21,18 @@ module LgPodPlugin
     public
     def self.getConfig(git)
       return nil if git.include?("github.com") || git.include?("gitee.com") || git.include?("coding.net") || git.include?("code.aliyun.com")
-      network_ok = LRequest.shared.network_ok
-      ip_address = LRequest.shared.ip_address
-      return nil unless ip_address && network_ok
+      unless LRequest.shared.net_ping
+        http = Ping.new(git)
+        http.network_ok = http.ping
+        LRequest.shared.net_ping = http
+      end
+      ip_address = LRequest.shared.net_ping.ip
+      return nil unless ip_address && LRequest.shared.net_ping.network_ok
       if git.include?("ssh") || git.include?("git@gitlab") || git.include?("git@")
         host = "http://" + ip_address
       else
-        uri = LUtils.git_to_uri(git)
-        unless uri
-          uri = URI("https://www.baidu.com")
-        end
-        host = "#{uri.scheme}://" + ip_address
+        uri =  LRequest.shared.net_ping.uri
+        host = uri ? ("#{uri.scheme}://" + ip_address) : ("http://" + ip_address)
       end
       user_id = LUserAuthInfo.get_user_id(host)
       user_info = LSqliteDb.shared.query_user_info(user_id)

@@ -24,12 +24,9 @@ module LgPodPlugin
       host = LRequest.shared.config.host
       project = LRequest.shared.config.project
       unless host
-        uri = URI(project.web_url)
-        host = uri.scheme + "://" + uri.hostname
-        ip_address, _ = LUtils.git_server_ip_address(host)
-        return nil unless ip_address
+        http = Ping.new(project.web_url)
+        host = http.uri.scheme + "://" + http.uri.hostname
       end
-
       if self.git && self.tag
         sha = self.tag
       elsif self.git && self.branch

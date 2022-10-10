@@ -1,0 +1,8 @@
+module LgPodPlugin
+  class Ping
+    attr_accessor uri: URI
+    attr_accessor ip: String
+    attr_accessor network_ok: bool
+    def ping: -> bool
+  end
+end

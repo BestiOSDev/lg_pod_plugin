@@ -68,7 +68,7 @@ module LgPodPlugin
     def install_remote_pod(name, options = {})
       git = options[:git]
       if git
-        if LRequest.shared.ip_address && LRequest.shared.network_ok
+        if LRequest.shared.net_ping.ip && LRequest.shared.net_ping.network_ok
           LRequest.shared.downloader.pre_download_pod
         else
           LgPodPlugin.log_red "请求#{git} 超时, 下载失败!"

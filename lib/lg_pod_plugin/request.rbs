@@ -27,10 +27,8 @@ module LgPodPlugin
     attr_accessor request_params: Hash
     # 传入的请求参数
     attr_accessor checkout_options: Hash
-    # ip 地址
-    attr_accessor ip_address: String
-    # 网络是否正常
-    attr_accessor network_ok: bool
+    # 网络ip 信息
+    attr_accessor net_ping: Ping
     public
     # 获取podfile.lock文件信息
     def get_lock_info: -> Hash[String, String]
