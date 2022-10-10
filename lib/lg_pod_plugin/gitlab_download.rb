@@ -127,60 +127,29 @@ module LgPodPlugin
     def self.git_ls_remote_refs(git, branch, tag, commit)
       ip = LRequest.shared.net_ping.ip
       network_ok = LRequest.shared.net_ping.network_ok
-      return [nil , nil] unless (ip && network_ok)
+      return [nil, nil] unless (ip && network_ok)
       if branch
         LgPodPlugin.log_blue "git ls-remote --refs #{git} #{branch}"
         result = %x(timeout 5 git ls-remote --refs #{git} #{branch})
-        new_commit = result.split(" ").first if result
+        new_commit = LUtils.commit_from_ls_remote(result, branch)
         return [branch, new_commit]
       elsif tag
         LgPodPlugin.log_blue "git ls-remote --tags #{git}"
         result = %x(timeout 5 git ls-remote --tags #{git})
         return [nil, nil] if !result || result == ""
-        refs = result.split("\n")
-        return [nil , nil ] unless refs.is_a?(Array) || refs.count > 0
-        hash_map = Hash.new
-        refs.each do |e|
-          array = e.split("\t")
-          key = array.last
-          val = array.first
-          next unless key || val
-          hash_map[key] = val
-        end
-        new_commit = hash_map["refs/tags/#{tag}^{}"] ||= hash_map["refs/tags/#{tag}"]
+        new_commit = LUtils.commit_from_ls_remote(result, tag)
         return [nil, new_commit]
+      elsif commit
+        return nil, commit
       else
-        if commit
-          return nil, commit
-        else
-          LgPodPlugin.log_blue "git ls-remote --refs #{git}"
-          result = %x(timeout 5 git ls-remote --refs -q #{git})
-          return [nil, nil] if !result || result == ""
-          refs = result.split("\n")
-          return [nil , nil ] unless refs.is_a?(Array) || refs.count > 0
-          hash_map = Hash.new
-          refs.each do |e|
-            array = e.split("\t")
-            key = array.last
-            val = array.first
-            next unless key || val
-            next if key.include?("refs/tags")
-            next if key.include?("refs/merge-requests")
-            hash_map[key] = val
-          end
-          find_commit = hash_map["HEAD"] ||= ""
-          hash_map.delete("HEAD")
-          hash_map.each do |key, value|
-            sha = value
-            next if sha != find_commit
-            new_branch = key.split("refs/heads/").last
-            return [new_branch, find_commit]
-          end
-          return nil, find_commit
-        end
+        LgPodPlugin.log_blue "git ls-remote --refs #{git}"
+        result = %x(timeout 5 git ls-remote -- #{git})
+        return [nil, nil] if !result || result == ""
+        new_commit = LUtils.commit_from_ls_remote(result, "HEAD")
+        return nil, new_commit
       end
-
     end
 
   end
+
 end

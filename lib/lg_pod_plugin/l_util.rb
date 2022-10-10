@@ -67,28 +67,16 @@ module LgPodPlugin
       end
     end
 
-    # 将一个host 转成ip 地址
-    # def self.git_server_ip_address(git)
-    #   return [nil, false ] unless uri = self.git_to_uri(git)
-    #   result = %x(ping #{uri.host} -t 3)
-    #   if result.include?("timeout")
-    #     return [nil, false]
-    #   end
-    #   if result && result.include?("(") && result.include?("):")
-    #     ip_address = result.split("(").last.split(")").first
-    #     begin
-    #       if IPAddr.new ip_address
-    #         return [ip_address, true]
-    #       else
-    #         return [ip_address, false]
-    #       end
-    #     rescue
-    #       return [nil, false]
-    #     end
-    #   else
-    #     return [nil, false]
-    #   end
-    # end
+    def self.commit_from_ls_remote(output, branch_name)
+      return nil if branch_name.nil?
+      encoded_branch_name = branch_name.dup.force_encoding(Encoding::ASCII_8BIT)
+      if branch_name == "HEAD"
+        match = %r{([a-z0-9]*)\t#{Regexp.quote(encoded_branch_name)}}.match(output)
+      else
+        match = %r{([a-z0-9]*)\trefs\/(heads|tags)\/#{Regexp.quote(encoded_branch_name)}}.match(output)
+      end
+      match[1] unless match.nil?
+    end
 
     #截取git-url 拿到项目绝对名称 比如 l-base-ios
     def self.get_git_project_name(git)
