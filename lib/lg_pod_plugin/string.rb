@@ -22,7 +22,7 @@ module LgPodPlugin
       colorize(34)
     end
 
-    def pink
+    def pink_color
       colorize(35)
     end
 

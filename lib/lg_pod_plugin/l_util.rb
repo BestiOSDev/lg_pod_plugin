@@ -89,15 +89,6 @@ module LgPodPlugin
         return [nil, false]
       end
     end
-    
-    def self.ping(host)
-      ip_address = %x(ping #{host} -c 1).slice(/(\.|\d|\/)+\//).split('/')
-      if ip_address
-        return true 
-      else 
-        return false 
-      end
-    end
 
     #截取git-url 拿到项目绝对名称 比如 l-base-ios
     def self.get_git_project_name(git)

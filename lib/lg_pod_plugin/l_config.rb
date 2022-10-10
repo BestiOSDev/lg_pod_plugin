@@ -23,11 +23,6 @@ module LgPodPlugin
       return nil if git.include?("github.com") || git.include?("gitee.com") || git.include?("coding.net") || git.include?("code.aliyun.com")
       network_ok = LRequest.shared.network_ok
       ip_address = LRequest.shared.ip_address
-      unless ip_address
-        ip_address, network_ok =  LUtils.git_server_ip_address(git)
-        LRequest.shared.ip_address = ip_address
-        LRequest.shared.network_ok = network_ok
-      end
       return nil unless ip_address && network_ok
       if git.include?("ssh") || git.include?("git@gitlab") || git.include?("git@")
         host = "http://" + ip_address

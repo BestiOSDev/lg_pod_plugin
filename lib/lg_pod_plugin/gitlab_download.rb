@@ -128,12 +128,12 @@ module LgPodPlugin
       LRequest.shared.ip_address = ip_address
       return [nil , nil] unless (ip_address && is_ok)
       if branch
-        LgPodPlugin.log_yellow "git ls-remote #{git} #{branch}"
+        LgPodPlugin.log_blue "git ls-remote #{git} #{branch}"
         result = %x(timeout 5 git ls-remote #{git} #{branch})
         new_commit = result.split(" ").first if result
         return [branch, new_commit]
       elsif tag
-        LgPodPlugin.log_yellow "git ls-remote --tags #{git}"
+        LgPodPlugin.log_blue "git ls-remote --tags #{git}"
         result = %x(timeout 5 git ls-remote --tags #{git})
         return [nil, nil] if !result || result == ""
         refs = result.split("\n")
@@ -152,7 +152,7 @@ module LgPodPlugin
         if commit
           return nil, commit
         else
-          LgPodPlugin.log_yellow "git ls-remote --refs #{git}"
+          LgPodPlugin.log_blue "git ls-remote --refs #{git}"
           result = %x(timeout 5 git ls-remote --refs -q #{git})
           return [nil, nil] if !result || result == ""
           refs = result.split("\n")

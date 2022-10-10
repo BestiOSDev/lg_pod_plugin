@@ -71,12 +71,12 @@ module LgPodPlugin
         if LRequest.shared.ip_address && LRequest.shared.network_ok
           LRequest.shared.downloader.pre_download_pod
         else
-          LgPodPlugin.log_yellow "请求#{git} 超时, 下载失败!"
+          LgPodPlugin.log_red "请求#{git} 超时, 下载失败!"
         end
       else
         LRequest.shared.libs.delete(name)
         LRequest.shared.libs.delete(self.real_name)
-        LgPodPlugin.log_yellow "pod `#{name}`, 缺少必要的 [git|commit|tag|branch] 参数"
+        LgPodPlugin.log_red "pod `#{name}`, 缺少必要的 [git|commit|tag|branch] 参数"
       end
     end
 
