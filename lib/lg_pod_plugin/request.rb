@@ -102,13 +102,21 @@ module LgPodPlugin
       elsif git && branch
         if branch == lock_branch && !self.is_update
           hash_map[:branch] = branch if branch
-          hash_map[:commit] = lock_commit if lock_commit
+          if lock_commit && !lock_commit.empty?
+            hash_map[:commit] = lock_commit
+          end
           return hash_map
         else
           hash_map[:branch] = branch if branch
           _, new_commit = LGitUtil.git_ls_remote_refs(self.name ,git, branch, tag, commit)
-          if new_commit && (new_commit != lock_commit)
+          if new_commit && !new_commit.empty?
             hash_map[:commit] = new_commit
+          elsif lock_commit && !lock_commit.empty?
+            hash_map[:commit] = lock_commit
+          end
+          if !new_commit || !lock_commit || new_commit.empty? || lock_commit.empty?
+            hash_map["is_delete"] = false
+          elsif (new_commit != lock_commit)
             hash_map["is_delete"] = false
           else
             hash_map["is_delete"] = true
@@ -119,11 +127,16 @@ module LgPodPlugin
         return hash_map
       else
         _, new_commit = LGitUtil.git_ls_remote_refs(self.name ,git, branch, tag, commit)
-        if (new_commit != lock_commit)
+        if new_commit && !new_commit.empty?
           hash_map[:commit] = new_commit
+        elsif lock_commit && !lock_commit.empty?
+          hash_map[:commit] = lock_commit
+        end
+        if !new_commit || !lock_commit || new_commit.empty? || lock_commit.empty?
+          hash_map["is_delete"] = false
+        elsif (new_commit != lock_commit)
           hash_map["is_delete"] = false
         else
-          hash_map[:commit] = new_commit if new_commit
           hash_map["is_delete"] = true
         end
       end

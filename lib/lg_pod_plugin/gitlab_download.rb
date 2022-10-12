@@ -172,7 +172,7 @@ module LgPodPlugin
         if new_commit
           LSqliteDb.shared.insert_pod_refs(name, git, branch, tag, new_commit)
         end
-        return nil, new_commit
+        return [nil, new_commit]
       end
     end
 
