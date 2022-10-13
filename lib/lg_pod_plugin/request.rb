@@ -126,7 +126,7 @@ module LgPodPlugin
         hash_map[:commit] = commit if commit
         return hash_map
       else
-        _, new_commit = LGitUtil.git_ls_remote_refs(self.name ,git, branch, tag, commit)
+        _, new_commit = LGitUtil.git_ls_remote_refs(self.name ,git, nil, nil, nil)
         if new_commit && !new_commit.empty?
           hash_map[:commit] = new_commit
         elsif lock_commit && !lock_commit.empty?

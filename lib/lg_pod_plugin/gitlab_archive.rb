@@ -77,7 +77,7 @@ module LgPodPlugin
         project_path.mkdir
         FileUtils.chdir(project_path)
       end
-      branch = self.branch ||= "master"
+      branch = self.branch ||= "HEAD"
       token = LRequest.shared.config.access_token
       base_url = LRequest.shared.config.project.web_url
       project_name = LRequest.shared.config.project.path
@@ -196,7 +196,7 @@ module LgPodPlugin
     # 根据branch 下载 zip 包
     def github_download_branch_zip(path, temp_name)
       file_name = "#{temp_name}.zip"
-      branch = self.branch ||= "master"
+      branch = self.branch ||= "HEAD"
       if self.git.include?(".git")
         base_url = self.git[0...self.git.length - 4]
       else
@@ -213,12 +213,19 @@ module LgPodPlugin
       end
       # 解压文件
       result = LUtils.unzip_file(path.join(file_name).to_path, "./")
-      new_file_name = "#{project_name}-#{branch}"
-      unless result && File.exist?(new_file_name)
+      temp_zip_folder = nil
+      path.each_child do |f|
+        ftype = File::ftype(f)
+        next unless ftype == "directory"
+        next unless f.to_path.include?("#{branch}") || f.to_path.include?("#{project_name}")
+        temp_zip_folder = f
+        break
+      end
+      unless temp_zip_folder && File.exist?(temp_zip_folder)
         LgPodPlugin.log_red("正在尝试git clone #{self.git}")
         return self.git_clone_by_branch(path, temp_name)
       end
-      path.join(new_file_name)
+      temp_zip_folder
     end
 
     # 通过tag下载zip包
