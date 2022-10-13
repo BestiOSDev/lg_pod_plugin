@@ -29,7 +29,7 @@ module LgPodPlugin
         LgPodPlugin.log_blue "git clone --template= --single-branch --depth 1 -b #{self.branch} #{self.git}"
         system("git clone --template= --single-branch --depth 1 -b #{self.branch} #{self.git} #{temp_name}")
       else
-        LgPodPlugin.log_blue "git clone --template= --single-branch --depth 1 #{self.git}"
+        LgPodPlugin.log_blue "git clone --template= --single-branch --depth 1 -b HEAD #{self.git}"
         system("git clone --template= --single-branch --depth 1 #{self.git} #{temp_name}")
       end
       path.join(temp_name)
