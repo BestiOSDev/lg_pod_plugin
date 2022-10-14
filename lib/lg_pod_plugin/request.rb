@@ -92,23 +92,30 @@ module LgPodPlugin
       commit = self.checkout_options[:commit]
       branch = self.checkout_options[:branch]
 
-      lock_commit = _checkout_options[:commit] ||= ""
+      lock_tag = _external_source[:tag] ||= ""
       lock_branch = _external_source[:branch] ||= ""
+      lock_commit = _checkout_options[:commit] ||= ""
+
       hash_map = Hash.new
       hash_map[:git] = git if git
       if git && tag
         hash_map[:tag] = tag
+        if tag != lock_tag
+          hash_map["is_delete"] = false
+        else
+          hash_map["is_delete"] = true
+        end
         return hash_map
       elsif git && branch
+        hash_map[:branch] = branch
         if branch == lock_branch && !self.is_update
-          hash_map[:branch] = branch if branch
           if lock_commit && !lock_commit.empty?
             hash_map[:commit] = lock_commit
           end
+          hash_map["is_delete"] = true
           return hash_map
         else
-          hash_map[:branch] = branch if branch
-          _, new_commit = LGitUtil.git_ls_remote_refs(self.name ,git, branch, tag, commit)
+          _, new_commit = LGitUtil.git_ls_remote_refs(self.name ,git, branch, nil, nil)
           if new_commit && !new_commit.empty?
             hash_map[:commit] = new_commit
           elsif lock_commit && !lock_commit.empty?
@@ -123,7 +130,12 @@ module LgPodPlugin
           end
         end
       elsif git && commit
-        hash_map[:commit] = commit if commit
+        if commit != lock_commit
+          hash_map["is_delete"] = false
+        else
+          hash_map["is_delete"] = true
+        end
+        hash_map[:commit] = commit
         return hash_map
       else
         _, new_commit = LGitUtil.git_ls_remote_refs(self.name ,git, nil, nil, nil)
@@ -144,7 +156,6 @@ module LgPodPlugin
     end
 
     public
-
     #获取下载参数
     def get_request_params
       if self.lock_info == nil

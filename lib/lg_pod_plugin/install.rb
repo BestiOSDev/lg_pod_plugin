@@ -114,7 +114,7 @@ module LgPodPlugin
       podfile = Pod::Podfile.from_file(podfile_path)
       target = podfile.send(:current_target_definition)
       local_pods = []
-      release_pods = []
+      release_pods = Set[]
       install_hash_map = {}
       children = target.children
       children.each do |s|
@@ -133,20 +133,23 @@ module LgPodPlugin
             next unless path == nil
             install_hash_map[key] = val
           else
-            release_pods.append(key)
+            if key.include?("/")
+              key = key.split("/").first
+            end
+            release_pods.add(key) if key
           end
         }
       end
       LRequest.shared.libs = install_hash_map
-      LgPodPlugin.log_red "预下载Pod"
+      LgPodPlugin.log_green "Pre-downloading External Pod"
       install_hash_map.each do |key, val|
         Installer.new(podfile, key, val)
       end
 
-      LgPodPlugin.log_red "开始安装pod"
+      LgPodPlugin.log_green "开始安装Pod"
       #切换工作目录到当前工程下, 开始执行pod install
       FileUtils.chdir(podfile_path.dirname)
-      libs = LRequest.shared.libs.keys.empty? ? (release_pods + local_pods) : (LRequest.shared.libs.keys + local_pods)
+      libs = LRequest.shared.libs.keys.empty? ? (Array(release_pods) + local_pods) : (LRequest.shared.libs.keys + local_pods + Array(release_pods))
       # 执行pod install/ update 方法入口
       update_pod = (command == "update")
       run_pod_install(update_pod, libs, options)
