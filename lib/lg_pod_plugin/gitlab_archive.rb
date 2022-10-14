@@ -43,7 +43,9 @@ module LgPodPlugin
       end
       LUtils.download_gitlab_zip_file(download_url, token, temp_name)
       return nil unless File.exist?(temp_name)
-      return nil unless (result = LUtils.unzip_file(temp_name, "./"))
+      result = LUtils.unzip_file(temp_name, "./")
+      FileUtils.rm_rf temp_name unless result
+      return nil unless result
       temp_zip_folder = nil
       path.each_child do |f|
         ftype = File::ftype(f)
