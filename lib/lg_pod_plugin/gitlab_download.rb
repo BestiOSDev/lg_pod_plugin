@@ -23,21 +23,41 @@ module LgPodPlugin
       self.branch = options[:branch]
       self.commit = options[:commit]
     end
+    # 封装 git clone命令
+    def git_download_command(temp_name, git, branch, tag)
+      cmds = ['git']
+      cmds << "clone"
+      cmds << "#{git}"
+      cmds << "#{temp_name} "
+      cmds << "--template="
+      cmds << "--single-branch --depth 1"
+      if branch
+        cmds << "--branch"
+        cmds << branch
+      elsif tag
+        cmds << "--branch"
+        cmds << tag
+      end
+      cmds_to_s = cmds.join(" ")
+      LgPodPlugin.log_blue cmds_to_s
+      system(cmds_to_s)
+    end
 
     def git_clone_by_branch(path, temp_name)
+      download_temp_path = path.join(temp_name)
       if self.git && self.branch
-        LgPodPlugin.log_blue "git clone --template= --single-branch --depth 1 -b #{self.branch} #{self.git}"
-        system("git clone --template= --single-branch --depth 1 -b #{self.branch} #{self.git} #{temp_name}")
+        git_download_command(temp_name, self.git, self.branch, nil)
       else
-        LgPodPlugin.log_blue "git clone --template= --single-branch --depth 1 -b HEAD #{self.git}"
-        system("git clone --template= --single-branch --depth 1 #{self.git} #{temp_name}")
+        git_download_command(temp_name, self.git, nil, nil)
+        if File.exist?(temp_name)
+          system("git -C #{download_temp_path.to_path} rev-parse HEAD")
+        end
       end
-      path.join(temp_name)
+      download_temp_path
     end
 
     def git_clone_by_tag(path, temp_name)
-      LgPodPlugin.log_blue "git clone --template= --single-branch --depth 1 -b #{self.tag} #{self.git}"
-      system("git clone --template= --single-branch --depth 1 -b #{self.tag} #{self.git} #{temp_name}")
+      git_download_command(temp_name, self.git, nil, self.tag)
       path.join(temp_name)
     end
 
@@ -130,11 +150,11 @@ module LgPodPlugin
       network_ok = LRequest.shared.net_ping.network_ok
       return [nil, nil] unless (ip && network_ok)
       if branch
-        LgPodPlugin.log_blue "git ls-remote --refs #{git} #{branch}"
+        LgPodPlugin.log_blue "git ls-remote #{git} #{branch}"
         begin
-          result = %x(timeout 5 git ls-remote --refs #{git} #{branch})
+          result = %x(timeout 5 git ls-remote #{git} #{branch})
         rescue
-          result = %x(git ls-remote --refs #{git} #{branch})
+          result = %x(git ls-remote #{git} #{branch})
         end
         unless result && result != ""
           id = LPodLatestRefs.get_pod_id(name, git, branch, tag)
@@ -168,7 +188,7 @@ module LgPodPlugin
       elsif commit
         return nil, commit
       else
-        LgPodPlugin.log_blue "git ls-remote --refs #{git}"
+        LgPodPlugin.log_blue "git ls-remote #{git}"
         begin
           result = %x(timeout 5 git ls-remote -- #{git})
         rescue

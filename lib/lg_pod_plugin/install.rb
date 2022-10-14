@@ -113,6 +113,7 @@ module LgPodPlugin
       LRequest.shared.is_update = (command == "update")
       podfile = Pod::Podfile.from_file(podfile_path)
       target = podfile.send(:current_target_definition)
+      local_pods = []
       release_pods = []
       install_hash_map = {}
       children = target.children
@@ -126,8 +127,10 @@ module LgPodPlugin
           next if (key = e.keys.first) == nil
           next if (val = e[key].last) == nil
           if val.is_a?(Hash)
-            next unless val[:path] == nil
             next unless val[:podspec] == nil
+            path = val[:path]
+            local_pods.append(key) if path
+            next unless path == nil
             install_hash_map[key] = val
           else
             release_pods.append(key)
@@ -143,7 +146,7 @@ module LgPodPlugin
       LgPodPlugin.log_red "开始安装pod"
       #切换工作目录到当前工程下, 开始执行pod install
       FileUtils.chdir(podfile_path.dirname)
-      libs = LRequest.shared.libs.keys.empty? ? release_pods : LRequest.shared.libs.keys
+      libs = LRequest.shared.libs.keys.empty? ? (release_pods + local_pods) : (LRequest.shared.libs.keys + local_pods)
       # 执行pod install/ update 方法入口
       update_pod = (command == "update")
       run_pod_install(update_pod, libs, options)

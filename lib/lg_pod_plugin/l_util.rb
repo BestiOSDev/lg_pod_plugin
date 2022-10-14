@@ -75,6 +75,7 @@ module LgPodPlugin
       else
         match = %r{([a-z0-9]*)\trefs\/(heads|tags)\/#{Regexp.quote(encoded_branch_name)}}.match(output)
       end
+      # LgPodPlugin.log_green match[0] unless match.nil?
       match[1] unless match.nil?
     end
 
