@@ -40,16 +40,8 @@ module LgPodPlugin
     end
 
     def self.get_pod_id(name, git, branch, tag)
-      if git && branch
-        key = name + git + branch
-        return Digest::MD5.hexdigest(key)
-      elsif git && tag
-        key = name + git + tag
-        return Digest::MD5.hexdigest(key)
-      else
-        key = name + git
-        return Digest::MD5.hexdigest(key)
-      end
+      key = name + git
+      return Digest::MD5.hexdigest(key)
     end
 
   end

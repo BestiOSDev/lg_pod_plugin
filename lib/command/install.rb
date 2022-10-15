@@ -45,7 +45,7 @@ module LgPodPlugin
       end
 
       def run
-        LgPodPlugin.install({ :verbose => self.log, :repo_update => self.repo_update })
+        LgPodPlugin::Main.run("install",{ :verbose => self.log, :repo_update => self.repo_update })
       end
     end
   end

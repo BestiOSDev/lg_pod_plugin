@@ -32,7 +32,7 @@ module LgPodPlugin
       end
 
       def run
-        LgPodPlugin.update({ :verbose => self.log, :repo_update => self.repo_update })
+        LgPodPlugin::Main.run("update",{ :verbose => self.log, :repo_update => self.repo_update })
       end
     end
   end

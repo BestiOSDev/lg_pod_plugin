@@ -1,7 +1,6 @@
-require 'yaml'
-require 'json'
 require 'net/http'
 require 'singleton'
+require 'cocoapods-core'
 require_relative 'l_config'
 require_relative 'l_cache'
 require_relative 'net-ping'
@@ -42,18 +41,32 @@ module LgPodPlugin
 
     public
     def get_lock_info
-      lock_file = self.workspace.join("Podfile.lock")
-      if lock_file.exist?
-        begin
-          json = YAML.load_file(lock_file.to_path)
-        rescue
-          json = {}
+      lock_file_path = self.workspace.join("Podfile.lock")
+      if lock_file_path.exist?
+        lock_file = Pod::Lockfile.from_file(lock_file_path)
+        internal_data = lock_file.send(:internal_data)
+        release_pods = Hash.new
+        pods = internal_data["PODS"] ||= {}
+        pods.each do |key, val|
+          if LUtils.is_string(key)
+            pod_name = key.split(" ").first if key.include?(" ")
+            tag = key[/(?<=\().*?(?=\))/]
+            release_pods[pod_name] = tag
+          elsif key.is_a?(Hash)
+            key_name = key.keys.first
+            next unless key_name
+            pod_name = key_name.split(" ").first if key_name.include?(" ")
+            tag = key_name[/(?<=\().*?(?=\))/]
+            release_pods[pod_name] = tag
+          else
+            next
+          end
         end
-        external_source = json["EXTERNAL SOURCES"] ||= {}
-        checkout_options = json["CHECKOUT OPTIONS"] ||= {}
-        { "external_source" => external_source, "checkout_options" => checkout_options }
+        external_source = internal_data["EXTERNAL SOURCES"] ||= {}
+        checkout_options = internal_data["CHECKOUT OPTIONS"] ||= {}
+        { "external_source" => external_source, "checkout_options" => checkout_options, "release_pods" => release_pods }
       else
-        { "external_source" => {}, "checkout_options" => {} }
+        { "external_source" => {}, "checkout_options" => {}, "release_pods" => {} }
       end
     end
 
@@ -80,9 +93,11 @@ module LgPodPlugin
     public
     def get_lock_params
       begin
+        _release_pods = self.lock_info["release_pods"] ||= {}
         _external_source = self.lock_info["external_source"][self.name] ||= {}
         _checkout_options = self.lock_info["checkout_options"][self.name] ||= {}
       rescue
+        _release_pods = {}
         _external_source = {}
         _checkout_options = {}
       end
@@ -91,11 +106,9 @@ module LgPodPlugin
       tag = self.checkout_options[:tag]
       commit = self.checkout_options[:commit]
       branch = self.checkout_options[:branch]
-
-      lock_tag = _external_source[:tag] ||= ""
+      lock_tag = _external_source[:tag] ||= _release_pods[self.name]
       lock_branch = _external_source[:branch] ||= ""
       lock_commit = _checkout_options[:commit] ||= ""
-
       hash_map = Hash.new
       hash_map[:git] = git if git
       if git && tag
@@ -138,7 +151,8 @@ module LgPodPlugin
         hash_map[:commit] = commit
         return hash_map
       else
-        _, new_commit = LGitUtil.git_ls_remote_refs(self.name ,git, nil, nil, nil)
+        new_branch, new_commit = LGitUtil.git_ls_remote_refs(self.name ,git, nil, nil, nil)
+        hash_map[:branch] = new_branch if new_branch
         if new_commit && !new_commit.empty?
           hash_map[:commit] = new_commit
         elsif lock_commit && !lock_commit.empty?

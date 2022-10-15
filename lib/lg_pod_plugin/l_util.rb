@@ -71,12 +71,23 @@ module LgPodPlugin
       return nil if branch_name.nil?
       encoded_branch_name = branch_name.dup.force_encoding(Encoding::ASCII_8BIT)
       if branch_name == "HEAD"
-        match = %r{([a-z0-9]*)\t#{Regexp.quote(encoded_branch_name)}}.match(output)
+        match1 = %r{([a-z0-9]*)\t#{Regexp.quote(encoded_branch_name)}}.match(output)
+        sha = match1[1] unless match1.nil?
+        refs = output.split("\n")
+        return [sha, nil] unless refs.is_a?(Array)
+        refs.each do |element|
+          next if element.include?("HEAD") || element.include?("refs/tags")
+          next unless element.include?(sha)
+          find_branch = element.split("refs/heads/").last
+          return [sha, find_branch]
+        end
       else
         match = %r{([a-z0-9]*)\trefs\/(heads|tags)\/#{Regexp.quote(encoded_branch_name)}}.match(output)
+        sha = match[1] unless match.nil?
+        ref = match[0].split("refs/heads/").last unless match.nil?
+        return [sha, ref]
       end
-      # LgPodPlugin.log_green match[0] unless match.nil?
-      match[1] unless match.nil?
+
     end
 
     #截取git-url 拿到项目绝对名称 比如 l-base-ios
