@@ -4,7 +4,7 @@ require_relative 'l_util'
 require_relative 'install'
 require_relative 'request'
 require_relative 'release-pod'
-require_relative 'specification'
+# require_relative 'specification'
 
 module LgPodPlugin
   class Main

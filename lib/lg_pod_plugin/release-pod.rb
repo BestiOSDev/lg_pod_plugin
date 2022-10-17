@@ -2,7 +2,7 @@ require 'cocoapods'
 require 'cocoapods-core'
 require_relative 'l_util'
 require_relative 'l_cache'
-require_relative 'specification'
+# require_relative 'specification'
 
 module LgPodPlugin
   class ReleasePod

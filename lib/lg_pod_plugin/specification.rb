@@ -32,9 +32,6 @@ module  LgPodPlugin
       else
         real_name = pod_name
       end
-      if real_name == "lottie-ios"
-        pp real_name
-      end
       return if LRequest.shared.libs[real_name]
       pod_version = self.attributes_hash["version"]
       prepare_command = self.attributes_hash['prepare_command']
