@@ -29,17 +29,14 @@ module LgPodPlugin
           next if lock_checksum == checksum
         end
         pod_version = attributes_hash["version"]
-        prepare_command = attributes_hash['prepare_command']
-        next if prepare_command
         source = attributes_hash['source']
         next unless source.is_a?(Hash)
         git = source["git"]
         tag = source["tag"]
         next unless (git && tag) && (git.include?("https://github.com"))
-        requirements = { :git => git, :tag => tag, :release_pod => true, :spec => spec }
+        requirements = { :git => git, :tag => tag, :release_pod => true, :spec => spec}
         LRequest.shared.checkout_options = requirements
         next unless LCache.new(work_space).find_pod_cache(pod_name, { :git => git, :tag => tag })
-        # LRequest.shared.libs[pod_name] = requirements
         LgPodPlugin::Installer.new(podfile, pod_name, requirements)
       end
 
