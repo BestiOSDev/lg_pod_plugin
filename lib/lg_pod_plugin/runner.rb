@@ -52,16 +52,16 @@ module LgPodPlugin
       # 下载 release_pod
       repo_update = options[:repo_update] ||= false
       external_pods = install_hash_map.merge!(local_pods)
-      ReleasePod.install_release_pod(work_space, podfile,repo_update, false, Hash.new.merge!(external_pods))
-      LgPodPlugin.log_green "开始安装Pod"
-      #切换工作目录到当前工程下, 开始执行pod install
-      FileUtils.chdir(work_space)
-      libs = Set[]
-      libs += Array(local_pods)
-      libs += LRequest.shared.libs.keys
+      ReleasePod.install_release_pod(work_space, podfile,repo_update, is_update, Hash.new.merge!(external_pods), local_pods)
+      # LgPodPlugin.log_green "开始安装Pod"
+      # #切换工作目录到当前工程下, 开始执行pod install
+      # FileUtils.chdir(work_space)
+      # libs = Set[]
+      # libs += Array(local_pods)
+      # libs += LRequest.shared.libs.keys
       # 执行pod install/ update 方法入口
-      update_pod = (command == "update")
-      run_pod_install(update_pod, libs, options)
+      # update_pod = (command == "update")
+      # run_pod_install(update_pod, libs, options)
     end
 
     def self.install_external_pod(work_space, podfile, install_hash_map)
