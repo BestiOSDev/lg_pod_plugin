@@ -21,7 +21,7 @@ module LgPodPlugin
       request = LCache.download_request(name, hash_map)
       destination = LCache.path_for_pod(request, {})
       cache_pod_spec = LCache.path_for_spec(request, {})
-      if File.exist?(destination) && File.exist?(cache_pod_spec)
+      if (File.exist?(destination) && File.exist?(cache_pod_spec))
         false
       else
         true

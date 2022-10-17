@@ -101,7 +101,7 @@ module LgPodPlugin
           result = %x(git ls-remote #{git} #{branch})
         end
         unless result && result != ""
-          id = LPodLatestRefs.get_pod_id(name, git, branch, tag)
+          id = LPodLatestRefs.get_pod_id(name, git)
           pod_info = LSqliteDb.shared.query_pod_refs(id)
           new_commit = pod_info.commit if pod_info
           return [branch, new_commit]
@@ -119,7 +119,7 @@ module LgPodPlugin
           result = %x(git ls-remote --tags #{git})
         end
         unless result && result != ""
-          id = LPodLatestRefs.get_pod_id(name, git, branch, tag)
+          id = LPodLatestRefs.get_pod_id(name, git)
           pod_info = LSqliteDb.shared.query_pod_refs(id)
           new_commit = pod_info.commit if pod_info
           new_branch = pod_info.branch if pod_info
@@ -140,7 +140,7 @@ module LgPodPlugin
           result = %x(git ls-remote -- #{git})
         end
         unless result && result != ""
-          id = LPodLatestRefs.get_pod_id(name, git, branch, tag)
+          id = LPodLatestRefs.get_pod_id(name, git)
           pod_info = LSqliteDb.shared.query_pod_refs(id)
           new_commit = pod_info.commit if pod_info
           new_branch = pod_info.branch if pod_info

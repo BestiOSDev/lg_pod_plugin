@@ -4,11 +4,13 @@ require_relative 'l_util'
 require_relative 'install'
 require_relative 'request'
 require_relative 'release-pod'
+require_relative 'specification'
 
 module LgPodPlugin
   class Main
 
     public
+
     def self.run(command, options = {})
       is_update = (command == "update")
       work_space = Pathname(Dir.pwd)
@@ -21,8 +23,8 @@ module LgPodPlugin
       LRequest.shared.is_update = is_update
       podfile = Pod::Podfile.from_file(podfile_path)
       target = podfile.send(:current_target_definition)
-      local_pods = Set[]
-      release_pods = Set[]
+      local_pods = Hash.new
+      release_pods = Hash.new
       install_hash_map = {}
       children = target.children
       children.each do |s|
@@ -31,35 +33,27 @@ module LgPodPlugin
         dependencies = internal_hash["dependencies"]
         next unless dependencies.is_a?(Array)
         dependencies.each { |e|
-          release_pods.add(e) if LUtils.is_string(e)
           next unless e.is_a?(Hash)
           next if (key = e.keys.first) == nil
-          next if (val = e[key].last) == nil
-          if key.include?("/")
-            key = key.split("/").first
-          end
-          if val.is_a?(Hash)
-            next unless val[:podspec] == nil
-            path = val[:path]
-            local_pods.add(key) if path
-            next unless path == nil
-            install_hash_map[key] = val
+          pod_name = key
+          val = e[key].last
+          pod_name = key.split("/").first if key.include?("/")
+          next unless val.is_a?(Hash)
+          next unless val[:podspec] == nil
+          if path = val[:path]
+            local_pods[pod_name] = val
           else
-            release_pods.add(key) if key
+            install_hash_map[pod_name] = val
           end
         }
       end
-      #下载 External pods
-      LRequest.shared.libs = Hash.new.merge!(install_hash_map)
-      LgPodPlugin.log_green "Pre-downloading External Pods" unless install_hash_map.empty?
-      install_hash_map.each do |key, val|
-        LgPodPlugin::Installer.new(podfile, key, val)
-      end
+      # 安装开发版本pod
+      self.install_external_pod(work_space, podfile, Hash.new.merge!(install_hash_map))
       # 下载 release_pod
       repo_update = options[:repo_update] ||= false
-      ReleasePod.install_release_pod(work_space, podfile, is_update, repo_update, install_hash_map) unless release_pods.empty?
+      external_pods = install_hash_map.merge!(local_pods)
+      ReleasePod.install_release_pod(work_space, podfile,repo_update, false, Hash.new.merge!(external_pods))
       LgPodPlugin.log_green "开始安装Pod"
-
       #切换工作目录到当前工程下, 开始执行pod install
       FileUtils.chdir(work_space)
       libs = Set[]
@@ -68,6 +62,31 @@ module LgPodPlugin
       # 执行pod install/ update 方法入口
       update_pod = (command == "update")
       run_pod_install(update_pod, libs, options)
+    end
+
+    def self.install_external_pod(work_space, podfile, install_hash_map)
+      #下载 External pods
+      LRequest.shared.libs = Hash.new.merge!(install_hash_map)
+      LgPodPlugin.log_green "Pre-downloading External Pods" unless install_hash_map.empty?
+      install_hash_map.each do |key, val|
+        git = val[:git]
+        tag = val[:tag]
+        commit = val[:commit]
+        if git && tag
+          LRequest.shared.checkout_options = { :git => git, :tag => tag, :spec => nil, :release_pod => false }
+          unless LCache.new(work_space).find_pod_cache(key, { :git => git, :tag => tag })
+            LRequest.shared.libs.delete(key)
+            next
+          end
+        elsif git && commit
+          LRequest.shared.checkout_options = { :git => git, :commit => commit, :spec => nil, :release_pod => false }
+          unless LCache.new(work_space).find_pod_cache(key, { :git => git, :commit => commit })
+            LRequest.shared.libs.delete(key)
+            next
+          end
+        end
+        LgPodPlugin::Installer.new(podfile, key, val)
+      end
     end
 
     public

@@ -768,31 +768,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="sqlite3 (vbundled(1.5.2)) [path][gem]" type="rubylib">
-        <properties>
-          <option name="version" value="4" />
-        </properties>
-        <CLASSES>
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/sqlite3-1.5.2-x86_64-darwin/ext" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/sqlite3-1.5.2-x86_64-darwin/faq" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/sqlite3-1.5.2-x86_64-darwin/lib" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/sqlite3-1.5.2-x86_64-darwin/test" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/sqlite3-1.5.2-x86_64-darwin/ext" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/sqlite3-1.5.2-x86_64-darwin/faq" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/sqlite3-1.5.2-x86_64-darwin/lib" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/sqlite3-1.5.2-x86_64-darwin/test" />
-        </SOURCES>
-        <excluded>
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/sqlite3-1.5.2-x86_64-darwin/ext" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/sqlite3-1.5.2-x86_64-darwin/faq" />
-          <root url="file://$USER_HOME$/.bundle/vendor/ruby/2.7.0/gems/sqlite3-1.5.2-x86_64-darwin/test" />
-        </excluded>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
       <library name="typhoeus (vbundled(1.4.0)) [path][gem]" type="rubylib">
         <properties>
           <option name="version" value="4" />

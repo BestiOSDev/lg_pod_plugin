@@ -39,7 +39,7 @@ module LgPodPlugin
       self.commit = commit
     end
 
-    def self.get_pod_id(name, git, branch, tag)
+    def self.get_pod_id(name, git)
       key = name + git
       return Digest::MD5.hexdigest(key)
     end
@@ -194,7 +194,7 @@ module LgPodPlugin
     end
 
     def insert_pod_refs(name, git, branch, tag , commit)
-      id = LPodLatestRefs.get_pod_id(name, git, branch, tag)
+      id = LPodLatestRefs.get_pod_id(name, git)
       pod = LPodLatestRefs.new(id, name, git, branch, tag, commit)
       if self.query_pod_refs(id) != nil
         self.db.execute_batch(
