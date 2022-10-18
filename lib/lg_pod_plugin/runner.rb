@@ -46,7 +46,7 @@ module LgPodPlugin
         }
       end
       # 安装开发版本pod
-      external_pods = Hash.new.merge!(install_hash_map.merge!(local_pods))
+      external_pods = Hash.new.merge!(install_hash_map).merge(local_pods)
       self.install_external_pod(work_space, podfile, install_hash_map)
       # 下载 release_pod
       repo_update = options[:repo_update] ||= false
@@ -79,26 +79,26 @@ module LgPodPlugin
       end
     end
 
-    public
+    # public
     # 执行pod install/update命令
-    def self.run_pod_install(update, libs, options = {})
-      verbose = options[:verbose]
-      repo_update = options[:repo_update]
-      if update
-        if libs.empty?
-          LgPodPlugin.log_red "no external pod update, you can use `pod update` to update --all pods"
-          system("bundle exec arch -x86_64 pod update #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""} ")
-        else
-          pod_names = Array(libs).join(" ")
-          LgPodPlugin.log_green Array(libs).join("\n")
-          LgPodPlugin.log_green "bundle exec arch -x86_64 pod update #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""} "
-          system("bundle exec arch -x86_64 pod update #{pod_names} #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""} ")
-        end
-      else
-        LgPodPlugin.log_green "bundle exec arch -x86_64 pod install #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""}"
-        system("bundle exec arch -x86_64 pod install #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""}")
-      end
-    end
+    # def self.run_pod_install(update, libs, options = {})
+    #   verbose = options[:verbose]
+    #   repo_update = options[:repo_update]
+    #   if update
+    #     if libs.empty?
+    #       LgPodPlugin.log_red "no external pod update, you can use `pod update` to update --all pods"
+    #       system("bundle exec arch -x86_64 pod update #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""} ")
+    #     else
+    #       pod_names = Array(libs).join(" ")
+    #       LgPodPlugin.log_green Array(libs).join("\n")
+    #       LgPodPlugin.log_green "bundle exec arch -x86_64 pod update #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""} "
+    #       system("bundle exec arch -x86_64 pod update #{pod_names} #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""} ")
+    #     end
+    #   else
+    #     LgPodPlugin.log_green "bundle exec arch -x86_64 pod install #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""}"
+    #     system("bundle exec arch -x86_64 pod install #{repo_update ? "--repo-update" : "--no-repo-update"} #{verbose ? "--verbose" : ""}")
+    #   end
+    # end
 
   end
 end
