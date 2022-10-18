@@ -124,26 +124,28 @@ module LgPodPlugin
         return hash_map
       elsif git && branch
         hash_map[:branch] = branch
-        if branch == lock_branch && !self.is_update
-          if lock_commit && !lock_commit.empty?
+        if lock_commit && !lock_commit.empty? && !self.is_update
+          pod_info = LSqliteDb.shared.query_branch_with_sha(self.name, git, lock_commit)
+          lock_branch = pod_info[:branch] if lock_branch.empty?
+          new_commit = pod_info[:sha] ||= ""
+          if lock_branch == branch && new_commit == lock_commit
             hash_map[:commit] = lock_commit
-          end
-          hash_map["is_delete"] = true
-          return hash_map
-        else
-          _, new_commit = LGitUtil.git_ls_remote_refs(self.name ,git, branch, nil, nil)
-          if new_commit && !new_commit.empty?
-            hash_map[:commit] = new_commit
-          elsif lock_commit && !lock_commit.empty?
-            hash_map[:commit] = lock_commit
-          end
-          if !new_commit || !lock_commit || new_commit.empty? || lock_commit.empty?
-            hash_map["is_delete"] = false
-          elsif (new_commit != lock_commit)
-            hash_map["is_delete"] = false
-          else
             hash_map["is_delete"] = true
+            return hash_map
           end
+        end
+        _, new_commit = LGitUtil.git_ls_remote_refs(self.name ,git, branch, nil, nil)
+        if new_commit && !new_commit.empty?
+          hash_map[:commit] = new_commit
+        elsif lock_commit && !lock_commit.empty?
+          hash_map[:commit] = lock_commit
+        end
+        if !new_commit || !lock_commit || new_commit.empty? || lock_commit.empty?
+          hash_map["is_delete"] = false
+        elsif (new_commit != lock_commit)
+          hash_map["is_delete"] = false
+        else
+          hash_map["is_delete"] = true
         end
       elsif git && commit
         if commit != lock_commit

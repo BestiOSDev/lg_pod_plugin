@@ -75,6 +75,7 @@ module LgPodPlugin
     K_USER_TABLE = "user_tab"
     K_USER_PROJECTS = "user_projects"
     K_POD_LATEST_REFS = "user_pod_latest_refs"
+    K_POD_SHA_BRANCH = "user_pod_sha_with_branch"
 
     def self.shared
       return LSqliteDb.instance
@@ -127,7 +128,15 @@ module LgPodPlugin
         );"
       self.db.execute(sql3)
 
-      super
+      #添加项目表
+      sql4 = "create table if not exists #{K_POD_SHA_BRANCH}(
+        id varchar(100) primary key not null,
+        name varchar(100),
+        git varchar(100),
+	      branch varchar(100),
+        sha varchar(100)
+        );"
+      self.db.execute(sql4)
     end
 
     public
@@ -146,6 +155,7 @@ module LgPodPlugin
     end
 
     public
+
     def query_user_info(user_id)
       user_info = nil
       self.db.execute("select * from #{K_USER_TABLE} where id = '#{user_id}';") do |row|
@@ -165,7 +175,7 @@ module LgPodPlugin
     def insert_project(project)
       if self.query_project_info(project.name, project.http_url_to_repo) != nil
         self.db.execute_batch(
-          "UPDATE #{K_USER_PROJECTS} SET name = (:name), desc = (:desc), path = (:path), ssh_url_to_repo = (:ssh_url_to_repo), http_url_to_repo = (:http_url_to_repo), web_url = (:web_url), name_with_namespace = (:name_with_namespace), path_with_namespace = (:path_with_namespace) where (id = :id)", { "name" => project.name, "desc" => project.description, "path" => project.path, "ssh_url_to_repo" => project.ssh_url_to_repo, :http_url_to_repo => project.http_url_to_repo, :web_url => project.web_url, :id => project.id , :path_with_namespace => project.path_with_namespace, :name_with_namespace => project.name_with_namespace}
+          "UPDATE #{K_USER_PROJECTS} SET name = (:name), desc = (:desc), path = (:path), ssh_url_to_repo = (:ssh_url_to_repo), http_url_to_repo = (:http_url_to_repo), web_url = (:web_url), name_with_namespace = (:name_with_namespace), path_with_namespace = (:path_with_namespace) where (id = :id)", { "name" => project.name, "desc" => project.description, "path" => project.path, "ssh_url_to_repo" => project.ssh_url_to_repo, :http_url_to_repo => project.http_url_to_repo, :web_url => project.web_url, :id => project.id, :path_with_namespace => project.path_with_namespace, :name_with_namespace => project.name_with_namespace }
         )
       else
         self.db.execute("INSERT INTO #{K_USER_PROJECTS} (id, name, desc, path, ssh_url_to_repo, http_url_to_repo, web_url,name_with_namespace, path_with_namespace)
@@ -186,25 +196,25 @@ module LgPodPlugin
         web_url = row[6]
         description = row[2]
         ssh_url_to_repo = row[4]
-        http_url_to_repo =  row[5]
+        http_url_to_repo = row[5]
         project_info = ProjectModel.new(id, name, description, path, ssh_url_to_repo, http_url_to_repo, web_url, name_with_namespace, path_with_namespace)
         return project_info
       end
       return project_info
     end
 
-    def insert_pod_refs(name, git, branch, tag , commit)
+    def insert_pod_refs(name, git, branch, tag, commit)
       id = LPodLatestRefs.get_pod_id(name, git)
       pod = LPodLatestRefs.new(id, name, git, branch, tag, commit)
       if self.query_pod_refs(id) != nil
         self.db.execute_batch(
-          "UPDATE #{K_POD_LATEST_REFS} SET name = (:name), git = (:git), branch = (:branch), tag = (:tag), sha = (:sha) where (id = :id)", { "name" => pod.name, "git" => pod.git, "sha" => pod.commit, "branch" => pod.branch, :tag => pod.tag, :id => pod.id}
+          "UPDATE #{K_POD_LATEST_REFS} SET name = (:name), git = (:git), branch = (:branch), tag = (:tag), sha = (:sha) where (id = :id)", { "name" => pod.name, "git" => pod.git, "sha" => pod.commit, "branch" => pod.branch, :tag => pod.tag, :id => pod.id }
         )
       else
         self.db.execute("INSERT INTO #{K_POD_LATEST_REFS} (id, name, git, branch, tag, sha)
             VALUES (?, ?, ?, ?, ?, ?)", [pod.id, pod.name, pod.git, pod.branch, pod.tag, pod.commit])
       end
-
+      self.insert_pod_sha_with_branch(id, name, git, commit, branch)
     end
 
     def query_pod_refs(id)
@@ -219,6 +229,38 @@ module LgPodPlugin
         pod_info = LPodLatestRefs.new(id, name, git, branch, tag, commit)
       end
       return pod_info
+    end
+
+    # 保存 sha, branch 到数据库
+    def insert_pod_sha_with_branch(id, name, git, sha, branch)
+      return unless name && git && sha
+      if self.query_branch_with_sha(id, name, git, sha)[:sha] != nil
+        self.db.execute_batch(
+          "UPDATE #{K_POD_SHA_BRANCH} SET name = (:name), git = (:git), branch = (:branch), sha = (:sha) where (id = :id)", { "name" => name, "git" => git, "branch" => branch, :id => id, :sha => sha }
+        )
+      else
+        self.db.execute("INSERT INTO #{K_POD_SHA_BRANCH} (id, name, git, branch, sha)
+            VALUES (?, ?, ?, ?, ?)", [id, name, git, branch, sha])
+      end
+    end
+
+    # 通过 sha 查询对应 branch
+    def query_branch_with_sha(id = nil, name, git, sha)
+      hash_map = Hash.new
+      id = LPodLatestRefs.get_pod_id(name, git) unless id
+      self.db.execute("select * from #{K_POD_SHA_BRANCH} where id = '#{id}' and name = '#{name}' and git = '#{git}' ;") do |row|
+        new_id = row[0]
+        new_sha = row[4]
+        new_git = row[2]
+        new_name = row[1]
+        new_branch = row[3]
+        hash_map[:id] = new_id
+        hash_map[:git] = new_git
+        hash_map[:sha] = new_sha
+        hash_map[:name] = new_name
+        hash_map[:branch] = new_branch
+      end
+      return hash_map
     end
 
   end

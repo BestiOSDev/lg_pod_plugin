@@ -46,17 +46,17 @@ module LgPodPlugin
         }
       end
       # 安装开发版本pod
-      self.install_external_pod(work_space, podfile, Hash.new.merge!(install_hash_map))
+      external_pods = Hash.new.merge!(install_hash_map.merge!(local_pods))
+      self.install_external_pod(work_space, podfile, install_hash_map)
       # 下载 release_pod
       repo_update = options[:repo_update] ||= false
-      external_pods = install_hash_map.merge!(local_pods)
       ReleasePod.install_release_pod(work_space, podfile,repo_update, is_update, Hash.new.merge!(external_pods), local_pods)
       LRequest.shared.destroy_all
     end
 
     def self.install_external_pod(work_space, podfile, install_hash_map)
       #下载 External pods
-      LRequest.shared.libs = Hash.new.merge!(install_hash_map)
+      LRequest.shared.libs = install_hash_map
       LgPodPlugin.log_green "Pre-downloading External Pods" unless install_hash_map.empty?
       install_hash_map.each do |key, val|
         git = val[:git]

@@ -40,7 +40,6 @@ module LgPodPlugin
         GitLabAPI.request_gitlab_access_token(host, username, password)
         return nil unless user_info = LSqliteDb.shared.query_user_info(user_id)
       end
-
       time = Time.now.to_i
       # 判断 token 是否失效
       if user_info.expires_in <= time

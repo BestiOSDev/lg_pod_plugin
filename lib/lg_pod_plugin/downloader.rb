@@ -44,14 +44,22 @@ module LgPodPlugin
         LgPodPlugin.log_green "find the new commit of `#{name}`, Git downloading now."
         # 本地 git 下载 pod 目录
         LRequest.shared.git_util.pre_download_git_repository
+        hash_map = LRequest.shared.libs[self.name]
+        hash_map.delete(:branch) if hash_map
+        commit = LRequest.shared.request_params[:commit]
+        hash_map[:commit] = commit if commit
       else
         is_delete = LRequest.shared.request_params["is_delete"] ||= false
+        LgPodPlugin.log_green "find the cache of `#{name}`, you can use it now."
+        hash_map = LRequest.shared.libs[self.name]
+        hash_map.delete(:branch) if hash_map
+        commit = LRequest.shared.request_params[:commit]
+        hash_map[:commit] = commit if commit
         if self.real_name == self.name
           LRequest.shared.libs.delete(self.name) if is_delete
         else
           LRequest.shared.libs.delete(self.real_name) if is_delete
         end
-        LgPodPlugin.log_green "find the cache of `#{name}`, you can use it now."
       end
 
     end
