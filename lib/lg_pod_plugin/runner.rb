@@ -10,7 +10,6 @@ module LgPodPlugin
   class Main
 
     public
-
     def self.run(command, options = {})
       is_update = (command == "update")
       work_space = Pathname(Dir.pwd)
