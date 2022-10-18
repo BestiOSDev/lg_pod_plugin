@@ -22,6 +22,10 @@ module LgPodPlugin
     def pre_download_pod
       if self.branch
         LgPodPlugin.log_green "Using `#{name}` (#{branch})"
+      elsif self.tag
+        LgPodPlugin.log_green "Using `#{name}` (#{self.tag})"
+      elsif self.commit
+        LgPodPlugin.log_green "Using `#{name}` (#{self.commit})"
       else
         LgPodPlugin.log_green "Using `#{name}`"
       end

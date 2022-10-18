@@ -21,7 +21,7 @@ module LgPodPlugin
       request = LCache.download_request(name, hash_map)
       destination = LCache.path_for_pod(request, {})
       cache_pod_spec = LCache.path_for_spec(request, {})
-      if File.exist?(destination) && File.exist?(cache_pod_spec)
+      if (File.exist?(destination) && File.exist?(cache_pod_spec))
         false
       else
         true
@@ -34,7 +34,9 @@ module LgPodPlugin
     end
 
     def self.download_request(name, params)
-      Pod::Downloader::Request.new(spec: nil, released: false, name: name, params: params)
+      spec = LRequest.shared.checkout_options[:spec] ||= nil
+      released_pod = LRequest.shared.checkout_options[:release_pod] ||= false
+      Pod::Downloader::Request.new(spec: spec, released: released_pod, name: name, params: params)
     end
 
     def self.path_for_pod(request, slug_opts = {})
@@ -142,27 +144,21 @@ module LgPodPlugin
 
     # 拷贝 pod 缓存文件到 sandbox
     def self.cache_pod(name, target, options = {})
-      hash_map = Hash.new.deep_merge(options).reject do |key, val|
+      checkout_options = Hash.new.deep_merge(options).reject do |key, val|
         !key || !val
       end
-      request = LCache.download_request(name, hash_map)
+      request = LCache.download_request(name, checkout_options)
       result, pods_pecs = get_local_spec(request, target)
-      result.location = nil
-      result.checkout_options = hash_map
       pods_pecs.each do |s_name, s_spec|
-        destination = path_for_pod(request, :name => name, :params => hash_map)
+        destination = path_for_pod(request, :name => name, :params => checkout_options)
         unless File.exist?(destination)
           LgPodPlugin.log_green "Copying #{name} from `#{target}` to `#{destination}` "
           copy_and_clean(target, destination, s_spec)
         end
-        cache_pod_spec = path_for_spec(request, :name => name, :params => result.checkout_options)
+        cache_pod_spec = path_for_spec(request, :name => name, :params => checkout_options)
         unless File.exist?(cache_pod_spec)
           write_spec(s_spec, cache_pod_spec)
         end
-        if request.name == s_name
-          result.location = destination
-        end
-
       end
 
     end

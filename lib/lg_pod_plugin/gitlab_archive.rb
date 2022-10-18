@@ -43,7 +43,9 @@ module LgPodPlugin
       end
       LUtils.download_gitlab_zip_file(download_url, token, temp_name)
       return nil unless File.exist?(temp_name)
-      return nil unless (result = LUtils.unzip_file(temp_name, "./"))
+      result = LUtils.unzip_file(temp_name, "./")
+      FileUtils.rm_rf temp_name unless result
+      return nil unless result
       temp_zip_folder = nil
       path.each_child do |f|
         ftype = File::ftype(f)
@@ -202,9 +204,13 @@ module LgPodPlugin
       else
         base_url = self.git
       end
-      origin_url = base_url + "/archive/#{branch}.zip"
       project_name = base_url.split("/").last if base_url
-      download_url = "https://gh.api.99988866.xyz/#{origin_url}"
+      url_path = base_url.split("https://github.com/").last
+      if branch == "HEAD"
+        download_url = "https://gh.api.99988866.xyz/" + "#{base_url}" + "/archive/#{branch}.zip"
+      else
+        download_url = "https://codeload.github.com/#{url_path}/zip/refs/heads/#{branch}"
+      end
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
       LUtils.download_github_zip_file(download_url, file_name)
       unless File.exist?(file_name)
@@ -236,9 +242,9 @@ module LgPodPlugin
       else
         base_url = self.git
       end
+      uri = URI(base_url)
       project_name = base_url.split("/").last if base_url
-      origin_url = base_url + "/archive/refs/tags/#{self.tag}.zip"
-      download_url = "https://gh.api.99988866.xyz/#{origin_url}"
+      download_url = "https://codeload.github.com#{uri.path}/zip/refs/tags/#{self.tag}"
       # 下载文件
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
       LUtils.download_github_zip_file(download_url, file_name)
@@ -248,17 +254,20 @@ module LgPodPlugin
       end
       # 解压文件
       result = LUtils.unzip_file(path.join(file_name).to_path, "./")
-      if self.tag.include?("v") && self.tag[0...1] == "v"
-        this_tag = self.tag[1...self.tag.length]
-      else
-        this_tag = self.tag
+      temp_zip_folder = nil
+      path.each_child do |f|
+        ftype = File::ftype(f)
+        next unless ftype == "directory"
+        version = self.tag.split("v").last ||= self.tag
+        next unless f.to_path.include?("#{project_name}") || f.to_path.include?(version)
+        temp_zip_folder = f
+        break
       end
-      new_file_name = "#{project_name}-#{this_tag}"
-      unless result && File.exist?(new_file_name)
+      unless temp_zip_folder && File.exist?(temp_zip_folder)
         LgPodPlugin.log_red("正在尝试git clone #{self.git}")
         return self.git_clone_by_tag(path, temp_name)
       end
-      path.join(new_file_name)
+      temp_zip_folder
     end
 
     # 通过 commit 下载zip包
@@ -269,9 +278,9 @@ module LgPodPlugin
       else
         base_url = self.git
       end
+      uri = URI(base_url)
       project_name = base_url.split("/").last if base_url
-      origin_url = base_url + "/archive/#{self.commit}.zip"
-      download_url = "https://gh.api.99988866.xyz/#{origin_url}"
+      download_url = "https://codeload.github.com#{uri.path}/zip/#{self.commit}"
       # 下载文件
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
       LUtils.download_github_zip_file(download_url, file_name)
@@ -287,6 +296,55 @@ module LgPodPlugin
         return self.git_clone_by_commit(path, temp_name)
       end
       path.join(new_file_name)
+    end
+
+    def git_clone_by_branch(path, temp_name)
+      download_temp_path = path.join(temp_name)
+      if self.git && self.branch
+        git_download_command(temp_name, self.git, self.branch, nil)
+      else
+        git_download_command(temp_name, self.git, nil, nil)
+        if File.exist?(temp_name)
+          system("git -C #{download_temp_path.to_path} rev-parse HEAD")
+        end
+      end
+      download_temp_path
+    end
+
+    def git_clone_by_tag(path, temp_name)
+      git_download_command(temp_name, self.git, nil, self.tag)
+      path.join(temp_name)
+    end
+
+    # git clone commit
+    def git_clone_by_commit(path, temp_name)
+      Git.init(temp_name)
+      FileUtils.chdir(temp_name)
+      LgPodPlugin.log_blue "git clone #{self.git}"
+      system("git remote add origin #{self.git}")
+      system("git fetch origin #{self.commit}")
+      system("git reset --hard FETCH_HEAD")
+      path.join(temp_name)
+    end
+
+    # 封装 git clone命令
+    def git_download_command(temp_name, git, branch, tag)
+      cmds = ['git']
+      cmds << "clone"
+      cmds << "#{git}"
+      cmds << "#{temp_name} "
+      cmds << "--template="
+      cmds << "--single-branch --depth 1"
+      if branch
+        cmds << "--branch"
+        cmds << branch
+      elsif tag
+        cmds << "--branch"
+        cmds << tag
+      end
+      cmds_to_s = cmds.join(" ")
+      LgPodPlugin.log_blue cmds_to_s
+      system(cmds_to_s)
     end
 
   end

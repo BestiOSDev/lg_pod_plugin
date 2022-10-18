@@ -38,7 +38,7 @@ module LgPodPlugin
         user_id = LUserAuthInfo.get_user_id(host)
         user_model = LUserAuthInfo.new(user_id, username, password, host, access_token, refresh_token, (created_at + expires_in))
         LSqliteDb.shared.insert_user_info(user_model)
-        GitLabAPI.get_user_projects(access_token, host, 1)
+        # GitLabAPI.get_user_projects(access_token, host, 1)
         LgPodPlugin.log_green "请求成功: `access_token` => #{access_token}, expires_in => #{expires_in}"
       rescue => exception
         LgPodPlugin.log_red "获取 `access_token` 失败, error => #{exception.to_s}"
@@ -46,39 +46,35 @@ module LgPodPlugin
     end
 
     #获取用户所有项目
-    def self.get_user_projects(access_token, host, page)
-      begin
-        hash_map = Hash.new
-        hash_map["page"] = page
-        hash_map["per_page"] = 100
-        hash_map["access_token"] = access_token
-        uri = URI("#{host}/api/v4/projects")
-        uri.query = URI.encode_www_form(hash_map)
-        res = Net::HTTP.get_response(uri)
-        array = JSON.parse(res.body) if res.body
-        unless array.is_a?(Array)
-          return
-        end
-        # pp array
-        array.each do |json|
-          id = json["id"]
-          name = json["name"]
-          path = json["path"]
-          web_url = json["web_url"]
-          description = json["description"]
-          ssh_url_to_repo = json["ssh_url_to_repo"]
-          http_url_to_repo = json["http_url_to_repo"]
-          path_with_namespace = json["path_with_namespace"] ||= ""
-          name_with_namespace = (json["name_with_namespace"] ||= "").gsub(/[ ]/, '')
-          project = ProjectModel.new(id, name, description, path, ssh_url_to_repo, http_url_to_repo, web_url, name_with_namespace, path_with_namespace)
-          LSqliteDb.shared.insert_project(project)
-        end
-        if array.count >= 100
-          GitLabAPI.get_user_projects(access_token, host, page + 1)
-        end
-
-      end
-    end
+    # def self.get_user_projects(access_token, host, page)
+    #   begin
+    #     hash_map = Hash.new
+    #     hash_map["page"] = page
+    #     hash_map["per_page"] = 20
+    #     hash_map["access_token"] = access_token
+    #     uri = URI("#{host}/api/v4/projects")
+    #     uri.query = URI.encode_www_form(hash_map)
+    #     res = Net::HTTP.get_response(uri)
+    #     array = JSON.parse(res.body) if res.body
+    #     unless array.is_a?(Array)
+    #       return
+    #     end
+    #     # pp array
+    #     array.each do |json|
+    #       id = json["id"]
+    #       name = json["name"]
+    #       path = json["path"]
+    #       web_url = json["web_url"]
+    #       description = json["description"]
+    #       ssh_url_to_repo = json["ssh_url_to_repo"]
+    #       http_url_to_repo = json["http_url_to_repo"]
+    #       path_with_namespace = json["path_with_namespace"] ||= ""
+    #       name_with_namespace = (json["name_with_namespace"] ||= "").gsub(/[ ]/, '')
+    #       project = ProjectModel.new(id, name, description, path, ssh_url_to_repo, http_url_to_repo, web_url, name_with_namespace, path_with_namespace)
+    #       LSqliteDb.shared.insert_project(project)
+    #     end
+    #   end
+    # end
 
     # 刷新gitlab_token
     def self.refresh_gitlab_access_token(host, refresh_token)

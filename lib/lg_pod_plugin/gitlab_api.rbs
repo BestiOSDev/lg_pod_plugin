@@ -9,7 +9,7 @@ module LgPodPlugin
     def self.request_gitlab_access_token: (String host, String username, String password) -> void
 
     #获取用户所有项目
-    def self.get_user_projects: (String access_token, String host, String  page) -> void
+    # def self.get_user_projects: (String access_token, String host, String  page) -> void
 
     # 刷新gitlab_token
     def self.refresh_gitlab_access_token: (String host, String refresh_token) -> void
