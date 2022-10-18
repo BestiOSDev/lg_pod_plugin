@@ -41,7 +41,8 @@ module LgPodPlugin
     def get_request_params: -> Hash[String, String]
     # 单例对象
     def self.shared: -> LRequest
-
+    # 销毁资源
+    def destroy_all: -> void
   end
 
 end

@@ -216,6 +216,23 @@ module LgPodPlugin
       return LRequest.instance
     end
 
+    def destroy_all
+      self.name = nil
+      self.token = nil
+      self.cache = nil
+      self.config = nil
+      self.is_update = false
+      self.workspace = nil
+      self.single_git = false
+      self.git_util = nil
+      self.libs = nil
+      self.lock_info = nil
+      self.downloader = nil
+      self.net_ping = nil
+      self.request_params = nil
+      self.checkout_options = nil
+    end
+
   end
 
 end
