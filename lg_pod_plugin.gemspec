@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.email = ["1060545231@qq.com"]
   spec.summary = %q{封装了自定义podfile 中pod 方法}
   spec.description = %q{拦截pod_install 方法, 并设置 pod 方法参数列表}
-  spec.homepage = "https://gitee.com/fmdb_beantech_admin/lg_pod_plugin"
+  spec.homepage = "https://github.com/BestiOSDev/lg_pod_plugin"
   spec.license = "MIT"
   spec.required_ruby_version = Gem::Requirement.new(">= 2.3.0")
 
