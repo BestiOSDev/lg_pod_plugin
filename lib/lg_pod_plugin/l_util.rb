@@ -7,8 +7,13 @@ require_relative 'l_config'
 module LgPodPlugin
   class LUtils
 
+    def self.md5(text)
+      return "" unless text
+      return Digest::MD5.hexdigest(text)
+    end
+
     #判断对象是不是 String
-    def self.is_string(obj)
+    def self.is_a_string?(obj)
       if "#{obj.class}" == "String"
         return true 
       else 
@@ -60,7 +65,8 @@ module LgPodPlugin
         uri = URI(git)
       rescue
         if git.include?("git@") && git.include?(":")
-          uri = URI("http://" + git[4...git.length].split(":").first)
+          match = %r{(?<=git@).*?(?=:)}.match(git)
+          uri = URI("http://" + match[0]) unless match.nil?
         else
           return nil
         end
@@ -92,7 +98,9 @@ module LgPodPlugin
 
     #截取git-url 拿到项目绝对名称 比如 l-base-ios
     def self.get_git_project_name(git)
-      self.get_gitlab_base_url(git).split("/").last
+      base_url = self.get_gitlab_base_url(git)
+      match = %r{[^/]+$}.match(base_url)
+      return match[0] unless match.nil?
     end
 
     # 是否能够使用 gitlab 下载 zip 文件
@@ -109,7 +117,8 @@ module LgPodPlugin
     # 截取 url
     def self.get_gitlab_base_url(git)
       if git.include?(".git")
-        base_url = git.split(".git").first
+        math = /(.*(?=.git))/.match(git)
+        return math[0] unless math.nil?
       else
         base_url = git
       end
@@ -139,6 +148,12 @@ module LgPodPlugin
 
     def self.url_encode(url)
       url.to_s.b.gsub(/[^a-zA-Z0-9_\-.~]/n) { |m| sprintf('%%%02X', m.unpack1('C')) }
+    end
+
+    def self.pod_real_name(name)
+      math = %r{(.*(?=/))}.match(name)
+      return name unless math
+      return math[0]
     end
 
   end

@@ -10,6 +10,6 @@ module LgPodPlugin
     # ip 地址
     attr_accessor ip_address: String
     public
-    def self.getConfig: (String git) -> LConfig
+    def self.get_config: (String git) -> LConfig
   end
 end

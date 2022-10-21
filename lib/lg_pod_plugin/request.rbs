@@ -3,35 +3,50 @@ module LgPodPlugin
   class LRequest
     # pod name
     attr_accessor name: String
+
     # 当前token
     attr_accessor token: String
+
     # 缓存
     attr_accessor cache: LCache
+
     # 配置
     attr_accessor config: LConfig
+
     # 是否更新
     attr_accessor is_update: bool
+
     # 工作目录
     attr_accessor workspace: String
+
     # 是否是还有 git 地址参数
     attr_accessor single_git: String
+
     # git 工具类
     attr_accessor git_util: LGitUtil
+
     # 需要更新的 pod 集合
     attr_accessor libs: Hash
+
     # 下载类
     attr_accessor downloader: LDownloader
-    # lock_info
-    attr_accessor lock_info: Hash
+
     # 实际下载请求参数
     attr_accessor request_params: Hash
+
     # 传入的请求参数
     attr_accessor checkout_options: Hash
+
     # 网络ip 信息
     attr_accessor net_ping: Ping
+
+    # lock_file文件
+    attr_accessor lockfile: LgPodPlugin::LockfileModel
+
     public
     # 获取podfile.lock文件信息
-    def get_lock_info: -> Hash[String, String]
+    def get_lockfile: -> Lockfile?
+
     # 获取 pod 参数信息
     def get_cache_key_params: -> Hash[String, String]
 
@@ -39,8 +54,10 @@ module LgPodPlugin
 
     #获取下载参数
     def get_request_params: -> Hash[String, String]
+
     # 单例对象
     def self.shared: -> LRequest
+
     # 销毁资源
     def destroy_all: -> void
   end

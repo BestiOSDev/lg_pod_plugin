@@ -6,7 +6,6 @@ source "https://gems.ruby-china.com"
 gemspec
 
 gem 'git', '~> 1.12.0'
-# gem 'rubyzip', '~> 2.3', '>= 2.3.2'
 gem "rake", "~> 13.0"
 gem "rspec", "~> 3.0"
 

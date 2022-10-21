@@ -21,7 +21,7 @@ module LgPodPlugin
       request = LCache.download_request(name, hash_map)
       destination = LCache.path_for_pod(request, {})
       cache_pod_spec = LCache.path_for_spec(request, {})
-      if (File.exist?(destination) && File.exist?(cache_pod_spec))
+      if File.exist?(destination) && File.exist?(cache_pod_spec)
         false
       else
         true
@@ -148,8 +148,8 @@ module LgPodPlugin
         !key || !val
       end
       request = LCache.download_request(name, checkout_options)
-      result, pods_pecs = get_local_spec(request, target)
-      pods_pecs.each do |s_name, s_spec|
+      _, pods_pecs = get_local_spec(request, target)
+      pods_pecs.each do |_, s_spec|
         destination = path_for_pod(request, :name => name, :params => checkout_options)
         unless File.exist?(destination)
           LgPodPlugin.log_green "Copying #{name} from `#{target}` to `#{destination}` "

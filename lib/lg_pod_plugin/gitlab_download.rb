@@ -39,7 +39,7 @@ module LgPodPlugin
             return git_archive.git_clone_by_tag(path, temp_name)
           end
         rescue
-          return git_archive.git_clone_by_tag(path, temp_name)
+           git_archive.git_clone_by_tag(path, temp_name)
         end
       elsif self.git && self.branch
         begin
@@ -81,7 +81,7 @@ module LgPodPlugin
       lg_pod_path.mkdir(0700) unless lg_pod_path.exist?
       get_temp_folder = git_clone_repository(lg_pod_path)
       #下载 git 仓库失败
-      return nil unless (get_temp_folder && get_temp_folder.exist?)
+      return nil unless get_temp_folder.exist?
       LgPodPlugin::LCache.cache_pod(self.name, get_temp_folder, { :git => self.git }) if LRequest.shared.single_git
       LgPodPlugin::LCache.cache_pod(self.name, get_temp_folder, LRequest.shared.get_cache_key_params)
       FileUtils.chdir(LFileManager.download_director)
@@ -103,10 +103,10 @@ module LgPodPlugin
         unless result && result != ""
           id = LPodLatestRefs.get_pod_id(name, git)
           pod_info = LSqliteDb.shared.query_pod_refs(id)
-          new_commit = pod_info.commit if pod_info
+          new_commit = pod_info ? pod_info.commit : nil
           return [branch, new_commit]
         end
-        new_commit, new_branch = LUtils.commit_from_ls_remote(result, branch)
+        new_commit, _ = LUtils.commit_from_ls_remote(result, branch)
         if new_commit
           LSqliteDb.shared.insert_pod_refs(name, git, branch, tag, new_commit)
         end
@@ -121,8 +121,8 @@ module LgPodPlugin
         unless result && result != ""
           id = LPodLatestRefs.get_pod_id(name, git)
           pod_info = LSqliteDb.shared.query_pod_refs(id)
-          new_commit = pod_info.commit if pod_info
-          new_branch = pod_info.branch if pod_info
+          new_commit = pod_info ? pod_info.commit : nil
+          new_branch = pod_info ? pod_info.branch : nil
           return [new_branch, new_commit]
         end
         new_commit, new_branch = LUtils.commit_from_ls_remote(result, tag)
@@ -142,8 +142,8 @@ module LgPodPlugin
         unless result && result != ""
           id = LPodLatestRefs.get_pod_id(name, git)
           pod_info = LSqliteDb.shared.query_pod_refs(id)
-          new_commit = pod_info.commit if pod_info
-          new_branch = pod_info.branch if pod_info
+          new_commit = pod_info ? pod_info.commit : nil
+          new_branch = pod_info ? pod_info.branch : nil
           return [new_branch, new_commit]
         end
         new_commit, new_branch = LUtils.commit_from_ls_remote(result, "HEAD")

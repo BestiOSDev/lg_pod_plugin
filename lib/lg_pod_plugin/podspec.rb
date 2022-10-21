@@ -67,7 +67,7 @@ module LgPodPlugin
     def parse_public_source_filse(source_files)
       return [] unless source_files
       array = []
-      if LUtils.is_string(source_files)
+      if LUtils.is_a_string?(source_files)
         if source_files.include?("/")
           array.append(source_files.split("/").first)
         else
@@ -75,7 +75,7 @@ module LgPodPlugin
         end
       elsif source_files.is_a?(Array)
         source_files.each do |element|
-          next unless LUtils.is_string(element)
+          next unless LUtils.is_a_string?(element)
           if element.include?("/")
             array.append(element.split("/").first)
           else
@@ -84,7 +84,7 @@ module LgPodPlugin
         end
       elsif source_files.is_a?(Hash)
         source_files.each do |key,val|
-          if LUtils.is_string(val)
+          if LUtils.is_a_string?(val)
             if val.include?("/")
               array.append(val.split("/").first)
             else
@@ -92,7 +92,7 @@ module LgPodPlugin
             end
           elsif val.is_a?(Array)
             val.each do |element|
-              next unless LUtils.is_string(element)
+              next unless LUtils.is_a_string?(element)
               if element.include?("/")
                 array.append(element.split("/").first)
               else

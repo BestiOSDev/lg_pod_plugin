@@ -171,6 +171,12 @@ module LgPodPlugin
       user_info
     end
 
+    #删除用户信息
+    def delete_user_info(id)
+      ps = @db.prepare("DELETE FROM #{K_USER_TABLE} WHERE id = :n")
+      ps.execute('n' => id)
+    end
+
     # 保存项目信息到数据库
     def insert_project(project)
       if self.query_project_info(project.name, project.http_url_to_repo) != nil
@@ -184,7 +190,7 @@ module LgPodPlugin
     end
 
     # 通过名称查询项目信息
-    def query_project_info(name, git = nil)
+    def query_project_info(name, git)
       project_info = nil
       self.db.execute("select * from #{K_USER_PROJECTS} where name = '#{name}' or path = '#{name}' ;") do |row|
         name_with_namespace = row[7]
@@ -200,7 +206,7 @@ module LgPodPlugin
         project_info = ProjectModel.new(id, name, description, path, ssh_url_to_repo, http_url_to_repo, web_url, name_with_namespace, path_with_namespace)
         return project_info
       end
-      return project_info
+      project_info
     end
 
     def insert_pod_refs(name, git, branch, tag, commit)
@@ -214,7 +220,7 @@ module LgPodPlugin
         self.db.execute("INSERT INTO #{K_POD_LATEST_REFS} (id, name, git, branch, tag, sha)
             VALUES (?, ?, ?, ?, ?, ?)", [pod.id, pod.name, pod.git, pod.branch, pod.tag, pod.commit])
       end
-      self.insert_pod_sha_with_branch(id, name, git, commit, branch)
+      self.insert_pod_sha_with_branch(name, git, commit, branch)
     end
 
     def query_pod_refs(id)
@@ -228,13 +234,14 @@ module LgPodPlugin
         commit = row[5]
         pod_info = LPodLatestRefs.new(id, name, git, branch, tag, commit)
       end
-      return pod_info
+      pod_info
     end
 
     # 保存 sha, branch 到数据库
-    def insert_pod_sha_with_branch(id, name, git, sha, branch)
+    def insert_pod_sha_with_branch(name, git, sha, branch)
       return unless name && git && sha
-      if self.query_branch_with_sha(id, name, git, sha)[:sha] != nil
+      id = Digest::MD5.hexdigest(name + git + sha)
+      if self.query_branch_with_sha(name, git, sha)[:sha] != nil
         self.db.execute_batch(
           "UPDATE #{K_POD_SHA_BRANCH} SET name = (:name), git = (:git), branch = (:branch), sha = (:sha) where (id = :id)", { "name" => name, "git" => git, "branch" => branch, :id => id, :sha => sha }
         )
@@ -247,7 +254,7 @@ module LgPodPlugin
     # 通过 sha 查询对应 branch
     def query_branch_with_sha(id = nil, name, git, sha)
       hash_map = Hash.new
-      id = LPodLatestRefs.get_pod_id(name, git) unless id
+      id = Digest::MD5.hexdigest(name + git + sha) unless id
       self.db.execute("select * from #{K_POD_SHA_BRANCH} where id = '#{id}' and name = '#{name}' and git = '#{git}' ;") do |row|
         new_id = row[0]
         new_sha = row[4]
@@ -260,7 +267,7 @@ module LgPodPlugin
         hash_map[:name] = new_name
         hash_map[:branch] = new_branch
       end
-      return hash_map
+      hash_map
     end
 
   end

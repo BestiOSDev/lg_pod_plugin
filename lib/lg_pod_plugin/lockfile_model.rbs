@@ -1,0 +1,84 @@
+module LgPodPlugin
+
+  class LockfileModel
+    attr_accessor release_pods: Hash
+    attr_accessor checkout_options_data: [Hash]
+    attr_accessor external_sources_data: [Hash]
+
+    def self.from_file: (Pathname path) -> void
+
+    def checkout_options_for_pod_named: (String name) -> Hash
+
+    #-------------------------------------------------------------------------#
+
+    # !@group Accessing the Data
+
+    public
+
+    # @return [Array<String>] the names of the installed Pods.
+    #
+    def pod_names: -> [String]
+
+    # @return [Array<Dependency>] the dependencies of the Podfile used for the
+    #         last installation.
+    #
+    # @note   It includes only the dependencies explicitly required in the
+    #         podfile and not those triggered by the Resolver.
+    def dependencies: -> [Dependency]
+
+    # Returns pod names grouped by the spec repo they were sourced from.
+    #
+    # @return [Hash<String, Array<String>>] A hash, where the keys are spec
+    #         repo source URLs (or names), and the values are arrays of pod names.
+    #
+    # @note   It does not include pods that come from "external sources".
+    #
+    def pods_by_spec_repo: -> [String[String]]
+
+    # Generates a dependency that requires the exact version of the Pod with the
+    # given name.
+    #
+    # @param  [String] name
+    #         the name of the Pod
+    #
+    # @note   The generated dependencies used are by the Resolver from
+    #         upgrading a Pod during an installation.
+    #
+    # @raise  If there is no version stored for the given name.
+    #
+    # @return [Array<Dependency>] the generated dependency.
+    #
+    def dependencies_to_lock_pod_named: (String name) -> [Dependency]
+
+    # @return [Hash{String => Version}] a Hash containing the name of the root
+    #         specification of the installed Pods as the keys and their
+    #         corresponding {Version} as the values.
+    #
+    def pod_versions: -> [Hash]
+
+    # @return [Hash{String => Version}] A Hash containing the checksums of the
+    #         specification by the name of their root.
+    #
+    def checksum_data: -> [Hash]
+
+    # @return [Hash{String => String}] A hash containing the spec repo used for the specification
+    #         by the name of the root spec.
+    #
+    def spec_repos_by_pod: -> [Hash]
+
+    #-------------------------------------------------------------------------#
+
+    # !@group Serialization
+
+    public
+
+    # Writes the Lockfile to the given path.
+    #
+    # @param  [Pathname] path
+    #         the path where the lockfile should be saved.
+    #
+    # @return [void]
+    #
+    def write_to_disk: (Pathname path) -> void
+  end
+end

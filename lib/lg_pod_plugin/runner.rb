@@ -56,7 +56,7 @@ module LgPodPlugin
 
     def self.install_external_pod(work_space, podfile, install_hash_map)
       #下载 External pods
-      LRequest.shared.libs = install_hash_map
+      LRequest.shared.libs = Hash.new.merge!(install_hash_map)
       LgPodPlugin.log_green "Pre-downloading External Pods" unless install_hash_map.empty?
       install_hash_map.each do |key, val|
         git = val[:git]

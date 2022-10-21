@@ -3,6 +3,7 @@ require 'claide'
 require 'cocoapods-downloader'
 require "lg_pod_plugin/version"
 require_relative 'lg_pod_plugin/log'
+require_relative 'lg_pod_plugin/l_config'
 require_relative 'lg_pod_plugin/runner'
 require_relative 'lg_pod_plugin/install'
 require_relative 'lg_pod_plugin/request'

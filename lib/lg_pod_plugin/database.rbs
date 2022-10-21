@@ -16,7 +16,7 @@ module LgPodPlugin
     def insert_user_info: (LUserAuthInfo user) -> void
 
     public
-    def query_user_info: (String user_id) -> LUserAuthInfo
+    def query_user_info: (String user_id) -> LUserAuthInfo?
 
     public
     # 保存项目信息到数据库
@@ -24,7 +24,7 @@ module LgPodPlugin
 
     public
     # 通过名称查询项目信息
-    def query_project_info: (String name, String git) -> ProjectModel
+    def query_project_info: (String name, String git) -> ProjectModel?
 
   end
 

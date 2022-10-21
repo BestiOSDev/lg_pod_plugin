@@ -1,8 +1,10 @@
 module LgPodPlugin
   class LUtils
+    # 字符串md5加密
+    def self.md5:(String text) -> void
 
     #判断对象是不是 String
-    def self.is_string: (obj) -> bool
+    def self.is_a_string?: (obj) -> bool
 
     # 解压文件
     def self.unzip_file: (String zip_file, String dest_dir) -> bool
