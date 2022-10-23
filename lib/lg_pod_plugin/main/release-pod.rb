@@ -7,6 +7,11 @@ module LgPodPlugin
 
   class ReleasePod
 
+    def self.check_release_pod_exist(work_space, pod_name, git, tag, spec, requirements)
+      LRequest.shared.checkout_options = requirements
+      return !(LCache.new(work_space).find_pod_cache(pod_name, { :git => git, :tag => tag }))
+    end
+
     def self.resolve_dependencies(work_space, podfile, lockfile, installer, external_pods)
       installer.resolve_dependencies
       analysis_result = installer.send(:analysis_result)
@@ -21,22 +26,23 @@ module LgPodPlugin
         attributes_hash = spec.send(:attributes_hash)
         next unless attributes_hash.is_a?(Hash)
         pod_name = attributes_hash["name"]
-        checksum = spec.send(:checksum)
-        if lockfile && checksum
-          internal_data = lockfile.send(:internal_data)
-          lock_checksums = internal_data["SPEC CHECKSUMS"] ||= {}
-          lock_checksum = lock_checksums[pod_name]
-          next if lock_checksum == checksum
-        end
         pod_version = attributes_hash["version"]
         source = attributes_hash['source']
         next unless source.is_a?(Hash)
         git = source["git"]
         tag = source["tag"]
         next unless (git && tag) && (git.include?("https://github.com"))
-        requirements = { :git => git, :tag => tag, :release_pod => true, :spec => spec}
-        LRequest.shared.checkout_options = requirements
-        next unless LCache.new(work_space).find_pod_cache(pod_name, { :git => git, :tag => tag })
+        checksum = spec.send(:checksum)
+        requirements = { :git => git, :tag => tag, :release_pod => true, :spec => spec }
+        pod_exist = check_release_pod_exist(work_space, pod_name, git, tag, spec, requirements)
+        if lockfile && checksum
+          internal_data = lockfile.send(:internal_data)
+          lock_checksums = internal_data["SPEC CHECKSUMS"] ||= {}
+          lock_checksum = lock_checksums[pod_name]
+          next if (lock_checksum == checksum) && (pod_exist)
+        else
+          next if pod_exist
+        end
         LgPodPlugin::Installer.new(podfile, pod_name, requirements)
       end
 
@@ -72,8 +78,8 @@ module LgPodPlugin
         if external_pods.empty?
           installer.update = true
         else
-          pods =  LRequest.shared.libs.merge!(local_pods)
-          installer.update = { :pods => pods.keys}
+          pods = LRequest.shared.libs.merge!(local_pods)
+          installer.update = { :pods => pods.keys }
         end
       else
         installer.update = false
