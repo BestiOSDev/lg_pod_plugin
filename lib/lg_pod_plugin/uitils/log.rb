@@ -1,5 +1,4 @@
 
-require_relative 'string'
 require 'cocoapods/user_interface'
 
 module LgPodPlugin

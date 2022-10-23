@@ -1,15 +1,13 @@
 require 'uri'
 require 'resolv'
 require "ipaddr"
-require_relative 'l_uri'
-require_relative 'l_util'
 
 module LgPodPlugin
 
   class Ping
-    attr_accessor :uri
     attr_accessor :ip
     attr_accessor :network_ok
+    attr_accessor :uri
     def initialize(url)
       uri = LURI.new(url)
       if uri.host

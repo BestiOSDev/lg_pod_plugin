@@ -2,11 +2,6 @@ require 'json'
 require 'uri'
 require 'io/console'
 
-require_relative 'l_uri'
-require_relative 'request'
-require_relative 'database'
-require_relative 'gitlab_api'
-
 module LgPodPlugin
 
   class LConfig
@@ -27,8 +22,7 @@ module LgPodPlugin
     end
 
     public
-    def self.get_config(git)
-      uri = LRequest.shared.net_ping.uri
+    def self.get_config(git, uri)
       return nil unless uri.host
       return nil unless self.is_gitlab_uri(git, uri.hostname)
       user_id = LUserAuthInfo.get_user_id(uri.hostname)

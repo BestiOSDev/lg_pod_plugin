@@ -1,8 +1,5 @@
 require 'json'
 require 'net/http'
-require_relative 'database'
-require_relative 'file_path'
-
 module LgPodPlugin
 
   class GitLabAPI

@@ -1,6 +1,5 @@
 require "sqlite3"
 require 'singleton'
-require_relative 'l_cache'
 
 module LgPodPlugin
 

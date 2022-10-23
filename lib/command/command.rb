@@ -6,7 +6,6 @@ module LgPodPlugin
     require_relative 'update'
     require_relative 'init'
     require_relative 'install'
-    require_relative '../lg_pod_plugin/gitlab_api.rb'
     self.command = 'lg'
     self.version = VERSION
     self.abstract_command = true

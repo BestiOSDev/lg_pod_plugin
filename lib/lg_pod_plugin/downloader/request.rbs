@@ -20,7 +20,7 @@ module LgPodPlugin
     attr_accessor workspace: String
 
     # 是否是还有 git 地址参数
-    attr_accessor single_git: String
+    attr_accessor single_git: bool
 
     # git 工具类
     attr_accessor git_util: LGitUtil
@@ -45,7 +45,7 @@ module LgPodPlugin
 
     public
     # 获取podfile.lock文件信息
-    def get_lockfile: -> Lockfile?
+    def get_lockfile: -> LockfileModel?
 
     # 获取 pod 参数信息
     def get_cache_key_params: -> Hash[String, String]

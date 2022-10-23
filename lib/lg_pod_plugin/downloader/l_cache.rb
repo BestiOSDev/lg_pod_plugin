@@ -7,18 +7,14 @@ require 'cocoapods/downloader/request'
 module LgPodPlugin
 
   class LCache
-    REQUIRED_ATTRS ||= %i[workspace cache_root].freeze
-    attr_accessor(*REQUIRED_ATTRS)
 
-    def initialize(workspace)
-      self.workspace = workspace
-      self.cache_root = LFileManager.cache_workspace(self.workspace)
+    def initialize()
     end
 
     #判断缓存是否存在且有效命中缓存
-    def find_pod_cache(name, options)
+    def find_pod_cache(name, options, spec = nil, released_pod = false)
       hash_map = Hash.new.merge!(options)
-      request = LCache.download_request(name, hash_map)
+      request = LCache.download_request(name, hash_map, spec, released_pod)
       destination = LCache.path_for_pod(request, {})
       cache_pod_spec = LCache.path_for_spec(request, {})
       return !(File.exist?(destination) && File.exist?(cache_pod_spec))
@@ -29,9 +25,7 @@ module LgPodPlugin
       Pathname(path)
     end
 
-    def self.download_request(name, params)
-      spec = LRequest.shared.checkout_options[:spec] ||= nil
-      released_pod = LRequest.shared.checkout_options[:release_pod] ||= false
+    def self.download_request(name, params, spec = nil, released_pod = false)
       Pod::Downloader::Request.new(spec: spec, released: released_pod, name: name, params: params)
     end
 
@@ -139,11 +133,11 @@ module LgPodPlugin
     end
 
     # 拷贝 pod 缓存文件到 sandbox
-    def self.cache_pod(name, target, options = {})
+    def self.cache_pod(name, target, options = {}, spec = nil , released_pod = false)
       checkout_options = Hash.new.deep_merge(options).reject do |key, val|
         !key || !val
       end
-      request = LCache.download_request(name, checkout_options)
+      request = LCache.download_request(name, checkout_options, spec, released_pod)
       _, pods_pecs = get_local_spec(request, target)
       pods_pecs.each do |_, s_spec|
         destination = path_for_pod(request, :name => name, :params => checkout_options)

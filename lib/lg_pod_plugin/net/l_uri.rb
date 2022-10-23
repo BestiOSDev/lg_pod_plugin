@@ -1,8 +1,5 @@
 require 'uri'
 require 'resolv'
-require_relative 'log'
-require_relative 'l_util'
-require_relative 'net-ping'
 
 module LgPodPlugin
 

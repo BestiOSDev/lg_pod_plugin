@@ -1,28 +1,23 @@
 require 'uri'
-require_relative 'request'
-require_relative 'l_util'
-require_relative 'l_config'
-require_relative 'podspec'
-require_relative 'gitlab_api'
-
 module LgPodPlugin
 
   class GitLabArchive
-    REQUIRED_ATTRS ||= %i[git tag name commit branch].freeze
+    REQUIRED_ATTRS ||= %i[git tag name commit branch config].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
-    def initialize(name, git, branch, tag, commit)
-      self.git = git ||= LRequest.shared.request_params[:git]
-      self.tag = tag ||= LRequest.shared.request_params[:tag]
-      self.name = name ||= LRequest.shared.request_params[:name]
-      self.commit = commit ||= LRequest.shared.request_params[:commit]
-      self.branch = branch ||= LRequest.shared.request_params[:branch]
+    def initialize(name, git, branch, tag, commit, config)
+      self.git = git
+      self.tag = tag
+      self.name = name
+      self.config = config
+      self.commit = commit
+      self.branch = branch
     end
 
     # 下载某个文件zip格式
     def gitlab_download_file_by_name(path, filename, temp_name, project_name)
-      host = LRequest.shared.config.host
-      project = LRequest.shared.config.project
+      host = self.config.host
+      project = self.config.project
       unless host
         http = Ping.new(project.web_url)
         host = http.uri.scheme + "://" + http.uri.hostname
@@ -34,7 +29,7 @@ module LgPodPlugin
       elsif self.git && self.commit
         sha = self.commit
       end
-      token = LRequest.shared.config.access_token
+      token = self.config.access_token
       begin
         encode_fiename = LUtils.url_encode(filename)
         download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.zip#{"\\?"}" + "path#{"\\="}#{encode_fiename}#{"\\&"}sha#{"\\="}#{sha}"
@@ -80,12 +75,12 @@ module LgPodPlugin
         FileUtils.chdir(project_path)
       end
       branch = self.branch ||= "HEAD"
-      token = LRequest.shared.config.access_token
-      base_url = LRequest.shared.config.project.web_url
-      project_name = LRequest.shared.config.project.path
+      token = self.config.access_token
+      base_url = self.config.project.web_url
+      project_name = self.config.project.path
       podspec_name = self.name + ".podspec"
       LgPodPlugin.log_blue "开始下载 => #{base_url}"
-      self.gitlab_download_file_by_name(project_path, podspec_name,"#{podspec_name}.zip", project_name)
+      self.gitlab_download_file_by_name(project_path, podspec_name, "#{podspec_name}.zip", project_name)
       podspec_path = project_path.join(podspec_name)
       return nil unless File.exist?(podspec_path)
       begin
@@ -96,7 +91,7 @@ module LgPodPlugin
       unless !need_download_files.empty?
         FileUtils.chdir(root_path)
         file_name = "#{temp_name}.zip"
-        download_url = LUtils.get_gitlab_download_url(base_url, branch, nil, nil, project_name)
+        download_url = get_gitlab_download_url(base_url, branch, nil, nil, project_name)
         raise "download_url不存在" unless download_url
         # LgPodPlugin.log_blue "开始下载 => #{download_url}"
         LUtils.download_gitlab_zip_file(download_url, token, file_name)
@@ -109,7 +104,7 @@ module LgPodPlugin
       end
       need_download_files.each do |file|
         next if project_path.join(file).exist?
-        self.gitlab_download_file_by_name(project_path, file,"#{file}.zip", project_name)
+        self.gitlab_download_file_by_name(project_path, file, "#{file}.zip", project_name)
       end
       return project_path
     end
@@ -121,12 +116,12 @@ module LgPodPlugin
         project_path.mkdir
         FileUtils.chdir(project_path)
       end
-      token = LRequest.shared.config.access_token
-      base_url = LRequest.shared.config.project.web_url
-      project_name = LRequest.shared.config.project.path
+      token = self.config.access_token
+      base_url = self.config.project.web_url
+      project_name = self.config.project.path
       podspec_name = self.name + ".podspec"
       LgPodPlugin.log_blue "开始下载 => #{base_url}"
-      self.gitlab_download_file_by_name(project_path, podspec_name,"#{podspec_name}.zip", project_name)
+      self.gitlab_download_file_by_name(project_path, podspec_name, "#{podspec_name}.zip", project_name)
       podspec_path = project_path.join(podspec_name)
       return nil unless File.exist?(podspec_path)
       begin
@@ -138,7 +133,7 @@ module LgPodPlugin
         tag = self.tag
         FileUtils.chdir(root_path)
         file_name = "#{temp_name}.zip"
-        download_url = LUtils.get_gitlab_download_url(base_url, nil, tag, nil, project_name)
+        download_url = get_gitlab_download_url(base_url, nil, tag, nil, project_name)
         raise "download_url不存在" unless download_url
         LUtils.download_gitlab_zip_file(download_url, token, file_name)
         raise "下载zip包失败, 尝试git clone #{self.git}" unless File.exist?(file_name)
@@ -149,7 +144,7 @@ module LgPodPlugin
         return root_path.join(new_file_name)
       end
       need_download_files.each do |file|
-        self.gitlab_download_file_by_name(project_path, file,"#{file}.zip", project_name)
+        self.gitlab_download_file_by_name(project_path, file, "#{file}.zip", project_name)
       end
       return project_path
     end
@@ -161,12 +156,12 @@ module LgPodPlugin
         project_path.mkdir
         FileUtils.chdir(project_path)
       end
-      token = LRequest.shared.config.access_token
-      base_url = LRequest.shared.config.project.web_url
-      project_name = LRequest.shared.config.project.path
+      token = self.config.access_token
+      base_url = self.config.project.web_url
+      project_name = self.config.project.path
       podspec_name = self.name + ".podspec"
       LgPodPlugin.log_blue "开始下载 => #{base_url}"
-      self.gitlab_download_file_by_name(project_path, podspec_name,"#{podspec_name}.zip", project_name)
+      self.gitlab_download_file_by_name(project_path, podspec_name, "#{podspec_name}.zip", project_name)
       podspec_path = project_path.join(podspec_name)
       return nil unless File.exist?(podspec_path)
       begin
@@ -177,7 +172,7 @@ module LgPodPlugin
       unless !need_download_files.empty?
         FileUtils.chdir(root_path)
         file_name = "#{temp_name}.zip"
-        download_url = LUtils.get_gitlab_download_url(base_url, nil, nil, self.commit, project_name)
+        download_url = get_gitlab_download_url(base_url, nil, nil, self.commit, project_name)
         raise "download_url不存在" unless download_url
         # LgPodPlugin.log_blue "开始下载 => #{download_url}"
         LUtils.download_gitlab_zip_file(download_url, token, file_name)
@@ -189,7 +184,7 @@ module LgPodPlugin
         return root_path.join(new_file_name)
       end
       need_download_files.each do |file|
-        self.gitlab_download_file_by_name(project_path, file,"#{file}.zip", project_name)
+        self.gitlab_download_file_by_name(project_path, file, "#{file}.zip", project_name)
       end
       return project_path
     end
@@ -346,6 +341,29 @@ module LgPodPlugin
       LgPodPlugin.log_blue cmds_to_s
       system(cmds_to_s)
     end
+
+    # 根据参数生成下载 url
+    def get_gitlab_download_url(base_url, branch, tag, commit, project_name)
+      if base_url.include?("http:") || base_url.include?("https:")
+        if branch
+          return base_url + "/-/archive/" + branch + "/#{project_name}-#{branch}.zip"
+        elsif tag
+          return base_url + "/-/archive/" + tag + "/#{project_name}-#{tag}.zip"
+        elsif commit
+          return base_url + "/-/archive/" + commit + "/#{project_name}-#{commit}.zip"
+        else
+          return nil
+        end
+      end
+      return nil unless base_url.include?("ssh://git@gitlab") || base_url.include?("git@")
+      project = self.config.project
+      if project && project.web_url && project.web_url.include?("http")
+        get_gitlab_download_url(project.web_url, branch, tag, commit, project_name)
+      else
+        return nil
+      end
+    end
+
 
   end
 

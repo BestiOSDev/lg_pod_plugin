@@ -1,6 +1,4 @@
 require 'cocoapods-core'
-require_relative 'log'
-require_relative 'l_util'
 
 module LgPodPlugin
 
@@ -13,13 +11,15 @@ module LgPodPlugin
     def initialize
     end
 
-    def self.from_file(path)
-      return nil unless path.exist?
-      begin
-        lockfile = Pod::Lockfile.from_file(path)
-      rescue => exception
-        LgPodPlugin.log_red exception
-        return nil
+    def self.from_file
+      lockfile = LProject.shared.lockfile
+      unless lockfile
+        lockfile_model = LockfileModel.new
+        lockfile_model.lockfile = nil
+        lockfile_model.release_pods = {}
+        lockfile_model.checkout_options_data = {}
+        lockfile_model.external_sources_data = {}
+        return lockfile_model
       end
       release_pods = Hash.new
       pods = lockfile.send(:generate_pod_names_and_versions)
@@ -43,7 +43,8 @@ module LgPodPlugin
     end
 
     def checkout_options_for_pod_named(name)
-      checkout_options = @lockfile.checkout_options_for_pod_named(self.name)
+      return {} unless @lockfile
+      checkout_options = @lockfile.checkout_options_for_pod_named(name)
       return checkout_options ||= {}
     end
 
