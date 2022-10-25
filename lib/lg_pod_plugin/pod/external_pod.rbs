@@ -1,0 +1,9 @@
+module LgPodPlugin
+
+  class ExternalPod
+    attr_reader name: String
+    attr_reader released_pod: bool
+    attr_reader checkout_options: Hash[Symbol, String]
+  end
+
+end

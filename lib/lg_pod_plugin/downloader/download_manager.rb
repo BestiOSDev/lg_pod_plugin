@@ -36,7 +36,7 @@ module LgPodPlugin
     end
 
     def try_lock
-      return @rw_lock.try_lock
+      @rw_lock.try_lock
     end
 
     def done

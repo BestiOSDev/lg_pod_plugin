@@ -42,6 +42,7 @@ module LgPodPlugin
     end
 
     public
+
     def get_lockfile
       self.lockfile = LgPodPlugin::LockfileModel.from_file
     end
@@ -68,6 +69,7 @@ module LgPodPlugin
     end
 
     public
+
     def get_lock_params
       begin
         _release_pods = self.lockfile.release_pods ||= []
@@ -112,7 +114,7 @@ module LgPodPlugin
             return hash_map
           end
         end
-        _, new_commit = git_ls_remote_refs(self.name ,git, branch)
+        _, new_commit = git_ls_remote_refs(self.name, git, branch)
         if new_commit && !new_commit.empty?
           hash_map[:commit] = new_commit
         elsif lock_commit && !lock_commit.empty?
@@ -120,7 +122,7 @@ module LgPodPlugin
         end
         if !new_commit || !lock_commit || new_commit.empty? || lock_commit.empty?
           hash_map["is_delete"] = false
-        elsif (new_commit != lock_commit)
+        elsif new_commit != lock_commit
           hash_map["is_delete"] = false
         else
           hash_map["is_delete"] = true
@@ -137,11 +139,23 @@ module LgPodPlugin
         if lock_git && !LProject.shared.update
           id = LPodLatestRefs.get_pod_id(self.name, git)
           pod_info = LSqliteDb.shared.query_pod_refs(id)
-          if pod_info && pod_info.commit
-            new_commit = pod_info.commit if pod_info
-            new_branch = pod_info.branch if pod_info
-            hash_map[:commit] = new_commit if new_commit
-            hash_map[:branch] = new_branch if new_branch
+          if pod_info&.commit
+            if pod_info
+              new_commit = pod_info.commit
+            else
+              new_commit = nil
+            end
+            if pod_info
+              new_branch = pod_info.branch
+            else
+              new_branch = nil
+            end
+            if new_commit
+              hash_map[:commit] = new_commit
+            end
+            if new_branch
+              hash_map[:branch] = new_branch
+            end
             hash_map["is_delete"] = true
             return hash_map
           end
@@ -161,6 +175,7 @@ module LgPodPlugin
     end
 
     public
+
     #获取下载参数
     def get_request_params
       unless self.lockfile
@@ -175,7 +190,7 @@ module LgPodPlugin
       network_ok = self.net_ping.network_ok
       return [nil, nil] unless (ip && network_ok)
       if branch
-        new_commit, new_branch = GitLabAPI.request_github_refs_heads git, branch
+        new_commit, _ = GitLabAPI.request_github_refs_heads git, branch
         unless new_commit
           id = LPodLatestRefs.get_pod_id(name, git)
           pod_info = LSqliteDb.shared.query_pod_refs(id)
@@ -185,7 +200,7 @@ module LgPodPlugin
         if new_commit
           LSqliteDb.shared.insert_pod_refs(name, git, branch, nil, new_commit)
         end
-        return [branch, new_commit]
+        [branch, new_commit]
       else
         new_commit, new_branch = GitLabAPI.request_github_refs_heads git, nil
         unless new_commit
@@ -201,7 +216,7 @@ module LgPodPlugin
         if new_commit
           LSqliteDb.shared.insert_pod_refs(name, git, new_branch, nil, new_commit)
         end
-        return [new_branch, new_commit]
+        [new_branch, new_commit]
       end
     end
 

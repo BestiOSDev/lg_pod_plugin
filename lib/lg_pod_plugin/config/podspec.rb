@@ -29,7 +29,8 @@ module LgPodPlugin
         return
       end
       subspecs.each do |sub_spec|
-        next unless sub_attributes_hash = sub_spec.send(:attributes_hash)
+        sub_attributes_hash = sub_spec.send(:attributes_hash)
+        next unless sub_attributes_hash
         next unless sub_attributes_hash.is_a?(Hash)
         sub_set = self.parse_subspec_with(sub_attributes_hash)
         next if sub_set.empty?
@@ -60,11 +61,11 @@ module LgPodPlugin
       set.merge(preserve_paths) unless preserve_paths.empty?
       module_map = self.parse_module_map(hash["module_map"])
       set.merge(module_map) unless module_map.empty?
-      return set
+      set
     end
 
     # 公共解析文件路径的方法
-    def parse_public_source_filse(source_files)
+    def parse_public_source_files(source_files)
       return [] unless source_files
       array = []
       if LUtils.is_a_string?(source_files)
@@ -83,7 +84,7 @@ module LgPodPlugin
           end
         end
       elsif source_files.is_a?(Hash)
-        source_files.each do |key,val|
+        source_files.each do |_,val|
           if LUtils.is_a_string?(val)
             if val.include?("/")
               array.append(val.split("/").first)
@@ -102,53 +103,53 @@ module LgPodPlugin
           end
         end
       end
-      return array
+       array
     end
 
-    # 解析source_fils路径
+    # 解析source_files路径
     def parse_source_files(source_files)
-      return self.parse_public_source_filse(source_files)
+       self.parse_public_source_files(source_files)
     end
 
     # 解析 resource所在路径
     def parse_resource_files(source_files)
-      return self.parse_public_source_filse(source_files)
+      self.parse_public_source_files(source_files)
     end
 
     # 解析public_header_files字段的值
     def parse_public_header_files(source_files)
-      return self.parse_public_source_filse(source_files)
+      self.parse_public_source_files(source_files)
     end
     # 解析 parse_resource_bundles
     def parse_resource_bundles(source_files)
-      return self.parse_public_source_filse(source_files)
+      self.parse_public_source_files(source_files)
     end
     # 解析 project_header_files
     def parse_project_header_files(source_files)
-      return self.parse_public_source_filse(source_files)
+      self.parse_public_source_files(source_files)
     end
 
     # 解析 private_header_files
     def parse_private_header_files(source_files)
-      return self.parse_public_source_filse(source_files)
+      self.parse_public_source_files(source_files)
     end
     # 解析 vendored_frameworks
     def parse_vendored_frameworks(source_files)
-      return self.parse_public_source_filse(source_files)
+      self.parse_public_source_files(source_files)
     end
     # 解析 parse_vendored_library
     def parse_vendored_library(source_files)
-      return self.parse_public_source_filse(source_files)
+       self.parse_public_source_files(source_files)
     end
 
     # 解析 parse_preserve_path
     def parse_preserve_path(source_files)
-      return self.parse_public_source_filse(source_files)
+      self.parse_public_source_files(source_files)
     end
 
     # 解析 module_map
     def parse_module_map(source_files)
-      return self.parse_public_source_filse(source_files)
+      self.parse_public_source_files(source_files)
     end
 
   end

@@ -2,11 +2,10 @@ module LgPodPlugin
 
   class ExternalPod
     attr_reader :spec
-    attr_reader :name
     attr_reader :target
+    attr_reader :name
     attr_reader :released_pod
     attr_reader :checkout_options
-
     def initialize(target, name, hash)
       @spec = nil
       @target = target

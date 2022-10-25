@@ -1,10 +1,12 @@
 module LgPodPlugin
+
   class LUtils
-    # 字符串md5加密
-    def self.md5:(String text) -> void
+
+    # md5加密
+    def self.md5: (String text) -> String
 
     #判断对象是不是 String
-    def self.is_a_string?: (obj) -> bool
+    def self.is_a_string?: (String obj) -> bool
 
     # 解压文件
     def self.unzip_file: (String zip_file, String dest_dir) -> bool
@@ -15,22 +17,25 @@ module LgPodPlugin
     # gitlab 下载压缩文件
     def self.download_github_zip_file: (String download_url, String file_name) -> void
 
-    # 将一个host 转成ip 地址
-    # def self.git_server_ip_address: (String git) -> [String, bool]
+    def self.git_to_uri: (String git) -> URI
 
-    #截取git-url 拿到项目名称
+    # 通过 git ls-remote获取最新 commit
+    def self.refs_from_ls_remote: (String git, String branch) -> String
+
+    # 解析git ls-remote结果
+    def self.sha_from_result: (String output, String branch_name) -> [String, String]
+
+    #截取git-url 拿到项目绝对名称 比如 l-base-ios
     def self.get_git_project_name: (String git) -> String
 
-    # 是否能够使用 gitlab 下载 zip 文件
-    def self.is_use_gitlab_archive_file: (String git) -> bool
     # 截取 url
     def self.get_gitlab_base_url: (String git) -> String
 
-    # 根据参数生成下载 url
-    def self.get_gitlab_download_url: (String base_url, String branch, String tag, String commit, String project_name) -> String
-
-    def self.git_to_uri:(String git) -> URI
+    # url 编码
     def self.url_encode: (String url) -> String
+
+    # pod主库名称
+    def self.pod_real_name: (String name) -> String
 
   end
 end

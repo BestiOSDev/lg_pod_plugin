@@ -4,7 +4,7 @@ module LgPodPlugin
 
   class GitLabAPI
 
-    def self.get_gitlab_access_token_by_input(uri, user_id, username = nil, password = nil)
+    def self.get_gitlab_access_token_input(uri, user_id, username = nil, password = nil)
       unless username && password
         LgPodPlugin.log_yellow "请输入 `#{uri.to_s}` 的用户名"
         username = STDIN.gets.chomp
@@ -27,7 +27,7 @@ module LgPodPlugin
         LgPodPlugin.log_green "开始请求 access_token, url => #{uri.to_s} "
         req = Net::HTTP::Post.new(uri)
         req.set_form_data(hash_map)
-        res = Net::HTTP.start(uri.hostname, uri.port) do |http|
+        res = Net::HTTP.start((uri.hostname ||= ""), uri.port) do |http|
           http.open_timeout = 15
           http.read_timeout = 15
           http.request(req)
@@ -95,7 +95,7 @@ module LgPodPlugin
         uri.query = URI.encode_www_form(hash_map)
         res = Net::HTTP.get_response(uri)
         array = JSON.parse(res.body) if res.body
-        return nil unless array.is_a?(Array)
+        return nil unless array && array.is_a?(Array)
         array.each do |json|
           path = json["path"] ||= ""
           path_with_namespace = json["path_with_namespace"] ||= ""
@@ -119,7 +119,7 @@ module LgPodPlugin
     # 通过github api 获取 git 最新commit
     def self.request_github_refs_heads(git, branch)
       return [nil , nil ] unless git
-      unless (git.include?("https://github.com/") || git.include?("git@github.com:"))
+      unless git.include?("https://github.com/") || git.include?("git@github.com:")
         result = LUtils.refs_from_ls_remote git, branch
         if result && result != ""
           new_commit, new_branch = LUtils.sha_from_result(result, branch)

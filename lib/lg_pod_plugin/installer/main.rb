@@ -24,7 +24,7 @@ module LgPodPlugin
       #下载 External pods
       LgPodPlugin.log_green "Pre-downloading External Pods" unless project.targets.empty?
       project.targets.each do |target|
-        target.dependencies.each do |name, pod|
+        target.dependencies.each do |_, pod|
           installer = Installer.new
           installer.install(pod)
         end
@@ -37,7 +37,6 @@ module LgPodPlugin
       podfile_path = workspace.join("Podfile.rb")
       return podfile_path if podfile_path.exist?
       raise Informative, "No `Podfile' found in the project directory."
-      return nil
     end
 
   end

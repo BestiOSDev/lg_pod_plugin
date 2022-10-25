@@ -13,11 +13,11 @@ module LgPodPlugin
       @checkout_options = hash
     end
 
-    def self.check_release_pod_exist(workspace, name, requirements, spec, released_pod)
+    def self.check_release_pod_exist(name, requirements, spec, released_pod)
       return !(LCache.new.find_pod_cache(name, requirements, spec, released_pod))
     end
 
-    def self.resolve_dependencies(workspace, podfile, lockfile, installer)
+    def self.resolve_dependencies(lockfile, installer)
       installer.resolve_dependencies
       external_pods = LProject.shared.external_pods ||= {}
       analysis_result = installer.send(:analysis_result)
@@ -32,7 +32,6 @@ module LgPodPlugin
         attributes_hash = spec.send(:attributes_hash)
         next unless attributes_hash.is_a?(Hash)
         pod_name = attributes_hash["name"]
-        pod_version = attributes_hash["version"]
         source = attributes_hash['source']
         next unless source.is_a?(Hash)
         git = source["git"]
@@ -40,7 +39,7 @@ module LgPodPlugin
         next unless (git && tag) && (git.include?("https://github.com"))
         checksum = spec.send(:checksum)
         requirements = { :git => git, :tag => tag }
-        pod_exist = check_release_pod_exist(workspace, pod_name, requirements, spec, true)
+        pod_exist = check_release_pod_exist(pod_name, requirements, spec, true)
         if lockfile && checksum
           internal_data = lockfile.send(:internal_data)
           lock_checksums = internal_data["SPEC CHECKSUMS"] ||= {}
@@ -100,14 +99,14 @@ module LgPodPlugin
       #切换工作目录到当前工程下, 开始执行pod install
       workspace = LProject.shared.workspace
       FileUtils.chdir(workspace)
-      # 安装 relase_pod
+      # 安装 release_pod
       LgPodPlugin.log_green "Pre-downloading Release Pods"
       Pod::Config.instance.verbose = verbose
       pods_path = LProject.shared.workspace.join('Pods')
       podfile = LProject.shared.podfile
       lockfile = LProject.shared.lockfile
-      sandobx = Pod::Sandbox.new(pods_path)
-      installer = Pod::Installer.new(sandobx, podfile, lockfile)
+      sandbox = Pod::Sandbox.new(pods_path)
+      installer = Pod::Installer.new(sandbox, podfile, lockfile)
       installer.repo_update = repo_update
       if update
         need_update_pods = LProject.shared.need_update_pods ||= Hash.new
@@ -125,7 +124,7 @@ module LgPodPlugin
       installer.deployment = false
       installer.clean_install = false
       installer.prepare
-      resolve_dependencies(workspace, podfile, lockfile, installer)
+      resolve_dependencies(lockfile, installer)
       dependencies(installer)
     end
 

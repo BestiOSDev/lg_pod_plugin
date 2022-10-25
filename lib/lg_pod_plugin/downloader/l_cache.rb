@@ -8,7 +8,8 @@ module LgPodPlugin
 
   class LCache
 
-    def initialize() end
+    def initialize
+    end
 
     #判断缓存是否存在且有效命中缓存
     def find_pod_cache(name, options, spec = nil, released_pod = false)
@@ -16,7 +17,7 @@ module LgPodPlugin
       request = LCache.download_request(name, hash_map, spec, released_pod)
       destination = LCache.path_for_pod(request, {})
       cache_pod_spec = LCache.path_for_spec(request, {})
-      return !(File.exist?(destination) && File.exist?(cache_pod_spec))
+      !(File.exist?(destination) && File.exist?(cache_pod_spec))
     end
 
     def self.root_path

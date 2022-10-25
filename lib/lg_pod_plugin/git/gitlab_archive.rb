@@ -31,8 +31,8 @@ module LgPodPlugin
       end
       token = self.config.access_token
       begin
-        encode_fiename = LUtils.url_encode(filename)
-        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.zip#{"\\?"}" + "path#{"\\="}#{encode_fiename}#{"\\&"}sha#{"\\="}#{sha}"
+        encode_filename = LUtils.url_encode(filename)
+        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.zip#{"\\?"}" + "path#{"\\="}#{encode_filename}#{"\\&"}sha#{"\\="}#{sha}"
       rescue => exception
         return nil
       end
@@ -360,7 +360,7 @@ module LgPodPlugin
       if project && project.web_url && project.web_url.include?("http")
         get_gitlab_download_url(project.web_url, branch, tag, commit, project_name)
       else
-        return nil
+        nil
       end
     end
 

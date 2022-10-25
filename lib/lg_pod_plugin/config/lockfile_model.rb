@@ -27,7 +27,11 @@ module LgPodPlugin
         if LUtils.is_a_string?(element) || element.is_a?(Hash)
           key = element.is_a?(Hash) ? element.keys.first : element
           next unless key
-          pod_name = LUtils.pod_real_name(key.split(" ").first) if key.include?(" ")
+          if key.include?(" ")
+            pod_name = LUtils.pod_real_name(key.split(" ").first)
+          else
+            pod_name = key
+          end
           tag = key[/(?<=\().*?(?=\))/]
           release_pods[pod_name] = tag
         else
@@ -44,8 +48,7 @@ module LgPodPlugin
 
     def checkout_options_for_pod_named(name)
       return {} unless @lockfile
-      checkout_options = @lockfile.checkout_options_for_pod_named(name)
-      return checkout_options ||= {}
+      @lockfile.checkout_options_for_pod_named(name)
     end
 
 

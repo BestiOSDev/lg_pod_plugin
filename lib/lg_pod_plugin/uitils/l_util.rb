@@ -29,7 +29,7 @@ module LgPodPlugin
           :symlinks => true
         )
         return true
-      rescue => err
+      rescue
         return false
       end
 
@@ -61,11 +61,15 @@ module LgPodPlugin
 
     def self.git_to_uri(git)
       begin
-        uri = URI(git)
+        return URI(git)
       rescue
         if git.include?("git@") && git.include?(":")
           match = %r{(?<=git@).*?(?=:)}.match(git)
-          uri = URI("http://" + match[0]) unless match.nil?
+          if match.nil?
+            return nil
+          else
+            return URI("http://" + match[0])
+          end
         else
           return nil
         end
@@ -93,7 +97,11 @@ module LgPodPlugin
       encoded_branch_name = branch_name.dup.force_encoding(Encoding::ASCII_8BIT)
       if branch_name == "HEAD"
         match1 = %r{([a-z0-9]*)\t#{Regexp.quote(encoded_branch_name)}}.match(output)
-        sha = match1[1] unless match1.nil?
+        if match1.nil?
+          sha = ""
+        else
+          sha = match1[1]
+        end
         refs = output.split("\n")
         return [sha, nil] unless refs.is_a?(Array)
         refs.each do |element|
@@ -104,9 +112,14 @@ module LgPodPlugin
         end
       else
         match = %r{([a-z0-9]*)\trefs\/(heads|tags)\/#{Regexp.quote(encoded_branch_name)}}.match(output)
-        sha = match[1] unless match.nil?
-        ref = match[0].split("refs/heads/").last unless match.nil?
-        return [sha, ref]
+        if !match.nil?
+          sha = match[1]
+          branch = match[0].split("refs/heads/").last
+        else
+          sha = nil
+          branch = nil
+        end
+        return [sha, branch]
       end
     end
 
@@ -123,7 +136,7 @@ module LgPodPlugin
         math = /(.*(?=.git))/.match(git)
         return math[0] unless math.nil?
       else
-        base_url = git
+        return git
       end
     end
 
