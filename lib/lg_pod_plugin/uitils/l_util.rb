@@ -13,9 +13,9 @@ module LgPodPlugin
     #判断对象是不是 String
     def self.is_a_string?(obj)
       if "#{obj.class}" == "String"
-        return true 
-      else 
-        return false 
+        return true
+      else
+        return false
       end
     end
 

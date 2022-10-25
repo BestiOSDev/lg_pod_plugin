@@ -169,18 +169,33 @@ module LgPodPlugin
       Hash.new.merge!(self.get_lock_params)
     end
 
+    private def commit_from_ls_remote(git, branch, tag)
+      cmds = ['git']
+      cmds << "ls-remote"
+      cmds << git
+      cmds << "--tags" if tag
+      cmds << branch if branch
+      cmds_to_s = cmds.join(" ")
+      LgPodPlugin.log_blue cmds_to_s
+      begin
+        result = %x(timeout 5 #{cmds_to_s})
+        return result
+      rescue
+        system("git config --global http.lowSpeedTime 5")
+        system "git config --global http.lowSpeedLimit 1000"
+        result = %x(#{cmds_to_s})
+        system("git config --global http.lowSpeedTime 600")
+        return result
+      end
+    end
+
     # 获取最新的一条 commit 信息
     def git_ls_remote_refs(name,git, branch, tag, commit)
       ip = self.net_ping.ip
       network_ok = self.net_ping.network_ok
       return [nil, nil] unless (ip && network_ok)
       if branch
-        LgPodPlugin.log_blue "git ls-remote #{git} #{branch}"
-        begin
-          result = %x(timeout 5 git ls-remote #{git} #{branch})
-        rescue
-          result = %x(git ls-remote #{git} #{branch})
-        end
+        result = commit_from_ls_remote git, branch, nil
         unless result && result != ""
           id = LPodLatestRefs.get_pod_id(name, git)
           pod_info = LSqliteDb.shared.query_pod_refs(id)
@@ -193,12 +208,7 @@ module LgPodPlugin
         end
         return [branch, new_commit]
       elsif tag
-        LgPodPlugin.log_blue "git ls-remote --tags #{git}"
-        begin
-          result = %x(timeout 5 git ls-remote --tags #{git})
-        rescue
-          result = %x(git ls-remote --tags #{git})
-        end
+        result = commit_from_ls_remote git, nil , tag
         unless result && result != ""
           id = LPodLatestRefs.get_pod_id(name, git)
           pod_info = LSqliteDb.shared.query_pod_refs(id)
@@ -214,12 +224,7 @@ module LgPodPlugin
       elsif commit
         return nil, commit
       else
-        LgPodPlugin.log_blue "git ls-remote #{git}"
-        begin
-          result = %x(timeout 5 git ls-remote -- #{git})
-        rescue
-          result = %x(git ls-remote -- #{git})
-        end
+        result = commit_from_ls_remote git, nil ,nil
         unless result && result != ""
           id = LPodLatestRefs.get_pod_id(name, git)
           pod_info = LSqliteDb.shared.query_pod_refs(id)

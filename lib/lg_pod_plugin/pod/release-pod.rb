@@ -67,6 +67,34 @@ module LgPodPlugin
       installer.send(:perform_post_install_actions)
     end
 
+    def self.lockfile_missing_pods(pods, lockfile)
+      lockfile_roots = lockfile.pod_names.map { |pod| Pod::Specification.root_name(pod) }
+      pods.map { |pod| Pod::Specification.root_name(pod) }.uniq - lockfile_roots
+    end
+
+    # Check if all given pods are installed
+    #
+    def self.verify_pods_are_installed!(pods, lockfile)
+      missing_pods = lockfile_missing_pods(pods, lockfile)
+
+      unless missing_pods.empty?
+        message = if missing_pods.length > 1
+                    "Pods `#{missing_pods.join('`, `')}` are not " \
+                          'installed and cannot be updated'
+                  else
+                    "The `#{missing_pods.first}` Pod is not installed " \
+                          'and cannot be updated'
+                  end
+        raise Pod::Informative, message
+      end
+    end
+
+    def self.verify_lockfile_exists!(lockfile)
+      unless lockfile
+        raise Pod::Informative, "No `Podfile.lock' found in the project directory, run `pod install'."
+      end
+    end
+
     def self.install_release_pod(update, repo_update)
       #切换工作目录到当前工程下, 开始执行pod install
       workspace = LProject.shared.workspace
@@ -82,13 +110,14 @@ module LgPodPlugin
       installer.repo_update = repo_update
       external_pods = LProject.shared.external_pods
       if update
-        # if external_pods.empty?
-        #   installer.update = true
-        # else
-        #   pods = LRequest.shared.libs.merge!(local_pods)
-        #   installer.update = { :pods => pods.keys }
-        # end
-        installer.update = true
+        pods = external_pods.keys
+        verify_lockfile_exists!(lockfile)
+        verify_pods_are_installed!(pods, lockfile)
+        if pods.empty?
+          installer.update = true
+        else
+          installer.update = { :pods => pods }
+        end
       else
         installer.update = false
       end

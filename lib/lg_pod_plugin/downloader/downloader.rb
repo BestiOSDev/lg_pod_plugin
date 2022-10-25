@@ -44,6 +44,8 @@ module LgPodPlugin
         self.request.checkout_options.delete(:branch) if commit
         self.request.checkout_options[:commit] = commit if commit
       else
+        is_delete = self.request.params["is_delete"] ||= false
+        LProject.shared.external_pods.delete(name) if is_delete
         LgPodPlugin.log_green "find the cache of `#{name}`, you can use it now."
         self.request.checkout_options.delete(:branch) if commit
         self.request.checkout_options[:commit] = commit if commit

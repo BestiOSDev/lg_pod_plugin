@@ -35,7 +35,7 @@ module LgPodPlugin
       return podfile_path if podfile_path.exist?
       podfile_path = workspace.join("Podfile.rb")
       return podfile_path if podfile_path.exist?
-      LgPodPlugin.log_red "no such file `Podfile`"
+      raise Informative, "No `Podfile' found in the project directory."
       return nil
     end
 
