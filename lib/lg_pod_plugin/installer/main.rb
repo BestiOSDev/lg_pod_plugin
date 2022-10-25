@@ -16,7 +16,8 @@ module LgPodPlugin
       project = LProject.shared.setup(workspace, podfile_path, update, repo_update)
       self.install_external_pod(project)
       # # 安装开发版本pod
-      ReleasePod.install_release_pod(update, repo_update)
+      verbose = options[:verbose] ||= false
+      ReleasePod.install_release_pod(update, repo_update, verbose)
     end
 
     def self.install_external_pod(project)

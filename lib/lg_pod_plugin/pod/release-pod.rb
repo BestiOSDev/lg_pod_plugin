@@ -95,22 +95,22 @@ module LgPodPlugin
       end
     end
 
-    def self.install_release_pod(update, repo_update)
+    def self.install_release_pod(update, repo_update, verbose)
       #切换工作目录到当前工程下, 开始执行pod install
       workspace = LProject.shared.workspace
       FileUtils.chdir(workspace)
       # 安装 relase_pod
       LgPodPlugin.log_green "Pre-downloading Release Pods"
-      Pod::Config.instance.verbose = true
+      Pod::Config.instance.verbose = verbose
       pods_path = LProject.shared.workspace.join('Pods')
       podfile = LProject.shared.podfile
       lockfile = LProject.shared.lockfile
       sandobx = Pod::Sandbox.new(pods_path)
       installer = Pod::Installer.new(sandobx, podfile, lockfile)
       installer.repo_update = repo_update
-      external_pods = LProject.shared.external_pods
       if update
-        pods = external_pods.keys
+        need_update_pods = LProject.shared.need_update_pods ||= Hash.new
+        pods = need_update_pods.keys
         verify_lockfile_exists!(lockfile)
         verify_pods_are_installed!(pods, lockfile)
         if pods.empty?
@@ -124,6 +124,7 @@ module LgPodPlugin
       installer.deployment = false
       installer.clean_install = false
       installer.prepare
+      external_pods = LProject.shared.external_pods ||= {}
       resolve_dependencies(workspace, podfile, lockfile, installer, external_pods)
       dependencies(installer)
     end

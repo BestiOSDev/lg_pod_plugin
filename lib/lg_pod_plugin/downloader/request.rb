@@ -112,7 +112,7 @@ module LgPodPlugin
             return hash_map
           end
         end
-        _, new_commit = git_ls_remote_refs(self.name ,git, branch, nil, nil)
+        _, new_commit = git_ls_remote_refs(self.name ,git, branch)
         if new_commit && !new_commit.empty?
           hash_map[:commit] = new_commit
         elsif lock_commit && !lock_commit.empty?
@@ -146,7 +146,7 @@ module LgPodPlugin
             return hash_map
           end
         end
-        new_branch, new_commit = git_ls_remote_refs(self.name, git, nil, nil, nil)
+        new_branch, new_commit = git_ls_remote_refs(self.name, git, nil)
         hash_map[:branch] = new_branch if new_branch
         if new_commit && !new_commit.empty?
           hash_map[:commit] = new_commit
@@ -169,72 +169,37 @@ module LgPodPlugin
       Hash.new.merge!(self.get_lock_params)
     end
 
-    private def commit_from_ls_remote(git, branch, tag)
-      cmds = ['git']
-      cmds << "ls-remote"
-      cmds << git
-      cmds << "--tags" if tag
-      cmds << branch if branch
-      cmds_to_s = cmds.join(" ")
-      LgPodPlugin.log_blue cmds_to_s
-      begin
-        result = %x(timeout 5 #{cmds_to_s})
-        return result
-      rescue
-        system("git config --global http.lowSpeedTime 5")
-        system "git config --global http.lowSpeedLimit 1000"
-        result = %x(#{cmds_to_s})
-        system("git config --global http.lowSpeedTime 600")
-        return result
-      end
-    end
-
     # 获取最新的一条 commit 信息
-    def git_ls_remote_refs(name,git, branch, tag, commit)
+    def git_ls_remote_refs(name, git, branch)
       ip = self.net_ping.ip
       network_ok = self.net_ping.network_ok
       return [nil, nil] unless (ip && network_ok)
       if branch
-        result = commit_from_ls_remote git, branch, nil
-        unless result && result != ""
+        new_commit, new_branch = GitLabAPI.request_github_refs_heads git, branch
+        unless new_commit
           id = LPodLatestRefs.get_pod_id(name, git)
           pod_info = LSqliteDb.shared.query_pod_refs(id)
           new_commit = pod_info ? pod_info.commit : nil
           return [branch, new_commit]
         end
-        new_commit, _ = LUtils.commit_from_ls_remote(result, branch)
         if new_commit
-          LSqliteDb.shared.insert_pod_refs(name, git, branch, tag, new_commit)
+          LSqliteDb.shared.insert_pod_refs(name, git, branch, nil, new_commit)
         end
         return [branch, new_commit]
-      elsif tag
-        result = commit_from_ls_remote git, nil , tag
-        unless result && result != ""
-          id = LPodLatestRefs.get_pod_id(name, git)
-          pod_info = LSqliteDb.shared.query_pod_refs(id)
-          new_commit = pod_info ? pod_info.commit : nil
-          new_branch = pod_info ? pod_info.branch : nil
-          return [new_branch, new_commit]
-        end
-        new_commit, new_branch = LUtils.commit_from_ls_remote(result, tag)
-        if new_commit
-          LSqliteDb.shared.insert_pod_refs(name, git, branch, tag, new_commit)
-        end
-        return [new_branch, new_commit]
-      elsif commit
-        return nil, commit
       else
-        result = commit_from_ls_remote git, nil ,nil
-        unless result && result != ""
+        new_commit, new_branch = GitLabAPI.request_github_refs_heads git, nil
+        unless new_commit
+          new_commit, new_branch = GitLabAPI.request_github_refs_heads git, "main"
+        end
+        unless new_commit
           id = LPodLatestRefs.get_pod_id(name, git)
           pod_info = LSqliteDb.shared.query_pod_refs(id)
           new_commit = pod_info ? pod_info.commit : nil
           new_branch = pod_info ? pod_info.branch : nil
           return [new_branch, new_commit]
         end
-        new_commit, new_branch = LUtils.commit_from_ls_remote(result, "HEAD")
         if new_commit
-          LSqliteDb.shared.insert_pod_refs(name, git, new_branch, tag, new_commit)
+          LSqliteDb.shared.insert_pod_refs(name, git, new_branch, nil, new_commit)
         end
         return [new_branch, new_commit]
       end

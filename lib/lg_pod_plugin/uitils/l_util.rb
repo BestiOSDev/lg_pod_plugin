@@ -71,7 +71,26 @@ module LgPodPlugin
       end
     end
 
-    def self.commit_from_ls_remote(output, branch_name)
+    def self.refs_from_ls_remote(git, branch)
+      cmds = ['git']
+      cmds << "ls-remote"
+      cmds << git
+      cmds << branch if branch
+      cmds_to_s = cmds.join(" ")
+      LgPodPlugin.log_blue cmds_to_s
+      begin
+        result = %x(timeout 5 #{cmds_to_s})
+        return result
+      rescue
+        system("git config --global http.lowSpeedTime 5")
+        system "git config --global http.lowSpeedLimit 0"
+        result = %x(#{cmds_to_s})
+        system("git config --global http.lowSpeedTime 600")
+        return result
+      end
+    end
+
+    def self.sha_from_result(output, branch_name)
       return nil if branch_name.nil?
       encoded_branch_name = branch_name.dup.force_encoding(Encoding::ASCII_8BIT)
       if branch_name == "HEAD"

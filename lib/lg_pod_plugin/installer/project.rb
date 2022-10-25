@@ -14,6 +14,7 @@ module LgPodPlugin
     attr_reader :workspace
     attr_reader :repo_update
     attr_reader :external_pods
+    attr_reader :need_update_pods
     def setup(workspace,podfile_path, update, repo_update)
       @podfile = Pod::Podfile.from_file(podfile_path)
       @update = update
@@ -30,7 +31,8 @@ module LgPodPlugin
         external_pods.merge!(target.dependencies)
         @targets.append(target)
       end
-      @external_pods = external_pods
+      @external_pods = Hash.new.merge!(external_pods)
+      @need_update_pods = Hash.new.merge!(external_pods)
       return self
     end
 

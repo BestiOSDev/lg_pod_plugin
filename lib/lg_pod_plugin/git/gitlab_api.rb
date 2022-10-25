@@ -116,6 +116,49 @@ module LgPodPlugin
         return nil
       end
     end
+    # 通过github api 获取 git 最新commit
+    def self.request_github_refs_heads(git, branch)
+      return [nil , nil ] unless git
+      unless (git.include?("https://github.com/") || git.include?("git@github.com:"))
+        result = LUtils.refs_from_ls_remote git, branch
+        if result && result != ""
+          new_commit, new_branch = LUtils.sha_from_result(result, branch)
+          return [new_commit, new_branch]
+        else
+          return [nil , nil ]
+        end
+      end
+      base_url = LUtils.get_gitlab_base_url git
+      if base_url.include?("https://github.com/")
+        repo_name = base_url.split("https://github.com/", 0).last
+      elsif base_url.include?("git@github.com:")
+        repo_name = base_url.split("git@github.com:", 0).last
+      else
+        repo_name = nil
+      end
+      return [nil, nil] unless repo_name
+      request_url = "https://api.github.com/repos/" + repo_name
+      if branch
+        request_url += ("/git/refs/heads/" + branch)
+      else
+        request_url += ("/git/refs/heads/" + "master")
+      end
+      uri = URI(request_url)
+      res = Net::HTTP.get_response(uri)
+      case res
+      when Net::HTTPSuccess, Net::HTTPRedirection
+        json = JSON.parse(res.body)
+      else
+        return [nil, nil]
+      end
+      json = JSON.parse(res.body) if res.body
+      return [nil, nil ] unless json.is_a?(Hash)
+      ref = json["ref"] ||= ""
+      object = json["object"] ||= {}
+      sha = object["sha"] ||= ""
+      new_branch = ref.split("refs/heads/").last
+      return [sha, new_branch]
+    end
 
   end
 
