@@ -3,6 +3,7 @@ require "ipaddr"
 require 'archive/zip'
 
 module LgPodPlugin
+
   class LUtils
 
     def self.md5(text)
@@ -71,6 +72,7 @@ module LgPodPlugin
       end
     end
 
+    # 通过 git ls-remote获取最新 commit
     def self.refs_from_ls_remote(git, branch)
       cmds = ['git']
       cmds << "ls-remote"
@@ -79,17 +81,13 @@ module LgPodPlugin
       cmds_to_s = cmds.join(" ")
       LgPodPlugin.log_blue cmds_to_s
       begin
-        result = %x(timeout 5 #{cmds_to_s})
-        return result
+        return %x(timeout 5 #{cmds_to_s})
       rescue
-        system("git config --global http.lowSpeedTime 5")
-        system "git config --global http.lowSpeedLimit 0"
-        result = %x(#{cmds_to_s})
-        system("git config --global http.lowSpeedTime 600")
-        return result
+        return %x(#{cmds_to_s})
       end
     end
 
+    # 解析git ls-remote结果
     def self.sha_from_result(output, branch_name)
       return nil if branch_name.nil?
       encoded_branch_name = branch_name.dup.force_encoding(Encoding::ASCII_8BIT)
@@ -110,7 +108,6 @@ module LgPodPlugin
         ref = match[0].split("refs/heads/").last unless match.nil?
         return [sha, ref]
       end
-
     end
 
     #截取git-url 拿到项目绝对名称 比如 l-base-ios
@@ -133,7 +130,7 @@ module LgPodPlugin
     def self.url_encode(url)
       url.to_s.b.gsub(/[^a-zA-Z0-9_\-.~]/n) { |m| sprintf('%%%02X', m.unpack1('C')) }
     end
-
+    
     def self.pod_real_name(name)
       math = %r{(.*(?=/))}.match(name)
       return name unless math

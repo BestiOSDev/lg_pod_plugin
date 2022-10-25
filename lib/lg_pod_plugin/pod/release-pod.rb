@@ -17,8 +17,9 @@ module LgPodPlugin
       return !(LCache.new.find_pod_cache(name, requirements, spec, released_pod))
     end
 
-    def self.resolve_dependencies(workspace, podfile, lockfile, installer, external_pods)
+    def self.resolve_dependencies(workspace, podfile, lockfile, installer)
       installer.resolve_dependencies
+      external_pods = LProject.shared.external_pods ||= {}
       analysis_result = installer.send(:analysis_result)
       return unless analysis_result
       root_specs = analysis_result.specifications.map(&:root).uniq
@@ -38,7 +39,7 @@ module LgPodPlugin
         tag = source["tag"]
         next unless (git && tag) && (git.include?("https://github.com"))
         checksum = spec.send(:checksum)
-        requirements = { :git => git, :tag => tag}
+        requirements = { :git => git, :tag => tag }
         pod_exist = check_release_pod_exist(workspace, pod_name, requirements, spec, true)
         if lockfile && checksum
           internal_data = lockfile.send(:internal_data)
@@ -110,7 +111,7 @@ module LgPodPlugin
       installer.repo_update = repo_update
       if update
         need_update_pods = LProject.shared.need_update_pods ||= Hash.new
-        pods = need_update_pods.keys
+        pods = need_update_pods.keys ||= []
         verify_lockfile_exists!(lockfile)
         verify_pods_are_installed!(pods, lockfile)
         if pods.empty?
@@ -124,8 +125,7 @@ module LgPodPlugin
       installer.deployment = false
       installer.clean_install = false
       installer.prepare
-      external_pods = LProject.shared.external_pods ||= {}
-      resolve_dependencies(workspace, podfile, lockfile, installer, external_pods)
+      resolve_dependencies(workspace, podfile, lockfile, installer)
       dependencies(installer)
     end
 
