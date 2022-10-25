@@ -7,7 +7,8 @@ module LgPodPlugin
     def initialize(target)
       internal_hash = target.send(:internal_hash)
       @name = internal_hash["name"]
-      dependencies = Array.new(internal_hash['dependencies']).reject do |e|
+      array = Array.new(internal_hash['dependencies'] ||= [])
+      dependencies = array.reject do |e|
         if LUtils.is_a_string?(e)
           true
         elsif e.is_a?(Hash)
@@ -22,6 +23,7 @@ module LgPodPlugin
           true
         end
       end
+
       external_pods = Hash.new
       dependencies.each do |e|
         key = e.keys.last ||= ""

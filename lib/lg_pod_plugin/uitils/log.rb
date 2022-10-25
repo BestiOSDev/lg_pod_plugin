@@ -1,4 +1,5 @@
 
+require 'cocoapods'
 require 'cocoapods/user_interface'
 
 module LgPodPlugin

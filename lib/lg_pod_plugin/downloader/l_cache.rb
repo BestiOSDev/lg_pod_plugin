@@ -8,8 +8,7 @@ module LgPodPlugin
 
   class LCache
 
-    def initialize()
-    end
+    def initialize() end
 
     #判断缓存是否存在且有效命中缓存
     def find_pod_cache(name, options, spec = nil, released_pod = false)
@@ -133,7 +132,7 @@ module LgPodPlugin
     end
 
     # 拷贝 pod 缓存文件到 sandbox
-    def self.cache_pod(name, target, options = {}, spec = nil , released_pod = false)
+    def self.cache_pod(name, target, options = {}, spec = nil, released_pod = false)
       checkout_options = Hash.new.deep_merge(options).reject do |key, val|
         !key || !val
       end

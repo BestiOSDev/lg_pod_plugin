@@ -58,7 +58,7 @@ module LgPodPlugin
       lg_pod_path.mkdir(0700) unless lg_pod_path.exist?
       get_temp_folder = git_clone_repository(lg_pod_path, name, git, branch, tag, commit)
       #下载 git 仓库失败
-      return nil unless get_temp_folder.exist?
+      return nil unless get_temp_folder && get_temp_folder.exist?
       LgPodPlugin::LCache.cache_pod(name, get_temp_folder, { :git => git }, self.request.spec, self.request.released_pod) if self.request.single_git
       LgPodPlugin::LCache.cache_pod(name, get_temp_folder, self.request.get_cache_key_params, self.request.spec, self.request.released_pod)
       FileUtils.chdir(LFileManager.download_director)

@@ -51,7 +51,6 @@ module LgPodPlugin
         release_pod = ReleasePod.new(nil, pod_name, spec, requirements)
         LgPodPlugin::Installer.new.install release_pod
       end
-
     end
 
     def self.dependencies(installer)

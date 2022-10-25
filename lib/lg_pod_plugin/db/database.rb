@@ -69,7 +69,7 @@ module LgPodPlugin
 
   class LSqliteDb
     include Singleton
-    REQUIRED_ATTRS ||= %i[db ].freeze
+    REQUIRED_ATTRS ||= %i[db].freeze
     attr_accessor(*REQUIRED_ATTRS)
     K_USER_TABLE = "user_tab"
     K_USER_PROJECTS = "user_projects"
@@ -82,9 +82,13 @@ module LgPodPlugin
 
     # 初始化 db
     def initialize
+    end
+
+    #初始化database
+    def init_database
       root_path = LFileManager.download_director.join("database")
       db_file_path = root_path.join("my.db")
-      if !root_path.exist? || !db_file_path.exist?
+      unless root_path.exist? && db_file_path.exist?
         FileUtils.mkdir(root_path)
         FileUtils.chdir(root_path)
         FileUtils.touch("my.db")
@@ -139,7 +143,6 @@ module LgPodPlugin
     end
 
     public
-
     def insert_user_info(user)
       # pp "user.id => #{user.id}"
       if self.query_user_info(user.id) != nil

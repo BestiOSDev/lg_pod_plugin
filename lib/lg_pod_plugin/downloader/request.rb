@@ -134,7 +134,7 @@ module LgPodPlugin
         hash_map[:commit] = commit
         return hash_map
       else
-        if lock_git && !self.is_update
+        if lock_git && !LProject.shared.update
           id = LPodLatestRefs.get_pod_id(self.name, git)
           pod_info = LSqliteDb.shared.query_pod_refs(id)
           if pod_info && pod_info.commit

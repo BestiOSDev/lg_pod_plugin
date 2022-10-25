@@ -17,6 +17,7 @@ module LgPodPlugin
     end
 
     public
+
     # 获取 GitLab access_token
     def self.request_gitlab_access_token(host, username, password)
       user_id = LUserAuthInfo.get_user_id(host)
@@ -85,7 +86,7 @@ module LgPodPlugin
     end
 
     # 通过名称搜索项目信息
-    def self.request_project_info(host,project_name, access_token, git = nil )
+    def self.request_project_info(host, project_name, access_token, git = nil)
       begin
         hash_map = Hash.new
         hash_map["search"] = project_name
@@ -117,6 +118,5 @@ module LgPodPlugin
     end
 
   end
-
 
 end

@@ -23,7 +23,7 @@ module LgPodPlugin
 
     public
     def self.get_config(git, uri)
-      return nil unless uri.host
+      return nil unless uri && uri.host
       return nil unless self.is_gitlab_uri(git, uri.hostname)
       user_id = LUserAuthInfo.get_user_id(uri.hostname)
       user_info = LSqliteDb.shared.query_user_info(user_id)
