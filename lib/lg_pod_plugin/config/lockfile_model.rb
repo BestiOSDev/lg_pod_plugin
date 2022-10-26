@@ -42,13 +42,16 @@ module LgPodPlugin
       lockfile_model.lockfile = lockfile
       lockfile_model.release_pods = release_pods
       lockfile_model.checkout_options_data = lockfile.send(:checkout_options_data)
+      lockfile_model.checkout_options_data = {} unless lockfile_model.checkout_options_data
       lockfile_model.external_sources_data = lockfile.send(:external_sources_data)
+      lockfile_model.external_sources_data = {} unless lockfile_model.external_sources_data
       lockfile_model
     end
 
     def checkout_options_for_pod_named(name)
       return {} unless @lockfile
-      @lockfile.checkout_options_for_pod_named(name)
+      hash = @lockfile.checkout_options_for_pod_named(name)
+      return hash ? hash : {}
     end
 
 

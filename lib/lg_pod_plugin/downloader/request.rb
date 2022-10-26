@@ -73,10 +73,10 @@ module LgPodPlugin
     def get_lock_params
       begin
         _release_pods = self.lockfile.release_pods ||= []
-        _external_source = self.lockfile.external_sources_data[self.name] ||= {}
-        _checkout_options = self.lockfile.checkout_options_for_pod_named self.name ||= {}
+        _external_source = (self.lockfile.external_sources_data[self.name])
+        _external_source = {} unless _external_source
+        _checkout_options = self.lockfile.checkout_options_for_pod_named(self.name)
       rescue => exception
-        pp exception
         _release_pods = {}
         _external_source = {}
         _checkout_options = {}
@@ -190,7 +190,7 @@ module LgPodPlugin
       network_ok = self.net_ping.network_ok
       return [nil, nil] unless (ip && network_ok)
       if branch
-        new_commit, _ = GitLabAPI.request_github_refs_heads git, branch
+        new_commit, _ = GitLabAPI.request_github_refs_heads git, branch, self.net_ping.uri
         unless new_commit
           id = LPodLatestRefs.get_pod_id(name, git)
           pod_info = LSqliteDb.shared.query_pod_refs(id)
@@ -202,9 +202,9 @@ module LgPodPlugin
         end
         [branch, new_commit]
       else
-        new_commit, new_branch = GitLabAPI.request_github_refs_heads git, nil
+        new_commit, new_branch = GitLabAPI.request_github_refs_heads git, nil, self.net_ping.uri
         unless new_commit
-          new_commit, new_branch = GitLabAPI.request_github_refs_heads git, "main"
+          new_commit, new_branch = GitLabAPI.request_github_refs_heads git, "main", self.net_ping.uri
         end
         unless new_commit
           id = LPodLatestRefs.get_pod_id(name, git)
