@@ -71,7 +71,8 @@ module LgPodPlugin
     def git_clone_repository(path, name, git, branch, tag, commit)
       FileUtils.chdir(path)
       temp_name = "lg_temp_pod"
-      git_archive = GitLabArchive.new(name, git, branch, tag, commit, self.request.config)
+      new_branch = branch ? branch : self.request.params[:branch]
+      git_archive = GitLabArchive.new(name, git, new_branch, tag, commit, self.request.config)
       if git && tag
         begin
           if is_use_gitlab_archive_file(git)
@@ -84,17 +85,17 @@ module LgPodPlugin
         rescue
           git_archive.git_clone_by_tag(path, temp_name)
         end
-      elsif git && branch
+      elsif git && new_branch
         begin
           if is_use_gitlab_archive_file(git)
-            return git_archive.gitlab_download_branch_zip(path, temp_name)
+            return git_archive.gitlab_download_branch_zip(path, temp_name, new_branch)
           elsif git.include?("https://github.com")
-            return git_archive.github_download_branch_zip path, temp_name
+            return git_archive.github_download_branch_zip path, temp_name, new_branch
           else
-            return git_archive.git_clone_by_branch(path, temp_name)
+            return git_archive.git_clone_by_branch(path, temp_name, new_branch)
           end
         rescue
-          return git_archive.git_clone_by_branch(path, temp_name)
+          return git_archive.git_clone_by_branch(path, temp_name, new_branch)
         end
       elsif git && commit
         if is_use_gitlab_archive_file(git)
@@ -106,11 +107,11 @@ module LgPodPlugin
         end
       elsif git
         if is_use_gitlab_archive_file(git)
-          return git_archive.gitlab_download_branch_zip(path, temp_name)
+          return git_archive.gitlab_download_branch_zip(path, temp_name, new_branch)
         elsif git.include?("https://github.com")
-          return git_archive.github_download_branch_zip path, temp_name
+          return git_archive.github_download_branch_zip path, temp_name, new_branch
         else
-          return git_archive.git_clone_by_branch(path, temp_name)
+          return git_archive.git_clone_by_branch(path, temp_name, new_branch)
         end
       end
 

@@ -102,13 +102,14 @@ module LgPodPlugin
         else
           sha = match1[1]
         end
-        refs = output.split("\n")
-        return [sha, nil] unless refs.is_a?(Array)
-        refs.each do |element|
-          next if element.include?("HEAD") || element.include?("refs/tags")
-          next unless element.include?(sha)
-          find_branch = element.split("refs/heads/").last
-          return [sha, find_branch]
+        return [nil, nil] unless sha && !sha.empty?
+        match2 = %r{(#{sha})\trefs\/heads\/([a-z0-9]*)}.match(output)
+        return [nil, nil] unless !match2.nil?
+        if match2[1] == sha
+          new_branch = match2[2]
+          return [sha, new_branch]
+        else
+          return [nil, nil]
         end
       else
         match = %r{([a-z0-9]*)\trefs\/(heads|tags)\/#{Regexp.quote(encoded_branch_name)}}.match(output)

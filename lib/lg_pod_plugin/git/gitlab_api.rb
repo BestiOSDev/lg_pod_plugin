@@ -137,7 +137,8 @@ module LgPodPlugin
       end
       return use_default_refs_heads(git, branch) unless project && project.id
       begin
-        api = uri.hostname + "/api/v4/projects/" + project.id + "/repository/branches/" + branch
+        new_branch = branch ? branch : "HEAD"
+        api = uri.hostname + "/api/v4/projects/" + project.id + "/repository/commits/" + new_branch
         req_uri = URI(api)
         req_uri.query = URI.encode_www_form({ "access_token": config.access_token })
         res = Net::HTTP.get_response(req_uri)
@@ -145,15 +146,13 @@ module LgPodPlugin
         when Net::HTTPSuccess, Net::HTTPRedirection
           json = JSON.parse(res.body)
           return [nil, nil] unless json && json.is_a?(Hash)
-          new_branch = json["name"] ||= ""
-          object = json["commit"] ||= {}
-          sha = object["id"] ||= ""
-          return [sha, new_branch]
+          sha = json["id"]
+          return [sha, nil]
         else
           return use_default_refs_heads git, branch
         end
       rescue => exception
-        LgPodPlugin.log_red "request_gitlab_refs_heads => #{excepiton}"
+        LgPodPlugin.log_red "request_gitlab_refs_heads => #{exception}"
         return use_default_refs_heads git, branch
       end
     end
@@ -161,12 +160,12 @@ module LgPodPlugin
     # 使用 git 命令获取commit信息
     def self.use_default_refs_heads(git, branch)
       result = LUtils.refs_from_ls_remote git, branch
-      if result && result != ""
-        new_commit, new_branch = LUtils.sha_from_result(result, branch)
-        return [new_commit, new_branch]
-      else
+      unless result && !result.empty?
         return [nil, nil]
       end
+      refs = branch ? branch : "HEAD"
+      new_commit, new_branch = LUtils.sha_from_result(result, refs)
+      return [new_commit, new_branch]
     end
 
     # 通过github api 获取 git 最新commit
@@ -174,8 +173,7 @@ module LgPodPlugin
       return [nil, nil] unless git
       unless git.include?("https://github.com/") || git.include?("git@github.com:")
         if LConfig.is_gitlab_uri(git, "")
-          new_branch = branch ? branch : "master"
-          return self.request_gitlab_refs_heads(git, new_branch, uri)
+          return self.request_gitlab_refs_heads(git, branch, uri)
         end
         return use_default_refs_heads git, branch
       end
@@ -190,9 +188,9 @@ module LgPodPlugin
       return [nil, nil] unless repo_name
       request_url = "https://api.github.com/repos/" + repo_name
       if branch
-        request_url += ("/git/refs/heads/" + branch)
+        request_url += ("/commits/" + branch)
       else
-        request_url += ("/git/refs/heads/" + "master")
+        request_url += ("/commits/" + "HEAD")
       end
       begin
         uri = URI(request_url)
@@ -201,11 +199,8 @@ module LgPodPlugin
         when Net::HTTPSuccess, Net::HTTPRedirection
           json = JSON.parse(res.body)
           return [nil, nil] unless json.is_a?(Hash)
-          ref = json["ref"] ||= ""
-          object = json["object"] ||= {}
-          sha = object["sha"] ||= ""
-          new_branch = ref.split("refs/heads/").last
-          return [sha, new_branch]
+          sha = json["sha"]
+          return [sha, nil]
         else
           return use_default_refs_heads git, branch
         end

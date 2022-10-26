@@ -204,9 +204,6 @@ module LgPodPlugin
       else
         new_commit, new_branch = GitLabAPI.request_github_refs_heads git, nil, self.net_ping.uri
         unless new_commit
-          new_commit, new_branch = GitLabAPI.request_github_refs_heads git, "main", self.net_ping.uri
-        end
-        unless new_commit
           id = LPodLatestRefs.get_pod_id(name, git)
           pod_info = LSqliteDb.shared.query_pod_refs(id)
           new_commit = pod_info ? pod_info.commit : nil

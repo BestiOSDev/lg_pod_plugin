@@ -68,13 +68,13 @@ module LgPodPlugin
 
     # 从 GitLab下载 zip包
     # 根据branch 下载 zip 包
-    def gitlab_download_branch_zip(root_path, temp_name)
+    def gitlab_download_branch_zip(root_path, temp_name, branch = nil)
       project_path = root_path.join(self.name)
       unless project_path.exist?
         project_path.mkdir
         FileUtils.chdir(project_path)
       end
-      branch = self.branch ||= "HEAD"
+      new_branch = branch ? branch : "HEAD"
       token = self.config.access_token
       base_url = self.config.project.web_url
       project_name = self.config.project.path
@@ -91,14 +91,14 @@ module LgPodPlugin
       unless !need_download_files.empty?
         FileUtils.chdir(root_path)
         file_name = "#{temp_name}.zip"
-        download_url = get_gitlab_download_url(base_url, branch, nil, nil, project_name)
+        download_url = get_gitlab_download_url(base_url, new_branch, nil, nil, project_name)
         raise "download_url不存在" unless download_url
         # LgPodPlugin.log_blue "开始下载 => #{download_url}"
         LUtils.download_gitlab_zip_file(download_url, token, file_name)
         raise "下载zip包失败, 尝试git clone #{self.git}" unless File.exist?(file_name)
         # 解压文件
         result = LUtils.unzip_file(root_path.join(file_name).to_path, "./")
-        new_file_name = "#{project_name}-#{branch}"
+        new_file_name = "#{project_name}-#{new_branch}"
         raise "解压文件失败, #{new_file_name}不存在" unless result && File.exist?(new_file_name)
         return root_path.join(new_file_name)
       end
@@ -191,9 +191,9 @@ module LgPodPlugin
 
     # 从 Github下载 zip 包
     # 根据branch 下载 zip 包
-    def github_download_branch_zip(path, temp_name)
+    def github_download_branch_zip(path, temp_name, branch = nil)
       file_name = "#{temp_name}.zip"
-      branch = self.branch ||= "HEAD"
+      new_branch = branch ? branch : "HEAD"
       if self.git.include?(".git")
         base_url = self.git[0...self.git.length - 4]
       else
@@ -201,16 +201,16 @@ module LgPodPlugin
       end
       project_name = base_url.split("/").last if base_url
       url_path = base_url.split("https://github.com/").last
-      if branch == "HEAD"
-        download_url = "https://gh.api.99988866.xyz/" + "#{base_url}" + "/archive/#{branch}.zip"
+      if new_branch == "HEAD"
+        download_url = "https://gh.api.99988866.xyz/" + "#{base_url}" + "/archive/#{new_branch}.zip"
       else
-        download_url = "https://codeload.github.com/#{url_path}/zip/refs/heads/#{branch}"
+        download_url = "https://codeload.github.com/#{url_path}/zip/refs/heads/#{new_branch}"
       end
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
       LUtils.download_github_zip_file(download_url, file_name)
       unless File.exist?(file_name)
         LgPodPlugin.log_red("下载zip包失败, 尝试git clone #{self.git}")
-        return self.git_clone_by_branch(path, temp_name)
+        return self.git_clone_by_branch(path, temp_name, new_branch)
       end
       # 解压文件
       result = LUtils.unzip_file(path.join(file_name).to_path, "./")
@@ -218,13 +218,13 @@ module LgPodPlugin
       path.each_child do |f|
         ftype = File::ftype(f)
         next unless ftype == "directory"
-        next unless f.to_path.include?("#{branch}") || f.to_path.include?("#{project_name}")
+        next unless f.to_path.include?("#{new_branch}") || f.to_path.include?("#{project_name}")
         temp_zip_folder = f
         break
       end
       unless temp_zip_folder && File.exist?(temp_zip_folder)
         LgPodPlugin.log_red("正在尝试git clone #{self.git}")
-        return self.git_clone_by_branch(path, temp_name)
+        return self.git_clone_by_branch(path, temp_name, new_branch)
       end
       temp_zip_folder
     end
@@ -293,10 +293,11 @@ module LgPodPlugin
       path.join(new_file_name)
     end
 
-    def git_clone_by_branch(path, temp_name)
+    def git_clone_by_branch(path, temp_name, branch = nil)
+      new_branch = branch ? branch : nil
       download_temp_path = path.join(temp_name)
-      if self.git && self.branch
-        git_download_command(temp_name, self.git, self.branch, nil)
+      if self.git && new_branch
+        git_download_command(temp_name, self.git, new_branch, nil)
       else
         git_download_command(temp_name, self.git, nil, nil)
         if File.exist?(temp_name)
