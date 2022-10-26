@@ -174,7 +174,8 @@ module LgPodPlugin
       return [nil, nil] unless git
       unless git.include?("https://github.com/") || git.include?("git@github.com:")
         if LConfig.is_gitlab_uri(git, "")
-          return self.request_gitlab_refs_heads(git, branch, uri)
+          new_branch = branch ? branch : "master"
+          return self.request_gitlab_refs_heads(git, new_branch, uri)
         end
         return use_default_refs_heads git, branch
       end
