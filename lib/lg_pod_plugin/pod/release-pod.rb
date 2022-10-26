@@ -36,6 +36,13 @@ module LgPodPlugin
         next unless source.is_a?(Hash)
         git = source["git"]
         tag = source["tag"]
+        http = source["http"] ||= ""
+        if http && http.include?("https://github.com") && http.include?("releases/download")
+          tag = attributes_hash["version"]
+          tag = "v#{tag}" if tag
+          git = http.split("/releases/download").first
+        end
+        #releases/downloa
         next unless (git && tag) && (git.include?("https://github.com"))
         checksum = spec.send(:checksum)
         requirements = { :git => git, :tag => tag }
