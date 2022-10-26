@@ -36,7 +36,7 @@ module LgPodPlugin
         next unless source.is_a?(Hash)
         git = source["git"]
         tag = source["tag"]
-        http = source["http"] ||= ""
+        http = Hash.new.merge!(source)["http"]
         if http && http.include?("https://github.com") && http.include?("releases/download")
           tag = attributes_hash["version"]
           tag = "v#{tag}" if tag
