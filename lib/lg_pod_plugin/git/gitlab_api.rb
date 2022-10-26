@@ -61,7 +61,11 @@ module LgPodPlugin
         hash_map["refresh_token"] = refresh_token
         uri = URI("#{host}/oauth/token")
         res = Net::HTTP.post_form(uri, hash_map)
-        json = JSON.parse(res.body) if res.body
+        if res.body
+          json = JSON.parse(res.body)
+        else
+          return nil
+        end
         return nil unless json.is_a?(Hash)
         error = json["error"]
         if error != nil
@@ -94,16 +98,20 @@ module LgPodPlugin
         uri = URI("#{host}/api/v4/projects")
         uri.query = URI.encode_www_form(hash_map)
         res = Net::HTTP.get_response(uri)
-        array = JSON.parse(res.body) if res.body
+        if res.body
+          array = JSON.parse(res.body)
+        else
+          array = nil
+        end
         return nil unless array && array.is_a?(Array)
         array.each do |json|
+          name = json["name"] ||= ""
           path = json["path"] ||= ""
           path_with_namespace = json["path_with_namespace"] ||= ""
           name_with_namespace = (json["name_with_namespace"] ||= "").gsub(/[ ]/, '')
           next unless (name == project_name || path == project_name)
           next unless git.include?(name_with_namespace) || git.include?(path_with_namespace)
           id = json["id"]
-          name = json["name"] ||= ""
           web_url = json["web_url"]
           description = json["description"]
           ssh_url_to_repo = json["ssh_url_to_repo"]
@@ -112,6 +120,7 @@ module LgPodPlugin
           LSqliteDb.shared.insert_project(project)
           return project
         end
+        return nil
       rescue
         return nil
       end
@@ -120,9 +129,15 @@ module LgPodPlugin
     #请求gitlab api 获取 branch 最新的 commit
     def self.request_gitlab_refs_heads(git, branch, uri)
       config = LConfig.get_config(git, uri)
-      return use_default_refs_heads(git, branch) unless config&.project
+      project = config.project
+      return use_default_refs_heads(git, branch) unless config
+      unless project
+        project_name = LUtils.get_git_project_name git
+        project = GitLabAPI.request_project_info(config.host, project_name, config.access_token, git)
+      end
+      return use_default_refs_heads(git, branch) unless project && project.id
       begin
-        api = uri.hostname + "/api/v4/projects/" + config.project.id + "/repository/branches/" + branch
+        api = uri.hostname + "/api/v4/projects/" + project.id + "/repository/branches/" + branch
         req_uri = URI(api)
         req_uri.query = URI.encode_www_form({ "access_token": config.access_token })
         res = Net::HTTP.get_response(req_uri)
@@ -137,11 +152,13 @@ module LgPodPlugin
         else
           return use_default_refs_heads git, branch
         end
-      rescue
+      rescue => exception
+        LgPodPlugin.log_red "request_gitlab_refs_heads => #{excepiton}"
         return use_default_refs_heads git, branch
       end
     end
 
+    # 使用 git 命令获取commit信息
     def self.use_default_refs_heads(git, branch)
       result = LUtils.refs_from_ls_remote git, branch
       if result && result != ""
@@ -191,7 +208,8 @@ module LgPodPlugin
         else
           return use_default_refs_heads git, branch
         end
-      rescue
+      rescue => excepiton
+        LgPodPlugin.log_red "request_github_refs_heads => #{excepiton}"
         return use_default_refs_heads git, branch
       end
 

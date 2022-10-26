@@ -76,7 +76,7 @@ module LgPodPlugin
         _external_source = (self.lockfile.external_sources_data[self.name])
         _external_source = {} unless _external_source
         _checkout_options = self.lockfile.checkout_options_for_pod_named(self.name)
-      rescue => exception
+      rescue
         _release_pods = {}
         _external_source = {}
         _checkout_options = {}

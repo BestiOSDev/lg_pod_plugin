@@ -51,7 +51,7 @@ module LgPodPlugin
     def checkout_options_for_pod_named(name)
       return {} unless @lockfile
       hash = @lockfile.checkout_options_for_pod_named(name)
-      return hash ? hash : {}
+      hash ? hash : {}
     end
 
 

@@ -54,6 +54,9 @@ module LgPodPlugin
       config.base_url = LUtils.get_gitlab_base_url(git)
       config.project_name = LUtils.get_git_project_name(git)
       config.project = LSqliteDb.shared.query_project_info(config.project_name, git)
+      unless config.project
+        config.project = GitLabAPI.request_project_info(config.host, config.project_name, config.access_token, git)
+      end
       return config
 
     end

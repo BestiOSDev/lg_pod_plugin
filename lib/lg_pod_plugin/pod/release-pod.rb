@@ -42,7 +42,6 @@ module LgPodPlugin
           tag = "v#{tag}" if tag
           git = http.split("/releases/download").first
         end
-        #releases/downloa
         next unless (git && tag) && (git.include?("https://github.com"))
         checksum = spec.send(:checksum)
         requirements = { :git => git, :tag => tag }

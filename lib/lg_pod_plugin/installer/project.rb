@@ -33,7 +33,7 @@ module LgPodPlugin
       end
       @external_pods = Hash.new.merge!(external_pods)
       @need_update_pods = Hash.new.merge!(external_pods)
-      return self
+      self
     end
 
     def self.shared
