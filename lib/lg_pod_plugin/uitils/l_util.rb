@@ -49,7 +49,7 @@ module LgPodPlugin
     end
 
     # gitlab 下载压缩文件
-    def self.download_github_zip_file(download_url, file_name)
+    def self.download_github_zip_file(path, download_url, file_name)
       cmds = ['curl']
       cmds << "-o #{file_name}"
       cmds << "--connect-timeout 15"

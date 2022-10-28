@@ -15,7 +15,7 @@ module LgPodPlugin
     def self.download_gitlab_zip_file: (String download_url, String token, String file_name) -> void
 
     # gitlab 下载压缩文件
-    def self.download_github_zip_file: (String download_url, String file_name) -> void
+    def self.download_github_zip_file: (String path, String download_url, String file_name) -> void
 
     def self.git_to_uri: (String git) -> URI
 

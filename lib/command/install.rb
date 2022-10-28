@@ -45,6 +45,7 @@ module LgPodPlugin
       end
 
       def run
+
         begin_time = Time.now.to_i
         LgPodPlugin::Main.run("install", { :verbose => self.log, :repo_update => self.repo_update })
         end_time = Time.now.to_i

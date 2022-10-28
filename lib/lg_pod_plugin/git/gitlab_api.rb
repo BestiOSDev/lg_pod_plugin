@@ -130,12 +130,12 @@ module LgPodPlugin
     def self.request_gitlab_refs_heads(git, branch, uri)
       config = LConfig.get_config(git, uri)
       project = config.project
-      return use_default_refs_heads(git, branch) unless config
+      return self.use_default_refs_heads(git, branch) unless config
       unless project
         project_name = LUtils.get_git_project_name git
         project = GitLabAPI.request_project_info(config.host, project_name, config.access_token, git)
       end
-      return use_default_refs_heads(git, branch) unless project && project.id
+      return self.use_default_refs_heads(git, branch) unless project && project.id
       begin
         new_branch = branch ? branch : "HEAD"
         api = uri.hostname + "/api/v4/projects/" + project.id + "/repository/commits/" + new_branch
@@ -149,11 +149,11 @@ module LgPodPlugin
           sha = json["id"]
           return [sha, nil]
         else
-          return use_default_refs_heads git, branch
+          return self.use_default_refs_heads git, branch
         end
       rescue => exception
         LgPodPlugin.log_red "request_gitlab_refs_heads => #{exception}"
-        return use_default_refs_heads git, branch
+        return self.use_default_refs_heads git, branch
       end
     end
 
@@ -175,7 +175,7 @@ module LgPodPlugin
         if LConfig.is_gitlab_uri(git, "")
           return self.request_gitlab_refs_heads(git, branch, uri)
         end
-        return use_default_refs_heads git, branch
+        return self.use_default_refs_heads git, branch
       end
       base_url = LUtils.get_gitlab_base_url git
       if base_url.include?("https://github.com/")
@@ -202,11 +202,11 @@ module LgPodPlugin
           sha = json["sha"]
           return [sha, nil]
         else
-          return use_default_refs_heads git, branch
+          return self.use_default_refs_heads git, branch
         end
       rescue => excepiton
         LgPodPlugin.log_red "request_github_refs_heads => #{excepiton}"
-        return use_default_refs_heads git, branch
+        return self.use_default_refs_heads git, branch
       end
 
     end

@@ -207,7 +207,7 @@ module LgPodPlugin
         download_url = "https://codeload.github.com/#{url_path}/zip/refs/heads/#{new_branch}"
       end
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
-      LUtils.download_github_zip_file(download_url, file_name)
+      LUtils.download_github_zip_file(path, download_url, file_name)
       unless File.exist?(file_name)
         LgPodPlugin.log_red("下载zip包失败, 尝试git clone #{self.git}")
         return self.git_clone_by_branch(path, temp_name, new_branch)
@@ -242,7 +242,7 @@ module LgPodPlugin
       download_url = "https://codeload.github.com#{uri.path}/zip/refs/tags/#{self.tag}"
       # 下载文件
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
-      LUtils.download_github_zip_file(download_url, file_name)
+      LUtils.download_github_zip_file(path, download_url, file_name)
       unless File.exist?(file_name)
         LgPodPlugin.log_red("正在尝试git clone #{self.git}")
         return self.git_clone_by_tag(path, temp_name)
@@ -278,7 +278,7 @@ module LgPodPlugin
       download_url = "https://codeload.github.com#{uri.path}/zip/#{self.commit}"
       # 下载文件
       LgPodPlugin.log_blue "开始下载 => #{download_url}"
-      LUtils.download_github_zip_file(download_url, file_name)
+      LUtils.download_github_zip_file(path, download_url, file_name)
       unless File.exist?(file_name)
         LgPodPlugin.log_red("正在尝试git clone #{self.git}")
         return self.git_clone_by_commit(path, temp_name)
