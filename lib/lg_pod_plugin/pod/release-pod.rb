@@ -36,16 +36,14 @@ module LgPodPlugin
         next unless source.is_a?(Hash)
         git = source["git"]
         tag = source["tag"]
-        # http = Hash.new.merge!(source)["http"]
-        # if http && http.include?("https://github.com") && http.include?("releases/download")
-        #   tag = attributes_hash["version"]
-        #   tag = "v#{tag}" if tag
-        #   git = http.split("/releases/download").first
-        # end
+        http = Hash.new.merge!(source)["http"]
+        if http && http.include?("https://github.com") && http.include?("releases/download")
+          http = "https://gh.api.99988866.xyz/" + http
+          source["http"] = http
+        end
         next unless (git && tag) && (git.include?("https://github.com"))
         checksum = spec.send(:checksum)
         requirements = { :git => git, :tag => tag }
-        # requirements["http"] = http if http
         pod_exist = check_release_pod_exist(pod_name, requirements, spec, true)
         if lockfile && checksum
           internal_data = lockfile.send(:internal_data)
