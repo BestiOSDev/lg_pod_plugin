@@ -1,4 +1,5 @@
 require 'uri'
+require_relative '../uitils/l_util'
 module LgPodPlugin
 
   class GitLabArchive
@@ -15,8 +16,9 @@ module LgPodPlugin
     end
 
     # 下载某个文件zip格式
-    def gitlab_download_file_by_name(path, filename, temp_name, project_name)
+    def gitlab_download_repository_archive_zip(path, temp_name, project_name, async = true)
       host = self.config.host
+      filename = temp_name + ".zip"
       project = self.config.project
       unless host
         http = Ping.new(project.web_url)
@@ -31,167 +33,100 @@ module LgPodPlugin
       end
       token = self.config.access_token
       begin
-        encode_filename = LUtils.url_encode(filename)
-        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.zip#{"\\?"}" + "path#{"\\="}#{encode_filename}#{"\\&"}sha#{"\\="}#{sha}"
+        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.zip?" + "sha=#{sha}"
+        return LUtils.download_gitlab_zip_file(path, token, download_url, filename, async)
       rescue => exception
         return nil
       end
-      LUtils.download_gitlab_zip_file(download_url, token, temp_name)
-      return nil unless File.exist?(temp_name)
-      result = LUtils.unzip_file(temp_name, "./")
-      FileUtils.rm_rf temp_name unless result
-      return nil unless result
-      temp_zip_folder = nil
-      path.each_child do |f|
-        ftype = File::ftype(f)
-        next unless ftype == "directory"
-        next unless f.to_path.include?("#{filename}") || f.to_path.include?("#{project_name}")
-        temp_zip_folder = f
-        break
-      end
-      return nil unless temp_zip_folder && temp_zip_folder.exist?
-      begin
-        FileUtils.chdir(temp_zip_folder)
-        temp_zip_folder.each_child do |f|
-          ftype = File::ftype(f)
-          FileUtils.mv(f, path)
-        end
-        FileUtils.chdir(path)
-        FileUtils.rm_rf(temp_zip_folder)
-        FileUtils.rm_rf("./#{temp_name}")
-        return path
-      rescue => exception
-        pp exception
-        return path
-      end
     end
 
-    # 从 GitLab下载 zip包
     # 根据branch 下载 zip 包
-    def gitlab_download_branch_zip(root_path, temp_name, branch = nil)
-      project_path = root_path.join(self.name)
-      unless project_path.exist?
-        project_path.mkdir
-        FileUtils.chdir(project_path)
-      end
+    def gitlab_download_branch_zip(root_path, temp_name, branch = nil, async = true)
       new_branch = branch ? branch : "HEAD"
       token = self.config.access_token
       base_url = self.config.project.web_url
       project_name = self.config.project.path
-      podspec_name = self.name + ".podspec"
-      LgPodPlugin.log_blue "开始下载 => #{base_url}"
-      self.gitlab_download_file_by_name(project_path, podspec_name, "#{podspec_name}.zip", project_name)
-      podspec_path = project_path.join(podspec_name)
-      return nil unless File.exist?(podspec_path)
-      begin
-        need_download_files = PodSpec.form_file(podspec_path).source_files
-      rescue
-        need_download_files = Set[]
+      # LgPodPlugin.log_blue "开始下载 => #{base_url}"
+      hash_map = self.gitlab_download_repository_archive_zip(root_path, temp_name, project_name, async)
+      if hash_map && hash_map.is_a?(Hash)
+        hash_map["type"] = "gitlab-branch"
+        return hash_map
       end
-      unless !need_download_files.empty?
-        FileUtils.chdir(root_path)
-        file_name = "#{temp_name}.zip"
-        download_url = get_gitlab_download_url(base_url, new_branch, nil, nil, project_name)
-        raise "download_url不存在" unless download_url
-        # LgPodPlugin.log_blue "开始下载 => #{download_url}"
-        LUtils.download_gitlab_zip_file(download_url, token, file_name)
-        raise "下载zip包失败, 尝试git clone #{self.git}" unless File.exist?(file_name)
-        # 解压文件
-        result = LUtils.unzip_file(root_path.join(file_name).to_path, "./")
-        new_file_name = "#{project_name}-#{new_branch}"
-        raise "解压文件失败, #{new_file_name}不存在" unless result && File.exist?(new_file_name)
-        return root_path.join(new_file_name)
+      raise "下载文件失败" unless hash_map && File.exist?(hash_map)
+      raise "解压文件失败" unless LUtils.unzip_file(hash_map.to_path, "./")
+      temp_zip_folder = nil
+      root_path.each_child do |f|
+        ftype = File::ftype(f)
+        next unless ftype == "directory"
+        next unless f.to_path.include?("#{new_branch}") || f.to_path.include?("#{project_name}")
+        temp_zip_folder = f
+        break
       end
-      need_download_files.each do |file|
-        next if project_path.join(file).exist?
-        self.gitlab_download_file_by_name(project_path, file, "#{file}.zip", project_name)
+      if temp_zip_folder&.exist?
+        return temp_zip_folder
+      else
+        raise "下载文件失败"
       end
-      return project_path
     end
 
     # 通过tag下载zip包
-    def gitlab_download_tag_zip(root_path, temp_name)
-      project_path = root_path.join(self.name)
-      unless project_path.exist?
-        project_path.mkdir
-        FileUtils.chdir(project_path)
-      end
+    def gitlab_download_tag_zip(root_path, temp_name, async = true)
       token = self.config.access_token
       base_url = self.config.project.web_url
       project_name = self.config.project.path
-      podspec_name = self.name + ".podspec"
-      LgPodPlugin.log_blue "开始下载 => #{base_url}"
-      self.gitlab_download_file_by_name(project_path, podspec_name, "#{podspec_name}.zip", project_name)
-      podspec_path = project_path.join(podspec_name)
-      return nil unless File.exist?(podspec_path)
-      begin
-        need_download_files = PodSpec.form_file(podspec_path).source_files
-      rescue
-        need_download_files = Set[]
+      hash_map = self.gitlab_download_repository_archive_zip(root_path, temp_name, project_name, async)
+      if hash_map && hash_map.is_a?(Hash)
+        hash_map["type"] = "gitlab-tag"
+        return hash_map
       end
-      unless !need_download_files.empty?
-        tag = self.tag
-        FileUtils.chdir(root_path)
-        file_name = "#{temp_name}.zip"
-        download_url = get_gitlab_download_url(base_url, nil, tag, nil, project_name)
-        raise "download_url不存在" unless download_url
-        LUtils.download_gitlab_zip_file(download_url, token, file_name)
-        raise "下载zip包失败, 尝试git clone #{self.git}" unless File.exist?(file_name)
-        # 解压文件
-        result = LUtils.unzip_file(root_path.join(file_name).to_path, "./")
-        new_file_name = "#{project_name}-#{tag}"
-        raise "解压文件失败, #{new_file_name}不存在" unless result && File.exist?(new_file_name)
-        return root_path.join(new_file_name)
+      raise "下载文件失败" unless hash_map && File.exist?(hash_map)
+      raise "解压文件失败" unless LUtils.unzip_file(hash_map.to_path, "./")
+      temp_zip_folder = nil
+      root_path.each_child do |f|
+        ftype = File::ftype(f)
+        next unless ftype == "directory"
+        next unless f.to_path.include?("#{self.tag}") || f.to_path.include?("#{project_name}")
+        temp_zip_folder = f
+        break
       end
-      need_download_files.each do |file|
-        self.gitlab_download_file_by_name(project_path, file, "#{file}.zip", project_name)
+      if temp_zip_folder&.exist?
+        return temp_zip_folder
+      else
+        raise "下载文件失败"
       end
-      return project_path
     end
 
     # 通过 commit 下载zip包
-    def gitlab_download_commit_zip(root_path, temp_name)
-      project_path = root_path.join(self.name)
-      unless project_path.exist?
-        project_path.mkdir
-        FileUtils.chdir(project_path)
-      end
+    def gitlab_download_commit_zip(root_path, temp_name, async = true)
       token = self.config.access_token
       base_url = self.config.project.web_url
       project_name = self.config.project.path
-      podspec_name = self.name + ".podspec"
-      LgPodPlugin.log_blue "开始下载 => #{base_url}"
-      self.gitlab_download_file_by_name(project_path, podspec_name, "#{podspec_name}.zip", project_name)
-      podspec_path = project_path.join(podspec_name)
-      return nil unless File.exist?(podspec_path)
-      begin
-        need_download_files = PodSpec.form_file(podspec_path).source_files
-      rescue
-        need_download_files = Set[]
+      # LgPodPlugin.log_blue "开始下载 => #{base_url}"
+      hash_map = self.gitlab_download_repository_archive_zip(root_path, temp_name, project_name, async)
+      if hash_map && hash_map.is_a?(Hash)
+        hash_map["type"] = "gitlab-commit"
+        return hash_map
       end
-      unless !need_download_files.empty?
-        FileUtils.chdir(root_path)
-        file_name = "#{temp_name}.zip"
-        download_url = get_gitlab_download_url(base_url, nil, nil, self.commit, project_name)
-        raise "download_url不存在" unless download_url
-        # LgPodPlugin.log_blue "开始下载 => #{download_url}"
-        LUtils.download_gitlab_zip_file(download_url, token, file_name)
-        raise "下载zip包失败, 尝试git clone #{self.git}" unless File.exist?(file_name)
-        # 解压文件
-        result = LUtils.unzip_file(root_path.join(file_name).to_path, "./")
-        new_file_name = "#{project_name}-#{self.commit}"
-        raise "解压文件失败, #{new_file_name}不存在" unless result && File.exist?(new_file_name)
-        return root_path.join(new_file_name)
+      raise "下载文件失败" unless hash_map && File.exist?(hash_map)
+      raise "解压文件失败" unless LUtils.unzip_file(hash_map.to_path, "./")
+      temp_zip_folder = nil
+      root_path.each_child do |f|
+        ftype = File::ftype(f)
+        next unless ftype == "directory"
+        next unless f.to_path.include?("#{self.commit}") || f.to_path.include?("#{project_name}")
+        temp_zip_folder = f
+        break
       end
-      need_download_files.each do |file|
-        self.gitlab_download_file_by_name(project_path, file, "#{file}.zip", project_name)
+      if temp_zip_folder&.exist?
+        return temp_zip_folder
+      else
+        raise "下载文件失败"
       end
-      return project_path
     end
 
     # 从 Github下载 zip 包
     # 根据branch 下载 zip 包
-    def github_download_branch_zip(path, temp_name, branch = nil)
+    def github_download_branch_zip(path, temp_name, branch = nil, async = true)
       file_name = "#{temp_name}.zip"
       new_branch = branch ? branch : "HEAD"
       if self.git.include?(".git")
@@ -206,14 +141,14 @@ module LgPodPlugin
       else
         download_url = "https://codeload.github.com/#{url_path}/zip/refs/heads/#{new_branch}"
       end
-      LgPodPlugin.log_blue "开始下载 => #{download_url}"
-      LUtils.download_github_zip_file(path, download_url, file_name)
-      unless File.exist?(file_name)
-        LgPodPlugin.log_red("下载zip包失败, 尝试git clone #{self.git}")
-        return self.git_clone_by_branch(path, temp_name, new_branch)
+      hash_map = LUtils.download_github_zip_file(path, download_url, file_name, async)
+      if hash_map && hash_map.is_a?(Hash)
+        hash_map["type"] = "github-branch"
+        return hash_map
       end
+      raise "下载文件失败" unless File.exist?(hash_map)
       # 解压文件
-      result = LUtils.unzip_file(path.join(file_name).to_path, "./")
+      raise "解压文件失败" unless LUtils.unzip_file(hash_map.to_path, "./")
       temp_zip_folder = nil
       path.each_child do |f|
         ftype = File::ftype(f)
@@ -222,15 +157,15 @@ module LgPodPlugin
         temp_zip_folder = f
         break
       end
-      unless temp_zip_folder && File.exist?(temp_zip_folder)
-        LgPodPlugin.log_red("正在尝试git clone #{self.git}")
-        return self.git_clone_by_branch(path, temp_name, new_branch)
+      if temp_zip_folder&.exist?
+        return temp_zip_folder
+      else
+        raise "下载文件失败"
       end
-      temp_zip_folder
     end
 
     # 通过tag下载zip包
-    def github_download_tag_zip(path, temp_name)
+    def github_download_tag_zip(path, temp_name, async = true)
       file_name = "#{temp_name}.zip"
       if self.git.include?(".git")
         base_url = self.git[0...self.git.length - 4]
@@ -241,14 +176,14 @@ module LgPodPlugin
       project_name = base_url.split("/").last if base_url
       download_url = "https://codeload.github.com#{uri.path}/zip/refs/tags/#{self.tag}"
       # 下载文件
-      LgPodPlugin.log_blue "开始下载 => #{download_url}"
-      LUtils.download_github_zip_file(path, download_url, file_name)
-      unless File.exist?(file_name)
-        LgPodPlugin.log_red("正在尝试git clone #{self.git}")
-        return self.git_clone_by_tag(path, temp_name)
+      hash_map = LUtils.download_github_zip_file(path, download_url, file_name, async)
+      if hash_map && hash_map.is_a?(Hash)
+        hash_map["type"] = "github-tag"
+        return hash_map
       end
+      raise "下载文件失败" unless File.exist?(hash_map)
       # 解压文件
-      result = LUtils.unzip_file(path.join(file_name).to_path, "./")
+      raise "解压文件失败" unless LUtils.unzip_file(hash_map.to_path, "./")
       temp_zip_folder = nil
       path.each_child do |f|
         ftype = File::ftype(f)
@@ -258,15 +193,15 @@ module LgPodPlugin
         temp_zip_folder = f
         break
       end
-      unless temp_zip_folder && File.exist?(temp_zip_folder)
-        LgPodPlugin.log_red("正在尝试git clone #{self.git}")
-        return self.git_clone_by_tag(path, temp_name)
+      if temp_zip_folder&.exist?
+        return temp_zip_folder
+      else
+        raise "下载文件失败"
       end
-      temp_zip_folder
     end
 
     # 通过 commit 下载zip包
-    def github_download_commit_zip(path, temp_name)
+    def github_download_commit_zip(path, temp_name, async = true)
       file_name = "#{temp_name}.zip"
       if self.git.include?(".git")
         base_url = self.git[0...self.git.length - 4]
@@ -277,20 +212,20 @@ module LgPodPlugin
       project_name = base_url.split("/").last if base_url
       download_url = "https://codeload.github.com#{uri.path}/zip/#{self.commit}"
       # 下载文件
-      LgPodPlugin.log_blue "开始下载 => #{download_url}"
-      LUtils.download_github_zip_file(path, download_url, file_name)
-      unless File.exist?(file_name)
-        LgPodPlugin.log_red("正在尝试git clone #{self.git}")
-        return self.git_clone_by_commit(path, temp_name)
+      hash_map = LUtils.download_github_zip_file(path, download_url, file_name, async)
+      if hash_map && hash_map.is_a?(Hash)
+        hash_map["type"] = "github-commit"
+        return hash_map
       end
+      raise "下载文件失败" unless File.exist?(hash_map)
       # 解压文件
-      result = LUtils.unzip_file(path.join(file_name).to_path, "./")
+      raise "解压文件失败" unless LUtils.unzip_file(hash_map.to_path, "./")
       new_file_name = "#{project_name}-#{self.commit}"
-      unless result && File.exist?(new_file_name)
-        LgPodPlugin.log_red("正在尝试git clone #{self.git}")
-        return self.git_clone_by_commit(path, temp_name)
+      if File.exist?(new_file_name)
+        return path.join(new_file_name)
+      else
+        raise "下载文件失败"
       end
-      path.join(new_file_name)
     end
 
     def git_clone_by_branch(path, temp_name, branch = nil)
@@ -364,7 +299,6 @@ module LgPodPlugin
         nil
       end
     end
-
 
   end
 

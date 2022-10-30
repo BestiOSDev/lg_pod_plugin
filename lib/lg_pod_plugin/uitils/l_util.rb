@@ -1,10 +1,22 @@
+require 'json'
 require 'resolv'
 require "ipaddr"
 require 'archive/zip'
+require 'fileutils'
+require_relative 'aescrypt'
 
 module LgPodPlugin
 
   class LUtils
+
+    def self.encrypt(message, password)
+      encrypted_data = AESCrypt.encrypt(message, password)
+      encrypted_data = encrypted_data.tr("\n", "")
+    end
+
+    def self.decrypt(message, password)
+      AESCrypt.decrypt message, password
+    end
 
     def self.md5(text)
       return "" unless text
@@ -21,42 +33,74 @@ module LgPodPlugin
     end
 
     # 解压文件
-    def self.unzip_file (zip_file, dest_dir)
+    def self.unzip_file (zip_file, dest_dir, is_tar = false)
       begin
-        Archive::Zip.extract(
-          zip_file,
-          dest_dir,
-          :symlinks => true
-        )
-        return true
-      rescue
-        return false
+        if zip_file.include?(".zip")
+          Archive::Zip.extract(
+            zip_file,
+            dest_dir,
+            :symlinks => true
+          )
+          return true
+        elsif is_tar
+          system("tar xf #{zip_file} -C #{dest_dir}")
+          FileUtils.rm_rf zip_file
+          target_path = Pathname(Dir.pwd)
+          contents = target_path.children
+          entry = contents.first
+          if contents.count == 1 && entry.directory?
+            tmp_entry = entry.sub_ext("#{entry.extname}.tmp")
+            begin
+              FileUtils.move(entry, tmp_entry)
+              FileUtils.move(tmp_entry.children, target_path)
+            rescue => exception
+              FileUtils.remove_entry(tmp_entry)
+            end
+          end
+          return true
+        else
+          return false
+        end
       end
-
+    rescue
+      return false
     end
 
     # 下载 zip 格式文件
-    def self.download_gitlab_zip_file(download_url, token, file_name)
-      cmds = ['curl']
-      cmds << "--header \"Authorization: Bearer #{token}\"" if token
-      # cmds << "--progress-bar"
-      cmds << "-o #{file_name}"
-      cmds << "--connect-timeout 15"
-      cmds << "--retry 3"
-      cmds << download_url
-      cmds_to_s = cmds.join(" ")
-      system(cmds_to_s)
+    def self.download_gitlab_zip_file(path, token, download_url, filename, async = true)
+      if async
+        hash_map = { "path" => path.to_path, "filename" => filename, "url" => download_url, "token": token }
+        return hash_map
+      else
+        LgPodPlugin.log_blue "开始下载 => #{download_url}"
+        cmds = ['curl']
+        cmds << "--header \"Authorization: Bearer #{token}\"" if token
+        cmds << "-o #{filename}"
+        cmds << "--connect-timeout 15"
+        cmds << "--retry 3"
+        cmds << download_url
+        cmds_to_s = cmds.join(" ")
+        system(cmds_to_s)
+        return path.join(filename)
+      end
     end
 
     # gitlab 下载压缩文件
-    def self.download_github_zip_file(path, download_url, file_name)
-      cmds = ['curl']
-      cmds << "-o #{file_name}"
-      cmds << "--connect-timeout 15"
-      cmds << "--retry 3"
-      cmds << download_url
-      cmds_to_s = cmds.join(" ")
-      system(cmds_to_s)
+    def self.download_github_zip_file(path, download_url, filename, async = true)
+      if async
+        hash_map = { "path" => path.to_path, "filename" => filename, "url" => download_url }
+        return hash_map
+      else
+        LgPodPlugin.log_blue "开始下载 => #{download_url}"
+        cmds = ['curl']
+        cmds << "-o #{filename}"
+        cmds << "--connect-timeout 15"
+        cmds << "--retry 3"
+        cmds << download_url
+        cmds_to_s = cmds.join(" ")
+        system(cmds_to_s)
+        return path.join(filename)
+      end
     end
 
     def self.git_to_uri(git)
@@ -144,7 +188,7 @@ module LgPodPlugin
     def self.url_encode(url)
       url.to_s.b.gsub(/[^a-zA-Z0-9_\-.~]/n) { |m| sprintf('%%%02X', m.unpack1('C')) }
     end
-    
+
     def self.pod_real_name(name)
       math = %r{(.*(?=/))}.match(name)
       return name unless math
@@ -152,4 +196,5 @@ module LgPodPlugin
     end
 
   end
+
 end

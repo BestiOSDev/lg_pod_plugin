@@ -27,18 +27,27 @@ module LgPodPlugin
     end
 
     def preprocess_request
-      tag = self.checkout_options[:tag]
-      git = self.checkout_options[:git]
-      commit = self.checkout_options[:commit]
-      branch = self.checkout_options[:branch]
-      if (git && branch) || (git && commit) || (git && tag)
+      http = self.checkout_options[:http]
+      if http
         self.single_git = false
+        self.net_ping = nil
+        self.config = nil
+        self.params = Hash.new
       else
-        self.single_git = true
+        tag = self.checkout_options[:tag]
+        git = self.checkout_options[:git]
+        commit = self.checkout_options[:commit]
+        branch = self.checkout_options[:branch]
+        if (git && branch) || (git && commit) || (git && tag)
+          self.single_git = false
+        else
+          self.single_git = true
+        end
+        self.net_ping = Ping.new(git)
+        self.config = LConfig.get_config(git, self.net_ping.uri)
+        self.params = self.get_request_params
       end
-      self.net_ping = Ping.new(git)
-      self.config = LConfig.get_config(git, self.net_ping.uri)
-      self.params = self.get_request_params
+
     end
 
     public
@@ -52,6 +61,11 @@ module LgPodPlugin
     def get_cache_key_params
       options = Hash.new.merge!(self.checkout_options)
       hash_map = Hash.new
+      http = options[:http]
+      if http
+        hash_map[:http] = http
+        return hash_map
+      end
       git = options[:git] ||= self.params[:git]
       tag = options[:tag] ||= self.params[:tag]
       branch = options[:branch] ||= self.params[:branch]

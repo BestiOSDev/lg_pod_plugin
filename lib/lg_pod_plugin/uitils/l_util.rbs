@@ -12,7 +12,7 @@ module LgPodPlugin
     def self.unzip_file: (String zip_file, String dest_dir) -> bool
 
     # 下载 zip 格式文件
-    def self.download_gitlab_zip_file: (String download_url, String token, String file_name) -> void
+    def self.download_gitlab_zip_file:(Pathname path, String token, String download_url, String filename, bool async) -> [String, String]
 
     # gitlab 下载压缩文件
     def self.download_github_zip_file: (String path, String download_url, String file_name) -> void

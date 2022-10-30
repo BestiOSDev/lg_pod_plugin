@@ -1,11 +1,25 @@
 require 'cocoapods'
 require 'cocoapods-core'
+require_relative '../installer/concurrency'
 
 module LgPodPlugin
 
   class Main
+
+    #删除旧的换成目录
+    def self.clean_sandbox
+      sand_box = LFileManager.download_director
+      sand_box.each_child do |f|
+        ftype = File::ftype(f)
+        next unless ftype == "directory"
+        next if f.to_path.include?("database")
+        FileUtils.rm_rf f.to_path
+      end
+    end
+
     public
     def self.run(command, options = {})
+      self.clean_sandbox
       workspace = Pathname(Dir.pwd)
       update = (command == "update")
       LSqliteDb.shared.init_database
@@ -23,12 +37,16 @@ module LgPodPlugin
     def self.install_external_pod(project)
       #下载 External pods
       LgPodPlugin.log_green "Pre-downloading External Pods" unless project.targets.empty?
+      all_installers = Array.new
       project.targets.each do |target|
         target.dependencies.each do |_, pod|
-          installer = Installer.new
-          installer.install(pod)
+          installer = LPodInstaller.new
+          download_params = installer.install(pod)
+          all_installers.append installer if download_params
         end
       end
+      # 通过 swift 可执行文件进行异步下载任务
+      LgPodPlugin::Concurrency.async_download_pods all_installers
     end
 
     def self.check_podfile_exist?(workspace)

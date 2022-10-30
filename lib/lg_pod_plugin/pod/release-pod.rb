@@ -1,5 +1,6 @@
 require 'cocoapods'
 require 'cocoapods-core'
+require_relative '../installer/concurrency'
 
 module LgPodPlugin
 
@@ -28,6 +29,7 @@ module LgPodPlugin
         external_pods[spec_name] || external_pods[spec_name.split("/").first]
       end unless external_pods.empty?
       return unless root_specs
+      all_installers = Array.new
       root_specs.sort_by(&:name).each do |spec|
         attributes_hash = spec.send(:attributes_hash)
         next unless attributes_hash.is_a?(Hash)
@@ -36,14 +38,23 @@ module LgPodPlugin
         next unless source.is_a?(Hash)
         git = source["git"]
         tag = source["tag"]
-        http = Hash.new.merge!(source)["http"]
-        if http && http.include?("https://github.com") && http.include?("releases/download")
-          http = "https://gh.api.99988866.xyz/" + http
-          source["http"] = http
-        end
-        next unless (git && tag) && (git.include?("https://github.com"))
+        http = source["http"]
         checksum = spec.send(:checksum)
-        requirements = { :git => git, :tag => tag }
+        if http
+          if http.include?("https://github.com") && http.include?("releases/download")
+            http = "https://gh.api.99988866.xyz/" + http
+            source["http"] = http
+          end
+          version = attributes_hash["version"]
+          requirements = {:http => http, :version => version}
+        elsif git && tag
+          unless LUtils.is_a_string? tag
+            tag = tag.to_s
+          end
+          requirements = { :git => git, :tag => tag }
+        else
+          next
+        end
         pod_exist = check_release_pod_exist(pod_name, requirements, spec, true)
         if lockfile && checksum
           internal_data = lockfile.send(:internal_data)
@@ -54,8 +65,12 @@ module LgPodPlugin
           next if pod_exist
         end
         release_pod = ReleasePod.new(nil, pod_name, spec, requirements)
-        LgPodPlugin::Installer.new.install release_pod
+        pod_install = LgPodPlugin::LPodInstaller.new
+        download_params = pod_install.install(release_pod)
+        all_installers.append pod_install if download_params
       end
+      # 通过 swift 可执行文件进行异步下载任务
+      LgPodPlugin::Concurrency.async_download_pods all_installers
     end
 
     def self.dependencies(installer)
