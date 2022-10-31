@@ -104,7 +104,7 @@ module LgPodPlugin
       if entry && (entry.to_path.include?("tar") || entry.to_path.include?("tgz") || entry.to_path.include?("tbz") || entry.to_path.include?("txz"))
         result = LUtils.unzip_file entry.to_path, "./", true
         temp_zip_folder = sandbox_path if result
-      elsif entry.directory?
+      elsif entry && entry.directory?
         temp_zip_folder = self.find_pod_director(sandbox_path, project_name, type, branch, new_tag, commit)
       else
         temp_zip_folder = sandbox_path
