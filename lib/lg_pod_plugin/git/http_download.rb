@@ -31,7 +31,7 @@ module LgPodPlugin
           FileUtils.rm_rf entry
           temp_zip_folder = self.find_pod_director path
           temp_zip_folder = path unless temp_zip_folder
-        elsif entry.directory?
+        elsif entry && entry.directory?
           temp_zip_folder = self.find_pod_director(path)
           temp_zip_folder = path unless temp_zip_folder
         else
