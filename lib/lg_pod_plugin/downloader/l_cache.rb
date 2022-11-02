@@ -11,13 +11,34 @@ module LgPodPlugin
     def initialize
     end
 
+    def pod_cache_exist(name, options, spec = nil, released_pod = false)
+      destination, cache_pod_spec = self.find_pod_cache name, options, spec, released_pod
+      is_exist = (File.exist?(destination) && File.exist?(cache_pod_spec))
+      return [is_exist, destination, cache_pod_spec]
+    end
+
+    def self.get_pod_path(name, options, spec = nil, released_pod = false)
+      hash_map = Hash.new.merge!(options)
+      request = LCache.download_request(name, hash_map, spec, released_pod)
+      destination = LCache.path_for_pod(request, {})
+      return destination
+    end
+
+    def self.get_cache_pod_spec(name, options, spec = nil, released_pod = false)
+      hash_map = Hash.new.merge!(options)
+      request = LCache.download_request(name, hash_map, spec, released_pod)
+      cache_pod_spec = LCache.path_for_spec(request, {})
+      return cache_pod_spec
+    end
+
     #判断缓存是否存在且有效命中缓存
+    private
     def find_pod_cache(name, options, spec = nil, released_pod = false)
       hash_map = Hash.new.merge!(options)
       request = LCache.download_request(name, hash_map, spec, released_pod)
       destination = LCache.path_for_pod(request, {})
       cache_pod_spec = LCache.path_for_spec(request, {})
-      !(File.exist?(destination) && File.exist?(cache_pod_spec))
+      return [destination, cache_pod_spec]
     end
 
     def self.root_path
@@ -85,6 +106,14 @@ module LgPodPlugin
       self.write_lock(destination) do
         FileUtils.rm_rf(destination)
         FileUtils.cp_r(source, destination)
+        Pod::Installer::PodSourcePreparer.new(spec, destination).prepare!
+        Pod::Sandbox::PodDirCleaner.new(destination, specs_by_platform).clean!
+      end
+    end
+
+    def self.clean_pod_unuse_files(destination, spec)
+      specs_by_platform = group_sub_specs_by_platform(spec)
+      self.write_lock(destination) do
         Pod::Installer::PodSourcePreparer.new(spec, destination).prepare!
         Pod::Sandbox::PodDirCleaner.new(destination, specs_by_platform).clean!
       end

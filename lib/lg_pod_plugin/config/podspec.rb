@@ -4,9 +4,14 @@ require 'cocoapods-core'
 module LgPodPlugin
 
   class PodSpec
+    attr_accessor :json_files
     attr_accessor :source_files
     def self.form_file(path)
       spec = Pod::Specification.from_file(path)
+      return PodSpec.new(spec)
+    end
+
+    def self.form_pod_spec(spec)
       return PodSpec.new(spec)
     end
 
@@ -37,6 +42,7 @@ module LgPodPlugin
         set.merge(sub_set)
       end
       self.source_files = set
+      self.json_files = spec.to_pretty_json
     end
 
     # 公共解析解析subspec
@@ -61,6 +67,14 @@ module LgPodPlugin
       set.merge(preserve_paths) unless preserve_paths.empty?
       module_map = self.parse_module_map(hash["module_map"])
       set.merge(module_map) unless module_map.empty?
+      ios_hash = hash["ios"]
+      if ios_hash && ios_hash.is_a?(Hash)
+        ios_vendored_libraries = self.parse_vendored_library(ios_hash["vendored_library"] ||= ios_hash["vendored_libraries"])
+        set.merge(ios_vendored_libraries) unless ios_vendored_libraries.empty?
+        ios_vendored_frameworks = self.parse_vendored_frameworks(ios_hash["vendored_frameworks"])
+        set.merge(ios_vendored_frameworks) unless ios_vendored_frameworks.empty?
+      end
+
       set
     end
 

@@ -37,16 +37,18 @@ module LgPodPlugin
     def self.install_external_pod(project)
       #下载 External pods
       LgPodPlugin.log_green "Pre-downloading External Pods" unless project.targets.empty?
-      all_installers = Array.new
+      all_installers = Hash.new
       project.targets.each do |target|
         target.dependencies.each do |_, pod|
           installer = LPodInstaller.new
           download_params = installer.install(pod)
-          all_installers.append installer if download_params
+          if download_params
+            all_installers[download_params["name"]] = installer
+          end
         end
       end
       # 通过 swift 可执行文件进行异步下载任务
-      LgPodPlugin::Concurrency.async_download_pods all_installers
+      LgPodPlugin::Concurrency.async_download_pods all_installers.values
     end
 
     def self.check_podfile_exist?(workspace)

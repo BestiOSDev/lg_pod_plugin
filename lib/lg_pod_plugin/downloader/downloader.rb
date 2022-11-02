@@ -31,30 +31,46 @@ module LgPodPlugin
       else
         LgPodPlugin.log_green "Using `#{name}`"
       end
+      pod_is_exist = false
+      destination_paths = Array.new
+      cache_pod_spec_paths = Array.new
       hash_map = self.request.get_cache_key_params
       # 发现本地有缓存, 不需要更新缓存
       if self.request.single_git
-        need_download = LCache.new.find_pod_cache(name, hash_map, self.request.spec, self.request.released_pod)
-        unless need_download
-          hash_map.delete(:commit)
-          need_download = LCache.new.find_pod_cache(name, hash_map, self.request.spec, self.request.released_pod)
-        end
+        pod_is_exist1, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, self.request.spec, self.request.released_pod)
+        destination_paths.append destination
+        cache_pod_spec_paths.append cache_pod_spec if cache_pod_spec
+
+        hash_map.delete(:commit)
+        pod_is_exist2, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, self.request.spec, self.request.released_pod)
+        destination_paths.append destination if destination
+        cache_pod_spec_paths.append cache_pod_spec if cache_pod_spec
+        pod_is_exist = (pod_is_exist1 || pod_is_exist2)
       else
-        need_download = LCache.new.find_pod_cache(name, hash_map, self.request.spec, self.request.released_pod)
+        pod_is_exist, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, self.request.spec, self.request.released_pod)
+        destination_paths.append destination
+        cache_pod_spec_paths.append cache_pod_spec if cache_pod_spec
       end
-      if need_download
+      if pod_is_exist
+        is_delete = self.request.params["is_delete"] ||= false
+        LProject.shared.need_update_pods.delete(name) if is_delete
+        self.request.checkout_options.delete(:branch) if commit
+        self.request.checkout_options[:commit] = commit if commit
+        LgPodPlugin.log_green "find the cache of `#{name}`, you can use it now."
+        return nil
+      else
         LgPodPlugin.log_green "find the new commit of `#{name}`, Git downloading now."
         # 本地 git 下载 pod 目录
         download_params = self.pre_download_git_repository name, git, branch, tag, commit, http
         if download_params && download_params.is_a?(Hash)
+          download_params["name"] = name
+          download_params["podspec"] = self.request.json_files
+          download_params["destination_paths"] = destination_paths
+          download_params["cache_pod_spec_paths"] = cache_pod_spec_paths
+          download_params["prepare_command"] = self.request.prepare_command
+          download_params["source_files"] = self.request.source_files
           return download_params
         end
-        self.request.checkout_options.delete(:branch) if commit
-        self.request.checkout_options[:commit] = commit if commit
-      else
-        is_delete = self.request.params["is_delete"] ||= false
-        LProject.shared.need_update_pods.delete(name) if is_delete
-        LgPodPlugin.log_green "find the cache of `#{name}`, you can use it now."
         self.request.checkout_options.delete(:branch) if commit
         self.request.checkout_options[:commit] = commit if commit
         return nil

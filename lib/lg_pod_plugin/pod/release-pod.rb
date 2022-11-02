@@ -1,21 +1,26 @@
 require 'cocoapods'
 require 'cocoapods-core'
+require_relative '../config/podspec'
 require_relative '../installer/concurrency'
 
 module LgPodPlugin
 
   class ReleasePod < ExternalPod
 
-    def initialize(target, name, spec, hash)
+    def initialize(target, name, spec, hash, source_files = nil, json_files = nil, prepare_command = nil)
       @spec = spec
       @name = name
       @target = target
       @released_pod = true
+      @json_files = json_files
       @checkout_options = hash
+      @source_files = source_files
+      @prepare_command = prepare_command
     end
 
     def self.check_release_pod_exist(name, requirements, spec, released_pod)
-      return !(LCache.new.find_pod_cache(name, requirements, spec, released_pod))
+      is_exist, _, _ = !(LCache.new.pod_cache_exist(name, requirements, spec, released_pod))
+      return is_exist
     end
 
     def self.resolve_dependencies(lockfile, installer)
@@ -64,7 +69,13 @@ module LgPodPlugin
         else
           next if pod_exist
         end
-        release_pod = ReleasePod.new(nil, pod_name, spec, requirements)
+        prepare_command = attributes_hash["prepare_command"]
+        LProject.shared.cache_specs[pod_name] = spec
+        lg_spec = LgPodPlugin::PodSpec.form_pod_spec spec
+        release_pod = ReleasePod.new(nil, pod_name, spec, requirements, lg_spec.source_files, lg_spec.json_files, prepare_command)
+        if prepare_command
+          attributes_hash["prepare_command"] = nil
+        end
         pod_install = LgPodPlugin::LPodInstaller.new
         download_params = pod_install.install(release_pod)
         all_installers.append pod_install if download_params
