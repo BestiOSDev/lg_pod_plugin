@@ -37,15 +37,15 @@ module LgPodPlugin
       hash_map = self.request.get_cache_key_params
       # 发现本地有缓存, 不需要更新缓存
       if self.request.single_git
-        pod_is_exist1, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, self.request.spec, self.request.released_pod)
+        pod_is_exist, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, self.request.spec, self.request.released_pod)
         destination_paths.append destination
         cache_pod_spec_paths.append cache_pod_spec if cache_pod_spec
 
-        hash_map.delete(:commit)
-        pod_is_exist2, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, self.request.spec, self.request.released_pod)
-        destination_paths.append destination if destination
-        cache_pod_spec_paths.append cache_pod_spec if cache_pod_spec
-        pod_is_exist = (pod_is_exist1 || pod_is_exist2)
+        # hash_map.delete(:commit)
+        # pod_is_exist2, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, self.request.spec, self.request.released_pod)
+        # destination_paths.append destination if destination
+        # cache_pod_spec_paths.append cache_pod_spec if cache_pod_spec
+        # pod_is_exist = (pod_is_exist1)
       else
         pod_is_exist, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, self.request.spec, self.request.released_pod)
         destination_paths.append destination

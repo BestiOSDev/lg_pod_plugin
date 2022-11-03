@@ -73,9 +73,6 @@ module LgPodPlugin
         LProject.shared.cache_specs[pod_name] = spec
         lg_spec = LgPodPlugin::PodSpec.form_pod_spec spec
         release_pod = ReleasePod.new(nil, pod_name, spec, requirements, lg_spec.source_files, lg_spec.json_files, prepare_command)
-        if prepare_command
-          attributes_hash["prepare_command"] = nil
-        end
         pod_install = LgPodPlugin::LPodInstaller.new
         download_params = pod_install.install(release_pod)
         all_installers.append pod_install if download_params

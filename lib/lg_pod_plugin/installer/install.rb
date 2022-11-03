@@ -7,9 +7,10 @@ require 'cocoapods-core'
 module LgPodPlugin
 
   class LPodInstaller
+    public
+    attr_accessor :download_params
     private
     attr_accessor :downloader
-    attr_accessor :download_params
 
     public
     def initialize
@@ -50,7 +51,11 @@ module LgPodPlugin
           # cache_pod_spec_path = cache_pod_spec_paths[idx]
           if File.exist?(destination.to_path)
             pod_is_exist = true
-            LCache.clean_pod_unuse_files destination, cache_podspec
+            # attributes_hash = cache_podspec.send(:attributes_hash)
+            # prepare_command = attributes_hash["prepare_command"] if attributes_hash
+            # if prepare_command && !prepare_command.empty?
+            #   LCache.clean_pod_unuse_files destination, cache_podspec
+            # end
           end
         end
       else
@@ -66,7 +71,11 @@ module LgPodPlugin
             next unless cache_podspec
             LProject.shared.cache_specs[name] = cache_podspec
             LCache.write_spec cache_podspec, cache_pod_spec_paths[idx]
-            LCache.clean_pod_unuse_files destination, cache_podspec
+            # attributes_hash = cache_podspec.send(:attributes_hash)
+            # prepare_command = attributes_hash["prepare_command"] if attributes_hash
+            # if prepare_command && !prepare_command.empty?
+              LCache.clean_pod_unuse_files destination, cache_podspec
+            # end
           end
         end
         request.spec = cache_podspec
