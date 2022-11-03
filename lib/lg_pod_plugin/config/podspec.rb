@@ -54,11 +54,11 @@ module LgPodPlugin
     def parse_with_set(set)
       new_hash = Hash.new
       set.each do |element|
-        if element.include?("/")
+        if element.start_with?("**/")
+          new_hash["All"] = "All"
+        elsif element.include?("/")
           str = element.split("/", 0).first
           new_hash[str] = str unless str.empty?
-        elsif element.start_with?('**/')
-          new_hash["All"] = "All"
         elsif element.start_with?("**.") || element.start_with?("*.")
           new_hash["All"] = "All"
         elsif element.start_with?("*.framework") || element.include?("*.a")
