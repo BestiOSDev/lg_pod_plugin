@@ -17,20 +17,6 @@ module LgPodPlugin
       return [is_exist, destination, cache_pod_spec]
     end
 
-    def self.get_pod_path(name, options, spec = nil, released_pod = false)
-      hash_map = Hash.new.merge!(options)
-      request = LCache.download_request(name, hash_map, spec, released_pod)
-      destination = LCache.path_for_pod(request, {})
-      return destination
-    end
-
-    def self.get_cache_pod_spec(name, options, spec = nil, released_pod = false)
-      hash_map = Hash.new.merge!(options)
-      request = LCache.download_request(name, hash_map, spec, released_pod)
-      cache_pod_spec = LCache.path_for_spec(request, {})
-      return cache_pod_spec
-    end
-
     #判断缓存是否存在且有效命中缓存
     private
     def find_pod_cache(name, options, spec = nil, released_pod = false)
