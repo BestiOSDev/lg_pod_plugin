@@ -6,6 +6,7 @@ module LgPodPlugin
   class PodSpec
     attr_accessor :json_files
     attr_accessor :source_files
+
     def self.form_file(path)
       spec = Pod::Specification.from_file(path)
       return PodSpec.new(spec)
@@ -41,7 +42,13 @@ module LgPodPlugin
         next if sub_set.empty?
         set.merge!(sub_set)
       end
-      self.source_files = Hash.new.merge set
+      self.source_files = Hash.new.merge(set).reject! { |key, value|
+        if key.empty?
+          true
+        else
+          false
+        end
+      }
       self.json_files = spec.to_pretty_json
     end
 
@@ -106,12 +113,14 @@ module LgPodPlugin
       return Hash.new unless source_files
       array = Hash.new
       if LUtils.is_a_string?(source_files)
-        if source_files.include?("**") && source_files.include?("/")
-          source_files = source_files.tr("**","").split("/").first
+        if source_files.include?("**/") && source_files.include?("/")
+          source_files = source_files.tr("**", "").split("/").first
           array[source_files] = source_files unless source_files.empty?
         elsif source_files.include?("/")
           source_files = source_files.split("/").first
           array[source_files] = source_files unless source_files.empty?
+        elsif (source_files.include?("*.{") && source_files.include?("}")) || source_files.include?("*.")
+          array["All"] = "All"
         else
           array[source_files] = "" unless source_files.empty?
         end
@@ -119,37 +128,42 @@ module LgPodPlugin
         source_files.each do |element|
           next unless LUtils.is_a_string?(element)
           if element.include?("**") && element.include?("/")
-            element = element.tr("**","").split("/").first
+            element = element.tr("**", "").split("/").first
             array[element] = element unless source_files.empty?
           elsif element.include?("/")
             element = element.split("/").first
             array[element] = element unless source_files.empty?
+          elsif (element.include?("*.{") && element.include?("}")) || element.include?("*.")
+            array["All"] = "All"
           else
             array[element] = "" unless element.empty?
           end
         end
       elsif source_files.is_a?(Hash)
-        source_files.each do |_,val|
+        source_files.each do |_, val|
           if LUtils.is_a_string?(val)
-            if val.include?("**")  && val.include?("/")
-              val = val.tr("**","").split("/").first
-              # array.append(val) unless val.empty?
+            if val.include?("**") && val.include?("/")
+              val = val.tr("**", "").split("/").first
               array[val] = val unless val.empty?
             elsif val.include?("/")
               val = val.split("/").first
               array[val] = val unless val.empty?
+            elsif (val.include?("*.{") && val.include?("}")) || val.include?("*.")
+              array["All"] = "All"
             else
               array.append(val) unless val.empty?
             end
           elsif val.is_a?(Array)
             val.each do |element|
               next unless LUtils.is_a_string?(element)
-              if element.include?("**")  && element.include?("/")
-                element = element.tr("**","").split("/").first
+              if element.include?("**") && element.include?("/")
+                element = element.tr("**", "").split("/").first
                 array[element] = element unless element.empty?
               elsif element.include?("/")
                 element = element.split("/").first
                 array[element] = element unless element.empty?
+              elsif (element.include?("*.{") && element.include?("}")) || element.include?("*.")
+                array["All"] = "All"
               else
                 array[element] = "" unless element.empty?
               end
@@ -157,12 +171,12 @@ module LgPodPlugin
           end
         end
       end
-       array
+      array
     end
 
     # 解析source_files路径
     def parse_source_files(source_files)
-       self.parse_public_source_files(source_files)
+      self.parse_public_source_files(source_files)
     end
 
     # 解析 resource所在路径
@@ -174,10 +188,12 @@ module LgPodPlugin
     def parse_public_header_files(source_files)
       self.parse_public_source_files(source_files)
     end
+
     # 解析 parse_resource_bundles
     def parse_resource_bundles(source_files)
       self.parse_public_source_files(source_files)
     end
+
     # 解析 project_header_files
     def parse_project_header_files(source_files)
       self.parse_public_source_files(source_files)
@@ -187,13 +203,15 @@ module LgPodPlugin
     def parse_private_header_files(source_files)
       self.parse_public_source_files(source_files)
     end
+
     # 解析 vendored_frameworks
     def parse_vendored_frameworks(source_files)
       self.parse_public_source_files(source_files)
     end
+
     # 解析 parse_vendored_library
     def parse_vendored_library(source_files)
-       self.parse_public_source_files(source_files)
+      self.parse_public_source_files(source_files)
     end
 
     # 解析 parse_preserve_path
