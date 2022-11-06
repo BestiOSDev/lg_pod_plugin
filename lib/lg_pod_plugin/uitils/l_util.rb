@@ -1,6 +1,7 @@
 require 'json'
 require 'resolv'
 require "ipaddr"
+require 'base64'
 require 'archive/zip'
 require 'fileutils'
 require_relative 'aescrypt'
@@ -21,6 +22,14 @@ module LgPodPlugin
     def self.md5(text)
       return "" unless text
       return Digest::MD5.hexdigest(text)
+    end
+
+    def self.base64_encode(text)
+      Base64.encode64(text)
+    end
+
+    def self.base64_decode(text)
+      Base64.decode64(text)
     end
 
     #判断对象是不是 String
@@ -67,22 +76,17 @@ module LgPodPlugin
     end
 
     # 下载 zip 格式文件
-    def self.download_gitlab_zip_file(path, token, download_url, filename, async = true)
-      if async
-        hash_map = { "path" => path.to_path, "filename" => filename, "url" => download_url, "token": token }
-        return hash_map
-      else
-        LgPodPlugin.log_blue "开始下载 => #{download_url}"
-        cmds = ['curl']
-        cmds << "--header \"Authorization: Bearer #{token}\"" if token
-        cmds << "-o #{filename}"
-        cmds << "--connect-timeout 15"
-        cmds << "--retry 3"
-        cmds << download_url
-        cmds_to_s = cmds.join(" ")
-        system(cmds_to_s)
-        return path.join(filename)
-      end
+    def self.download_gitlab_zip_file(path, token, download_url, filename)
+      LgPodPlugin.log_blue "开始下载 => #{download_url}"
+      cmds = ['curl']
+      cmds << "--header \"Authorization: Bearer #{token}\"" if token
+      cmds << "-o #{filename}"
+      cmds << "--connect-timeout 15"
+      cmds << "--retry 3"
+      cmds << download_url
+      cmds_to_s = cmds.join(" ")
+      system(cmds_to_s)
+      return path.join(filename)
     end
 
     # gitlab 下载压缩文件
@@ -193,6 +197,13 @@ module LgPodPlugin
       math = %r{(.*(?=/))}.match(name)
       return name unless math
       return math[0]
+    end
+
+    public
+    def self.is_gitlab_uri(git, hostname)
+      match1 = %r{(github.com|gitee.com|coding.net|code.aliyun.com)}.match(git)
+      match2 = %r{(github.com|gitee.com|coding.net|code.aliyun.com)}.match(hostname)
+      return match1.nil? && match2.nil?
     end
 
   end

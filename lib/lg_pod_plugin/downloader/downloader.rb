@@ -1,5 +1,7 @@
 require 'git'
+require 'cocoapods-core'
 require_relative '../git/http_download'
+require_relative '../git/git_download'
 
 module LgPodPlugin
 
@@ -13,12 +15,30 @@ module LgPodPlugin
     # 预下载处理
     def pre_download_pod
       name = self.request.name
+      # if name == "R.swift"
+      #   pp name
+      # end
+      if self.request.lg_spec
+        podspec = self.request.lg_spec.spec
+      else
+        podspec = nil
+      end
       checkout_options = Hash.new.merge!(self.request.checkout_options)
       http = checkout_options[:http]
       git = checkout_options[:git]
       tag = checkout_options[:tag]
       branch = checkout_options[:branch]
-      commit = checkout_options[:commit] ||= self.request.params[:commit]
+      checkout_options[:name] = name if name
+      checkout_options[:spec] = self.request.lg_spec if podspec
+      unless branch
+        branch = self.request.params[:branch] if self.request.params[:branch]
+        checkout_options[:branch] = branch if branch
+      end
+      commit = checkout_options[:commit]
+      unless commit
+        commit = self.request.params[:commit] if self.request.params[:commit]
+        checkout_options[:commit] = commit if commit
+      end
       if branch
         LgPodPlugin.log_green "Using `#{name}` (#{branch})"
       elsif tag
@@ -32,24 +52,12 @@ module LgPodPlugin
         LgPodPlugin.log_green "Using `#{name}`"
       end
       pod_is_exist = false
-      destination_paths = Array.new
-      cache_pod_spec_paths = Array.new
       hash_map = self.request.get_cache_key_params
       # 发现本地有缓存, 不需要更新缓存
       if self.request.single_git
-        pod_is_exist, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, self.request.spec, self.request.released_pod)
-        destination_paths.append destination
-        cache_pod_spec_paths.append cache_pod_spec if cache_pod_spec
-
-        # hash_map.delete(:commit)
-        # pod_is_exist2, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, self.request.spec, self.request.released_pod)
-        # destination_paths.append destination if destination
-        # cache_pod_spec_paths.append cache_pod_spec if cache_pod_spec
-        # pod_is_exist = (pod_is_exist1)
+        pod_is_exist, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, podspec, self.request.released_pod)
       else
-        pod_is_exist, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, self.request.spec, self.request.released_pod)
-        destination_paths.append destination
-        cache_pod_spec_paths.append cache_pod_spec if cache_pod_spec
+        pod_is_exist, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, podspec, self.request.released_pod)
       end
       if pod_is_exist
         is_delete = self.request.params["is_delete"] ||= false
@@ -61,117 +69,92 @@ module LgPodPlugin
       else
         LgPodPlugin.log_green "find the new commit of `#{name}`, Git downloading now."
         # 本地 git 下载 pod 目录
-        download_params = self.pre_download_git_repository name, git, branch, tag, commit, http
+        download_params = self.pre_download_git_repository(checkout_options)
         if download_params && download_params.is_a?(Hash)
-          download_params["name"] = name
-          download_params["podspec"] = self.request.json_files
-          download_params["destination_paths"] = destination_paths
-          download_params["cache_pod_spec_paths"] = cache_pod_spec_paths
-          download_params["prepare_command"] = self.request.prepare_command
-          download_params["source_files"] = self.request.source_files
+          download_params["destination"] = destination
+          download_params["cache_pod_spec_path"] = cache_pod_spec
+          podspec = download_params["podspec"]
+          podspec_content = download_params["podspec_content"]
+          if podspec
+            podspec_json = podspec.to_pretty_json
+            download_params["podspec_json"] = podspec_json if podspec
+            download_params["prepare_command"] = podspec.prepare_command if podspec
+            download_params.delete("podspec")
+            unless self.request.lg_spec
+              self.request.lg_spec = podspec
+            end
+          elsif podspec_content
+            path = download_params["path"]
+            podspec_path = path + "/#{name}.podspec"
+            begin
+              File.open(podspec_path,"w+") do|f|
+                f.write podspec_content
+              end
+            end
+            if File.exist?(podspec_path)
+              lg_spec = LgPodPlugin::PodSpec.form_file podspec_path
+              if lg_spec
+                self.request.lg_spec = lg_spec
+                download_params["podspec_json"] = lg_spec.to_pretty_json
+                download_params["source_files"] = lg_spec.source_files.keys
+                download_params["prepare_command"] = lg_spec.prepare_command if lg_spec.prepare_command
+                download_params.delete("podspec_content")
+              else
+                download_params["source_files"] = ["All"]
+                download_params["prepare_command"] = nil
+                download_params["podspec_json"] = podspec_content
+                download_params.delete("podspec_content")
+              end
+            end
+            FileUtils.rm_rf podspec_path
+          end
           return download_params
+        elsif download_params && File.exist?(download_params)
+          FileUtils.chdir download_params
+          LgPodPlugin::LCache.cache_pod(name, download_params, { :git => git }, podspec, self.request.released_pod) if self.request.single_git
+          LgPodPlugin::LCache.cache_pod(name, download_params, self.request.get_cache_key_params,podspec, self.request.released_pod)
+          FileUtils.chdir(LFileManager.download_director)
+          FileUtils.rm_rf(download_params)
+          self.request.checkout_options.delete(:branch) if commit
+          self.request.checkout_options[:commit] = commit if commit
         end
-        self.request.checkout_options.delete(:branch) if commit
-        self.request.checkout_options[:commit] = commit if commit
         return nil
       end
 
     end
 
-    def pre_download_git_repository(name, git, branch, tag, commit, http = nil)
-      temp_path = LFileManager.download_director.join("temp")
-      FileUtils.rm_rf(temp_path) if temp_path.exist?
+    def pre_download_git_repository(checkout_options = {})
       lg_pod_path = LFileManager.cache_workspace(LProject.shared.workspace)
       lg_pod_path.mkdir(0700) unless lg_pod_path.exist?
-      get_temp_folder = select_git_repository_download_strategy(lg_pod_path, name, git, branch, tag, commit, true ,http)
-      return nil unless get_temp_folder
-      if get_temp_folder.is_a?(Hash)
-        return get_temp_folder
-      end
-      #下载 git 仓库失败
-      return nil unless get_temp_folder&.exist?
-      LgPodPlugin::LCache.cache_pod(name, get_temp_folder, { :git => git }, self.request.spec, self.request.released_pod) if self.request.single_git
-      LgPodPlugin::LCache.cache_pod(name, get_temp_folder, self.request.get_cache_key_params, self.request.spec, self.request.released_pod)
-      FileUtils.chdir(LFileManager.download_director)
-      FileUtils.rm_rf(lg_pod_path)
-      return nil
+      download_params = select_git_repository_download_strategy(lg_pod_path, checkout_options)
+      return download_params
     end
 
     # 根据不同 git 源 选择下载策略
-    def select_git_repository_download_strategy(path, name, git, branch, tag, commit, async = true, http = nil)
+    def select_git_repository_download_strategy(path, checkout_options = {})
       FileUtils.chdir(path)
-      temp_name = "lg_temp_pod"
-      new_branch = branch ? branch : self.request.params[:branch]
-      git_archive = GitLabArchive.new(name, git, new_branch, tag, commit, self.request.config)
+      git = checkout_options[:git]
+      http = checkout_options[:http]
       if http
         begin
-          return LgPodPlugin::HTTPDownloader.http_download_with path, "#{temp_name}.zip", http, async
+          checkout_options[:path] = path
+          http_download = LgPodPlugin::HTTPDownloader.new(checkout_options)
+          return http_download.download
         rescue
           return nil
         end
-      elsif git && tag
-        begin
-          if is_use_gitlab_archive_file(git)
-            return git_archive.gitlab_download_tag_zip(path, temp_name, async)
-          elsif git.include?("https://github.com")
-            return git_archive.github_download_tag_zip path, temp_name, async
-          else
-            return git_archive.git_clone_by_tag(path, temp_name)
-          end
-        rescue
-          return git_archive.git_clone_by_tag(path, temp_name)
-        end
-      elsif git && new_branch
-        begin
-          if is_use_gitlab_archive_file(git)
-            return git_archive.gitlab_download_branch_zip(path, temp_name, new_branch, async)
-          elsif git.include?("https://github.com")
-            return git_archive.github_download_branch_zip path, temp_name, new_branch, async
-          else
-            return git_archive.git_clone_by_branch(path, temp_name, new_branch)
-          end
-        rescue
-          return git_archive.git_clone_by_branch(path, temp_name, new_branch)
-        end
-      elsif git && commit
-        begin
-          if is_use_gitlab_archive_file(git)
-            return git_archive.gitlab_download_commit_zip(path, temp_name, async)
-          elsif git.include?("https://github.com")
-            return git_archive.github_download_commit_zip path, temp_name, async
-          else
-            return git_archive.git_clone_by_commit(path, temp_name)
-          end
-        rescue
-          return git_archive.git_clone_by_commit(path, temp_name)
-        end
       elsif git
-        begin
-          if is_use_gitlab_archive_file(git)
-            return git_archive.gitlab_download_branch_zip(path, temp_name, new_branch, async)
-          elsif git.include?("https://github.com")
-            return git_archive.github_download_branch_zip path, temp_name, new_branch, async
-          else
-            return git_archive.git_clone_by_branch(path, temp_name, new_branch)
-          end
-        rescue
-          return git_archive.git_clone_by_branch(path, temp_name, new_branch)
-        end
+        checkout_options[:path] = path
+        checkout_options[:config] = self.request.config if self.request.config
+        git_download = LgPodPlugin::GitDownloader.new(checkout_options)
+        return git_download.download
       else
         return nil
       end
+
     end
 
-    # 是否能够使用 gitlab 下载 zip 文件
-    def is_use_gitlab_archive_file(git)
-      return false if git.include?("https://github.com") || git.include?("https://gitee.com")
-      config = self.request.config
-      return false if (!config || !config.access_token)
-      return true if config.project
-      project_name = LUtils.get_git_project_name(git)
-      config.project = GitLabAPI.request_project_info(config.host, project_name, config.access_token, git)
-      (config.project != nil)
-    end
+
 
 
   end

@@ -33,7 +33,11 @@ module LgPodPlugin
     end
 
     def self.download_request(name, params, spec = nil, released_pod = false)
-      Pod::Downloader::Request.new(spec: spec, released: released_pod, name: name, params: params)
+      if released_pod
+        Pod::Downloader::Request.new(spec: spec, released: true , name: name, params: params)
+      else
+        Pod::Downloader::Request.new(spec: nil, released: false , name: name, params: params)
+      end
     end
 
     def self.path_for_pod(request, slug_opts = {})
@@ -166,6 +170,17 @@ module LgPodPlugin
         end
       end
 
+    end
+
+
+    public
+    def self.get_local_spec_with_target(name, target, options = {})
+      checkout_options = Hash.new.deep_merge(options).reject do |key, val|
+        !key || !val
+      end
+      request = LCache.download_request(name, checkout_options, nil, false )
+      _, pods_pecs = get_local_spec(request, target)
+      return pods_pecs
     end
 
   end

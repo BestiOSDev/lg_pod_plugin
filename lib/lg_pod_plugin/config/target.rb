@@ -23,7 +23,6 @@ module LgPodPlugin
           true
         end
       end
-
       external_pods = Hash.new
       dependencies.each do |e|
         key = e.keys.last ||= ""

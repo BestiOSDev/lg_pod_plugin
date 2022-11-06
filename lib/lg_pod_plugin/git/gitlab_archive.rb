@@ -1,25 +1,48 @@
 require 'uri'
+require_relative 'git_download'
 require_relative '../uitils/l_util'
+
 module LgPodPlugin
 
   class GitLabArchive
-    REQUIRED_ATTRS ||= %i[git tag name commit branch config].freeze
+
+    private
+    attr_reader :source_files
+    attr_reader :podspec_content
+    attr_reader :checkout_options
+    public
+    REQUIRED_ATTRS ||= %i[git tag name commit branch config path spec].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
-    def initialize(name, git, branch, tag, commit, config)
-      self.git = git
-      self.tag = tag
-      self.name = name
-      self.config = config
-      self.commit = commit
-      self.branch = branch
+    def initialize(checkout_options = {})
+      self.git = checkout_options[:git]
+      self.tag = checkout_options[:tag]
+      self.name = checkout_options[:name]
+      self.path = checkout_options[:path]
+      self.spec = checkout_options[:spec]
+      self.config = checkout_options[:config]
+      self.commit = checkout_options[:commit]
+      self.branch = checkout_options[:branch]
+      @checkout_options = checkout_options
+    end
+
+    def download
+      if self.git && self.tag
+        return self.gitlab_download_tag_zip self.path
+      elsif self.git && self.branch
+        return self.gitlab_download_branch_zip self.path
+      elsif self.git && self.commit
+        return self.gitlab_download_commit_zip self.path
+      else
+
+      end
     end
 
     # 下载某个文件zip格式
-    def gitlab_download_repository_archive_zip(path, temp_name, project_name, async = true)
+    def gitlab_download_repository_archive_zip(sanbox_path, project_name)
       host = self.config.host
-      filename = temp_name + ".zip"
       project = self.config.project
+      token = self.config.access_token
       unless host
         http = Ping.new(project.web_url)
         host = http.uri.scheme + "://" + http.uri.hostname
@@ -30,274 +53,125 @@ module LgPodPlugin
         sha = self.branch
       elsif self.git && self.commit
         sha = self.commit
-      end
-      token = self.config.access_token
-      begin
-        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.zip?" + "sha=#{sha}"
-        return LUtils.download_gitlab_zip_file(path, token, download_url, filename, async)
-      rescue => exception
+      else
         return nil
       end
+
+      trees = GitLabAPI.get_gitlab_repository_tree host, token, project.id, sha
+      if trees.empty?
+        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
+        return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
+      end
+      podspec_filename = self.name + ".podspec"
+      unless trees.include?(podspec_filename)
+        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
+        return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
+      end
+      podspec_content = GitLabAPI.get_podspec_file_content(host, token, project.id,sha, podspec_filename)
+      unless podspec_content && LUtils.is_a_string?(podspec_content)
+        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
+        return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
+      end
+      pod_spec_file_path = sanbox_path.join("#{podspec_filename}")
+      lg_spec = LgPodPlugin::PodSpec.form_string(podspec_content, pod_spec_file_path)
+      unless lg_spec
+        File.open(pod_spec_file_path, "w+") do|f|
+          f.write podspec_content
+        end
+        @podspec_content = podspec_content
+        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
+        return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
+      end
+      self.spec = lg_spec
+      @source_files = lg_spec.source_files.keys
+      download_params = Array.new
+      lg_spec.source_files.each_key do |key|
+        next unless trees.include?(key)
+        path = LUtils.url_encode(key)
+        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2#{"\\?"}" + "path#{"\\="}#{path}#{"\\&"}sha#{"\\="}#{sha}"
+        download_params.append({"filename" => "#{key}.tar.bz2", "url" => download_url})
+      end
+      if download_params.empty?
+        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
+        return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
+      else
+        return download_params
+      end
     end
 
     # 根据branch 下载 zip 包
-    def gitlab_download_branch_zip(root_path, temp_name, branch = nil, async = true)
-      new_branch = branch ? branch : "HEAD"
+    def gitlab_download_branch_zip(root_path)
       token = self.config.access_token
       base_url = self.config.project.web_url
       project_name = self.config.project.path
-      # LgPodPlugin.log_blue "开始下载 => #{base_url}"
-      hash_map = self.gitlab_download_repository_archive_zip(root_path, temp_name, project_name, async)
-      if hash_map && hash_map.is_a?(Hash)
-        hash_map["type"] = "gitlab-branch"
-        return hash_map
-      end
-      raise "下载文件失败" unless hash_map && File.exist?(hash_map)
-      raise "解压文件失败" unless LUtils.unzip_file(hash_map.to_path, "./")
-      temp_zip_folder = nil
-      root_path.each_child do |f|
-        ftype = File::ftype(f)
-        next unless ftype == "directory"
-        next unless f.to_path.include?("#{new_branch}") || f.to_path.include?("#{project_name}")
-        temp_zip_folder = f
-        break
-      end
-      if temp_zip_folder&.exist?
-        return temp_zip_folder
+      download_urls = self.gitlab_download_repository_archive_zip(root_path, project_name)
+      download_params = Hash.new
+      download_params["token"] = token
+      download_params["name"] = self.name
+      download_params["type"] = "gitlab-branch"
+      if self.spec
+        download_params["podspec"] = self.spec
       else
-        raise "下载文件失败"
+        download_params["podspec_content"] = @podspec_content
       end
+      download_params["path"] = root_path.to_path
+      if @source_files
+        download_params["source_files"] = @source_files
+      else
+        download_params["source_files"] = "All"
+      end
+      download_params["download_urls"] = download_urls
+      return download_params
     end
 
     # 通过tag下载zip包
-    def gitlab_download_tag_zip(root_path, temp_name, async = true)
+    def gitlab_download_tag_zip(root_path)
       token = self.config.access_token
       base_url = self.config.project.web_url
       project_name = self.config.project.path
-      hash_map = self.gitlab_download_repository_archive_zip(root_path, temp_name, project_name, async)
-      if hash_map && hash_map.is_a?(Hash)
-        hash_map["type"] = "gitlab-tag"
-        return hash_map
-      end
-      raise "下载文件失败" unless hash_map && File.exist?(hash_map)
-      raise "解压文件失败" unless LUtils.unzip_file(hash_map.to_path, "./")
-      temp_zip_folder = nil
-      root_path.each_child do |f|
-        ftype = File::ftype(f)
-        next unless ftype == "directory"
-        next unless f.to_path.include?("#{self.tag}") || f.to_path.include?("#{project_name}")
-        temp_zip_folder = f
-        break
-      end
-      if temp_zip_folder&.exist?
-        return temp_zip_folder
+      download_urls = self.gitlab_download_repository_archive_zip(root_path, project_name)
+      download_params = Hash.new
+      download_params["token"] = token
+      download_params["name"] = self.name
+      download_params["type"] = "gitlab-tag"
+      if self.spec
+        download_params["podspec"] = self.spec
       else
-        raise "下载文件失败"
+        download_params["podspec_content"] = @podspec_content
       end
+      download_params["path"] = root_path.to_path
+      if @source_files
+        download_params["source_files"] = @source_files
+      else
+        download_params["source_files"] = "All"
+      end
+      download_params["download_urls"] = download_urls
+      return download_params
     end
 
     # 通过 commit 下载zip包
-    def gitlab_download_commit_zip(root_path, temp_name, async = true)
+    def gitlab_download_commit_zip(root_path)
       token = self.config.access_token
       base_url = self.config.project.web_url
       project_name = self.config.project.path
-      # LgPodPlugin.log_blue "开始下载 => #{base_url}"
-      hash_map = self.gitlab_download_repository_archive_zip(root_path, temp_name, project_name, async)
-      if hash_map && hash_map.is_a?(Hash)
-        hash_map["type"] = "gitlab-commit"
-        return hash_map
-      end
-      raise "下载文件失败" unless hash_map && File.exist?(hash_map)
-      raise "解压文件失败" unless LUtils.unzip_file(hash_map.to_path, "./")
-      temp_zip_folder = nil
-      root_path.each_child do |f|
-        ftype = File::ftype(f)
-        next unless ftype == "directory"
-        next unless f.to_path.include?("#{self.commit}") || f.to_path.include?("#{project_name}")
-        temp_zip_folder = f
-        break
-      end
-      if temp_zip_folder&.exist?
-        return temp_zip_folder
+      download_urls = self.gitlab_download_repository_archive_zip(root_path, project_name)
+      download_params = Hash.new
+      download_params["token"] = token
+      download_params["name"] = self.name
+      if self.spec
+        download_params["podspec"] = self.spec
       else
-        raise "下载文件失败"
+        download_params["podspec_content"] = @podspec_content
       end
-    end
-
-    # 从 Github下载 zip 包
-    # 根据branch 下载 zip 包
-    def github_download_branch_zip(path, temp_name, branch = nil, async = true)
-      file_name = "#{temp_name}.zip"
-      new_branch = branch ? branch : "HEAD"
-      if self.git.include?(".git")
-        base_url = self.git[0...self.git.length - 4]
+      download_params["type"] = "gitlab-commit"
+      download_params["path"] = root_path.to_path
+      if @source_files
+        download_params["source_files"] = @source_files
       else
-        base_url = self.git
+        download_params["source_files"] = "All"
       end
-      project_name = base_url.split("/").last if base_url
-      url_path = base_url.split("https://github.com/").last
-      if new_branch == "HEAD"
-        download_url = "https://gh.api.99988866.xyz/" + "#{base_url}" + "/archive/#{new_branch}.zip"
-      else
-        download_url = "https://codeload.github.com/#{url_path}/zip/refs/heads/#{new_branch}"
-      end
-      hash_map = LUtils.download_github_zip_file(path, download_url, file_name, async)
-      if hash_map && hash_map.is_a?(Hash)
-        hash_map["type"] = "github-branch"
-        return hash_map
-      end
-      raise "下载文件失败" unless File.exist?(hash_map)
-      # 解压文件
-      raise "解压文件失败" unless LUtils.unzip_file(hash_map.to_path, "./")
-      temp_zip_folder = nil
-      path.each_child do |f|
-        ftype = File::ftype(f)
-        next unless ftype == "directory"
-        next unless f.to_path.include?("#{new_branch}") || f.to_path.include?("#{project_name}")
-        temp_zip_folder = f
-        break
-      end
-      if temp_zip_folder&.exist?
-        return temp_zip_folder
-      else
-        raise "下载文件失败"
-      end
-    end
-
-    # 通过tag下载zip包
-    def github_download_tag_zip(path, temp_name, async = true)
-      file_name = "#{temp_name}.zip"
-      if self.git.include?(".git")
-        base_url = self.git[0...self.git.length - 4]
-      else
-        base_url = self.git
-      end
-      uri = URI(base_url)
-      project_name = base_url.split("/").last if base_url
-      download_url = "https://codeload.github.com#{uri.path}/zip/refs/tags/#{self.tag}"
-      # 下载文件
-      hash_map = LUtils.download_github_zip_file(path, download_url, file_name, async)
-      if hash_map && hash_map.is_a?(Hash)
-        hash_map["type"] = "github-tag"
-        return hash_map
-      end
-      raise "下载文件失败" unless File.exist?(hash_map)
-      # 解压文件
-      raise "解压文件失败" unless LUtils.unzip_file(hash_map.to_path, "./")
-      temp_zip_folder = nil
-      path.each_child do |f|
-        ftype = File::ftype(f)
-        next unless ftype == "directory"
-        version = self.tag.split("v").last ||= self.tag
-        next unless f.to_path.include?("#{project_name}") || f.to_path.include?(version)
-        temp_zip_folder = f
-        break
-      end
-      if temp_zip_folder&.exist?
-        return temp_zip_folder
-      else
-        raise "下载文件失败"
-      end
-    end
-
-    # 通过 commit 下载zip包
-    def github_download_commit_zip(path, temp_name, async = true)
-      file_name = "#{temp_name}.zip"
-      if self.git.include?(".git")
-        base_url = self.git[0...self.git.length - 4]
-      else
-        base_url = self.git
-      end
-      uri = URI(base_url)
-      project_name = base_url.split("/").last if base_url
-      download_url = "https://codeload.github.com#{uri.path}/zip/#{self.commit}"
-      # 下载文件
-      hash_map = LUtils.download_github_zip_file(path, download_url, file_name, async)
-      if hash_map && hash_map.is_a?(Hash)
-        hash_map["type"] = "github-commit"
-        return hash_map
-      end
-      raise "下载文件失败" unless File.exist?(hash_map)
-      # 解压文件
-      raise "解压文件失败" unless LUtils.unzip_file(hash_map.to_path, "./")
-      new_file_name = "#{project_name}-#{self.commit}"
-      if File.exist?(new_file_name)
-        return path.join(new_file_name)
-      else
-        raise "下载文件失败"
-      end
-    end
-
-    def git_clone_by_branch(path, temp_name, branch = nil)
-      new_branch = branch ? branch : nil
-      download_temp_path = path.join(temp_name)
-      if self.git && new_branch
-        git_download_command(temp_name, self.git, new_branch, nil)
-      else
-        git_download_command(temp_name, self.git, nil, nil)
-        if File.exist?(temp_name)
-          system("git -C #{download_temp_path.to_path} rev-parse HEAD")
-        end
-      end
-      download_temp_path
-    end
-
-    def git_clone_by_tag(path, temp_name)
-      git_download_command(temp_name, self.git, nil, self.tag)
-      path.join(temp_name)
-    end
-
-    # git clone commit
-    def git_clone_by_commit(path, temp_name)
-      Git.init(temp_name)
-      FileUtils.chdir(temp_name)
-      LgPodPlugin.log_blue "git clone #{self.git}"
-      system("git remote add origin #{self.git}")
-      system("git fetch origin #{self.commit}")
-      system("git reset --hard FETCH_HEAD")
-      path.join(temp_name)
-    end
-
-    # 封装 git clone命令
-    def git_download_command(temp_name, git, branch, tag)
-      cmds = ['git']
-      cmds << "clone"
-      cmds << "#{git}"
-      cmds << "#{temp_name} "
-      cmds << "--template="
-      cmds << "--single-branch --depth 1"
-      if branch
-        cmds << "--branch"
-        cmds << branch
-      elsif tag
-        cmds << "--branch"
-        cmds << tag
-      end
-      cmds_to_s = cmds.join(" ")
-      LgPodPlugin.log_blue cmds_to_s
-      system(cmds_to_s)
-    end
-
-    # 根据参数生成下载 url
-    def get_gitlab_download_url(base_url, branch, tag, commit, project_name)
-      if base_url.include?("http:") || base_url.include?("https:")
-        if branch
-          return base_url + "/-/archive/" + branch + "/#{project_name}-#{branch}.zip"
-        elsif tag
-          return base_url + "/-/archive/" + tag + "/#{project_name}-#{tag}.zip"
-        elsif commit
-          return base_url + "/-/archive/" + commit + "/#{project_name}-#{commit}.zip"
-        else
-          return nil
-        end
-      end
-      return nil unless base_url.include?("ssh://git@gitlab") || base_url.include?("git@")
-      project = self.config.project
-      if project && project.web_url && project.web_url.include?("http")
-        get_gitlab_download_url(project.web_url, branch, tag, commit, project_name)
-      else
-        nil
-      end
+      download_params["download_urls"] = download_urls
+      return download_params
     end
 
   end

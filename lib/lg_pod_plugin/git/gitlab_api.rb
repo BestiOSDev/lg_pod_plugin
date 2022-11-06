@@ -1,5 +1,8 @@
 require 'json'
 require 'net/http'
+require_relative 'github_api'
+require_relative '../uitils/l_util'
+
 module LgPodPlugin
 
   class GitLabAPI
@@ -172,43 +175,77 @@ module LgPodPlugin
     def self.request_github_refs_heads(git, branch, uri = nil)
       return [nil, nil] unless git
       unless git.include?("https://github.com/") || git.include?("git@github.com:")
-        if LConfig.is_gitlab_uri(git, "")
+        if LgPodPlugin::LUtils.is_gitlab_uri(git, "")
           return self.request_gitlab_refs_heads(git, branch, uri)
         end
         return self.use_default_refs_heads git, branch
       end
-      base_url = LUtils.get_gitlab_base_url git
-      if base_url.include?("https://github.com/")
-        repo_name = base_url.split("https://github.com/", 0).last
-      elsif base_url.include?("git@github.com:")
-        repo_name = base_url.split("git@github.com:", 0).last
+      commit, _ = GithubAPI.request_github_refs_heads git, branch, uri
+      if commit
+        return [commit, branch]
       else
-        repo_name = nil
-      end
-      return [nil, nil] unless repo_name
-      request_url = "https://api.github.com/repos/" + repo_name
-      if branch
-        request_url += ("/commits/" + branch)
-      else
-        request_url += ("/commits/" + "HEAD")
-      end
-      begin
-        uri = URI(request_url)
-        res = Net::HTTP.get_response(uri)
-        case res
-        when Net::HTTPSuccess, Net::HTTPRedirection
-          json = JSON.parse(res.body)
-          return [nil, nil] unless json.is_a?(Hash)
-          sha = json["sha"]
-          return [sha, nil]
-        else
-          return self.use_default_refs_heads git, branch
-        end
-      rescue => excepiton
-        LgPodPlugin.log_red "request_github_refs_heads => #{excepiton}"
         return self.use_default_refs_heads git, branch
       end
+    end
 
+    #获取项目中仓库文件和目录的列表
+    def self.get_gitlab_repository_tree(host, token, project_id, sha)
+      begin
+        hash_map = Hash.new
+        hash_map["ref"] = sha
+        hash_map["access_token"] = token
+        hash_map["per_page"] = 50
+        uri = URI("#{host}/api/v4/projects/#{project_id}/repository/tree")
+        uri.query = URI.encode_www_form(hash_map)
+        res = Net::HTTP.get_response(uri)
+        if res.body
+          array = JSON.parse(res.body)
+        else
+          array = nil
+        end
+        return Set.new unless array && array.is_a?(Array)
+        files = array.collect { |dict|
+          dict["path"]
+        }
+        set = Set.new.merge files
+        return set
+      rescue
+        return Set.new
+      end
+    end
+
+    def self.get_podspec_file_content(host, token, project_id, sha, filepath)
+      begin
+        hash_map = Hash.new
+        hash_map["ref"] = sha
+        hash_map["access_token"] = token
+        uri = URI("#{host}/api/v4/projects/#{project_id}/repository/files/#{filepath}")
+        uri.query = URI.encode_www_form(hash_map)
+        res = Net::HTTP.get_response(uri)
+        if res.body
+          json = JSON.parse(res.body)
+        else
+          json = nil
+        end
+        return nil unless json && json.is_a?(Hash)
+        content = json["content"]
+        return nil unless content && LUtils.is_a_string?(content)
+        encoding = json["encoding"] ||= "base64"
+        if encoding == "base64"
+          require 'base64'
+          content = Base64.decode64(content)
+          if content.respond_to?(:encoding) && content.encoding.name != 'UTF-8'
+            text = content.force_encoding("gb2312").force_encoding("utf-8")
+            return text
+          else
+            return content
+          end
+        else
+          return nil
+        end
+      rescue
+        return nil
+      end
     end
 
   end

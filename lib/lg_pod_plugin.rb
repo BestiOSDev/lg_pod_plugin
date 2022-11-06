@@ -24,6 +24,8 @@ require_relative 'lg_pod_plugin/net/net-ping'
 require_relative 'lg_pod_plugin/git/gitlab_archive'
 require_relative 'lg_pod_plugin/config/lockfile_model'
 require_relative 'lg_pod_plugin/downloader/downloader'
+require_relative 'lg_pod_plugin/git/git_download'
+require_relative 'lg_pod_plugin/git/git_clone'
 require_relative 'lg_pod_plugin/downloader/download_manager'
 
 module LgPodPlugin

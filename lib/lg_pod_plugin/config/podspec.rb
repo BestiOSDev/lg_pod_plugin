@@ -4,12 +4,44 @@ require 'cocoapods-core'
 module LgPodPlugin
 
   class PodSpec
+    attr_reader :spec
     attr_accessor :json_files
     attr_accessor :source_files
 
+    public
     def self.form_file(path)
-      spec = Pod::Specification.from_file(path)
-      return PodSpec.new(spec)
+      begin
+        spec = Pod::Specification.from_file(path)
+        return PodSpec.new(spec)
+      rescue => exception
+        return nil
+      end
+    end
+
+    public
+    def prepare_command
+      return self.spec.to_hash["prepare_command"]
+    end
+
+    public
+    def to_pretty_json(*a)
+      require 'json'
+      JSON.pretty_generate(self.spec.to_hash, *a) << "\n"
+    end
+
+
+    public
+    def self.form_string(string, path)
+      begin
+        #Work around for Rubinius incomplete encoding in 1.9 mode
+        # if string.respond_to?(:encoding) && string.encoding.name != 'UTF-8'
+        #   string.encode!('UTF-8')
+        # end
+        spec = Pod::Specification.from_string string, path
+        return PodSpec.new(spec)
+      rescue => exception
+        return nil
+      end
     end
 
     def self.form_pod_spec(spec)
@@ -17,12 +49,23 @@ module LgPodPlugin
     end
 
     def self.form_json(object)
-      spec = Pod::Specification.from_json(object)
-      return PodSpec.new(spec)
+      begin
+        spec = Pod::Specification.from_json(object)
+        return PodSpec.new(spec)
+      rescue
+        return nil
+      end
     end
 
     def initialize(spec)
+      if spec == nil
+        @spec = nil
+        @json_files = Hash.new
+        @source_files = Hash.new
+        return
+      end
       set = Set[]
+      @spec = spec
       attributes_hash = spec.send(:attributes_hash)
       return unless attributes_hash.is_a?(Hash)
       license = attributes_hash["license"]
@@ -49,6 +92,11 @@ module LgPodPlugin
       end
       self.source_files = parse_with_set set
       self.json_files = spec.to_pretty_json
+    end
+
+    public
+    def write_to_file(path)
+      LCache.write_spec(@spec, path)
     end
 
     def parse_with_set(set)

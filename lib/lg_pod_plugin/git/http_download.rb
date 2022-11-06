@@ -1,23 +1,54 @@
+require 'uri'
+require_relative 'git_download'
+require_relative '../uitils/l_util'
+require_relative '../config/podspec'
+
 module LgPodPlugin
 
   class HTTPDownloader
 
-    def self.find_pod_director(root_path)
-      temp_zip_folder = nil
-      root_path.each_child do |f|
-        ftype = File::ftype(f)
-        next unless ftype == "directory"
-        next if f.to_path.include?("__MACOSX")
-        temp_zip_folder = f
-        break
-      end
-      return temp_zip_folder
+    private
+    attr_reader :checkout_options
+    public
+    REQUIRED_ATTRS ||= %i[http name path lg_spec].freeze
+    attr_accessor(*REQUIRED_ATTRS)
+    def initialize(checkout_options = {})
+      self.name = checkout_options[:name]
+      self.path = checkout_options[:path]
+      self.http = checkout_options[:http]
+      self.lg_spec = checkout_options[:spec]
+      @checkout_options = checkout_options
     end
 
+    def download
+      download_params = Hash.new
+      new_filename = self.http.split("/").last ||= "lg_temp_pod.tar"
+      download_params["path"] = self.path.to_path
+      download_params["name"] = self.name
+      download_params["type"] = "http"
+      download_params["download_urls"] = [{ "filename" => (new_filename ? new_filename : filename), "url" => http }]
+      if self.lg_spec
+        download_params["podspec"] = self.lg_spec
+        download_params["source_files"] = self.lg_spec.source_files.keys
+      end
+      return download_params
+    end
+
+    # def self.find_pod_director(root_path)
+    #   temp_zip_folder = nil
+    #   root_path.each_child do |f|
+    #     ftype = File::ftype(f)
+    #     next unless ftype == "directory"
+    #     next if f.to_path.include?("__MACOSX")
+    #     temp_zip_folder = f
+    #     break
+    #   end
+    #   return temp_zip_folder
+    # end
+
     def self.http_download_with(path, filename, http, async = true)
-      new_filename = http.split("/").last
       if async
-        return { "path" => path.to_path, "filename" => (new_filename ? new_filename : filename), "url" => http }
+
       else
         temp_file_path = LUtils.download_github_zip_file path, http, (new_filename ? new_filename : filename) , false
         return nil unless temp_file_path&.exist?

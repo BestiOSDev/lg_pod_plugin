@@ -30,80 +30,71 @@ module LgPodPlugin
     def copy_file_to_caches
       request = @downloader.send(:request)
       name = request.send(:name)
-      # if name == "LUnityFramework" || name == "LLogin" || name == "LCSOP" || name == "AFNetworking"
-      #   pp name
-      # end
       params = Hash.new.merge!(request.params)
       checkout_options = Hash.new.merge!(request.checkout_options)
       commit = checkout_options[:commit] ||= params[:commit]
-      cache_podspec = request.spec
+      cache_podspec = request.lg_spec.spec if request.lg_spec
       unless cache_podspec
         cache_podspec = LProject.shared.cache_specs[name]
-        request.spec = cache_podspec if cache_podspec
+        request.lg_spec = LgPodPlugin::PodSpec.form_pod_spec cache_podspec if cache_podspec
       end
       pod_is_exist = false
       if cache_podspec
         local_podspecs = Array.new
-        destination_paths = self.download_params["destination_paths"] ||= []
-        # cache_pod_spec_paths = self.download_params["cache_pod_spec_paths"] ||= []
-        destination_paths.each_index do |idx|
-          destination = destination_paths[idx]
-          # cache_pod_spec_path = cache_pod_spec_paths[idx]
-          if File.exist?(destination.to_path)
-            pod_is_exist = true
-            # attributes_hash = cache_podspec.send(:attributes_hash)
-            # prepare_command = attributes_hash["prepare_command"] if attributes_hash
-            # if prepare_command && !prepare_command.empty?
-            #   LCache.clean_pod_unuse_files destination, cache_podspec
-            # end
-          end
+        destination = self.download_params["destination"]
+        if File.exist?(destination.to_path)
+          pod_is_exist = true
         end
       else
         local_podspecs = Array.new
-        destination_paths = self.download_params["destination_paths"] ||= []
-        cache_pod_spec_paths = self.download_params["cache_pod_spec_paths"] ||= []
-        destination_paths.each_index do |idx|
-          destination = destination_paths[idx]
-          pod_is_exist = File.exist?(destination)
-          local_spec_path = destination.glob("#{name}.podspec").last
-          if local_spec_path && File.exist?(local_spec_path)
-            cache_podspec = Pod::Specification.from_file local_spec_path
-            next unless cache_podspec
+        destination = self.download_params["destination"]
+        cache_pod_spec_path = self.download_params["cache_pod_spec_path"]
+        pod_is_exist = File.exist?(destination)
+        local_spec_path = destination.glob("#{name}.podspec").last
+        if local_spec_path && File.exist?(local_spec_path)
+          cache_podspec = Pod::Specification.from_file local_spec_path
+          if cache_podspec
             LProject.shared.cache_specs[name] = cache_podspec
-            LCache.write_spec cache_podspec, cache_pod_spec_paths[idx]
-            # attributes_hash = cache_podspec.send(:attributes_hash)
-            # prepare_command = attributes_hash["prepare_command"] if attributes_hash
-            # if prepare_command && !prepare_command.empty?
-              LCache.clean_pod_unuse_files destination, cache_podspec
-            # end
+            LCache.write_spec cache_podspec, cache_pod_spec_path
+            LCache.clean_pod_unuse_files destination, cache_podspec
           end
         end
-        request.spec = cache_podspec
+        request.lg_spec = LgPodPlugin::PodSpec.form_pod_spec cache_podspec if cache_podspec
       end
+      # pod_is_exist = false
       if pod_is_exist
         is_delete = request.params["is_delete"] ||= false
         LProject.shared.need_update_pods.delete(name) if is_delete
         request.checkout_options.delete(:branch) if commit
         request.checkout_options[:commit] = commit if commit
       else
-        path = self.download_params["path"]
-        return unless File.exist? path
-        sandbox_path = Pathname(path)
-        FileUtils.chdir sandbox_path
-        # 需要重新下载文件
         git = checkout_options[:git]
-        http = checkout_options[:http]
+        return unless git
         tag = checkout_options[:tag]
-        branch = checkout_options[:branch] ||= params[:branch]
-        temp_zip_folder = self.downloader.select_git_repository_download_strategy sandbox_path, name, git, branch, tag, commit, false, http
-        return unless temp_zip_folder&.exist?
-        cache_key_params = request.get_cache_key_params
-        LgPodPlugin::LCache.cache_pod(name, temp_zip_folder, { :git => git }, request.spec, request.released_pod) if request.single_git
-        LgPodPlugin::LCache.cache_pod(name, temp_zip_folder, cache_key_params, request.spec, request.released_pod)
+        branch = checkout_options[:branch]
+        checkout_options[:name] = name if name
+        unless branch
+          branch = self.request.params[:branch] if request.params[:branch]
+          checkout_options[:branch] = branch if branch
+        end
+        lg_pod_path = LFileManager.cache_workspace(LProject.shared.workspace)
+        lg_pod_path.mkdir(0700) unless lg_pod_path.exist?
+        checkout_options[:path] = lg_pod_path
+        FileUtils.chdir lg_pod_path
+        git_clone = GitRepository.new(checkout_options)
+        download_params = git_clone.download
+        return unless download_params && File.exist?(download_params)
+        FileUtils.chdir download_params
+        if request.single_git
+          LgPodPlugin::LCache.cache_pod(name, download_params, { :git => git }, nil, request.released_pod)
+        else
+          LgPodPlugin::LCache.cache_pod(name, download_params, request.get_cache_key_params, nil, request.released_pod)
+        end
         FileUtils.chdir(LFileManager.download_director)
-        FileUtils.rm_rf(sandbox_path)
+        FileUtils.rm_rf(download_params)
         request.checkout_options.delete(:branch) if commit
         request.checkout_options[:commit] = commit if commit
+
       end
 
     end

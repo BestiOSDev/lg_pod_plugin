@@ -5,29 +5,24 @@ require 'cocoapods-core'
 module LgPodPlugin
 
   class LRequest
-    # include Singleton
-    attr_accessor :spec
     attr_reader :target
     attr_reader :name
+    attr_accessor :lg_spec
     attr_reader :released_pod
     attr_accessor :single_git
-    attr_accessor :params
-    attr_accessor :checkout_options
     attr_accessor :config
     attr_accessor :net_ping
+    attr_accessor :params
     attr_accessor :lockfile
-    attr_reader :json_files
-    attr_reader :source_files
-    attr_accessor :prepare_command
+    attr_accessor :checkout_options
     def initialize(pod)
-      @spec = pod.spec
-      @released_pod = pod.released_pod
       @name = pod.name
-      @checkout_options = pod.checkout_options
       @target = pod.target
-      @json_files = pod.json_files
-      @source_files = pod.source_files
-      @prepare_command = pod.send(:prepare_command)
+      @released_pod = pod.released_pod
+      @checkout_options = pod.checkout_options
+      if pod.spec
+        @lg_spec = pod.spec
+      end
       self.preprocess_request
     end
 
@@ -56,7 +51,6 @@ module LgPodPlugin
     end
 
     public
-
     def get_lockfile
       self.lockfile = LgPodPlugin::LockfileModel.from_file
     end
