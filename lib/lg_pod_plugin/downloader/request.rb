@@ -82,7 +82,6 @@ module LgPodPlugin
     end
 
     public
-
     def get_lock_params
       begin
         _release_pods = self.lockfile.release_pods ||= []

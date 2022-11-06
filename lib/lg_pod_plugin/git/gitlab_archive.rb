@@ -1,16 +1,19 @@
 require 'uri'
 require_relative 'git_download'
-require_relative '../uitils/l_util'
+require_relative '../utils/l_util'
 
 module LgPodPlugin
 
   class GitLabArchive
 
     private
+
     attr_reader :source_files
     attr_reader :podspec_content
     attr_reader :checkout_options
+
     public
+
     REQUIRED_ATTRS ||= %i[git tag name commit branch config path spec].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
@@ -28,18 +31,18 @@ module LgPodPlugin
 
     def download
       if self.git && self.tag
-        return self.gitlab_download_tag_zip self.path
+        self.gitlab_download_tag_zip self.path
       elsif self.git && self.branch
-        return self.gitlab_download_branch_zip self.path
+        self.gitlab_download_branch_zip self.path
       elsif self.git && self.commit
-        return self.gitlab_download_commit_zip self.path
+        self.gitlab_download_commit_zip self.path
       else
-
+        nil
       end
     end
 
     # 下载某个文件zip格式
-    def gitlab_download_repository_archive_zip(sanbox_path, project_name)
+    def download_archive_zip(sandbox_path)
       host = self.config.host
       project = self.config.project
       token = self.config.access_token
@@ -67,15 +70,15 @@ module LgPodPlugin
         download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
         return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
       end
-      podspec_content = GitLabAPI.get_podspec_file_content(host, token, project.id,sha, podspec_filename)
+      podspec_content = GitLabAPI.get_podspec_file_content(host, token, project.id, sha, podspec_filename)
       unless podspec_content && LUtils.is_a_string?(podspec_content)
         download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
         return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
       end
-      pod_spec_file_path = sanbox_path.join("#{podspec_filename}")
+      pod_spec_file_path = sandbox_path.join("#{podspec_filename}")
       lg_spec = LgPodPlugin::PodSpec.form_string(podspec_content, pod_spec_file_path)
       unless lg_spec
-        File.open(pod_spec_file_path, "w+") do|f|
+        File.open(pod_spec_file_path, "w+") do |f|
           f.write podspec_content
         end
         @podspec_content = podspec_content
@@ -89,22 +92,20 @@ module LgPodPlugin
         next unless trees.include?(key)
         path = LUtils.url_encode(key)
         download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2#{"\\?"}" + "path#{"\\="}#{path}#{"\\&"}sha#{"\\="}#{sha}"
-        download_params.append({"filename" => "#{key}.tar.bz2", "url" => download_url})
+        download_params.append({ "filename" => "#{key}.tar.bz2", "url" => download_url })
       end
       if download_params.empty?
         download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
-        return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
+        [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
       else
-        return download_params
+        download_params
       end
     end
 
     # 根据branch 下载 zip 包
     def gitlab_download_branch_zip(root_path)
       token = self.config.access_token
-      base_url = self.config.project.web_url
-      project_name = self.config.project.path
-      download_urls = self.gitlab_download_repository_archive_zip(root_path, project_name)
+      download_urls = self.download_archive_zip(root_path)
       download_params = Hash.new
       download_params["token"] = token
       download_params["name"] = self.name
@@ -121,15 +122,13 @@ module LgPodPlugin
         download_params["source_files"] = "All"
       end
       download_params["download_urls"] = download_urls
-      return download_params
+      download_params
     end
 
     # 通过tag下载zip包
     def gitlab_download_tag_zip(root_path)
       token = self.config.access_token
-      base_url = self.config.project.web_url
-      project_name = self.config.project.path
-      download_urls = self.gitlab_download_repository_archive_zip(root_path, project_name)
+      download_urls = self.download_archive_zip(root_path)
       download_params = Hash.new
       download_params["token"] = token
       download_params["name"] = self.name
@@ -146,15 +145,14 @@ module LgPodPlugin
         download_params["source_files"] = "All"
       end
       download_params["download_urls"] = download_urls
-      return download_params
+      download_params
     end
 
     # 通过 commit 下载zip包
     def gitlab_download_commit_zip(root_path)
       token = self.config.access_token
-      base_url = self.config.project.web_url
-      project_name = self.config.project.path
-      download_urls = self.gitlab_download_repository_archive_zip(root_path, project_name)
+
+      download_urls = self.download_archive_zip(root_path)
       download_params = Hash.new
       download_params["token"] = token
       download_params["name"] = self.name
@@ -171,7 +169,7 @@ module LgPodPlugin
         download_params["source_files"] = "All"
       end
       download_params["download_urls"] = download_urls
-      return download_params
+      download_params
     end
 
   end

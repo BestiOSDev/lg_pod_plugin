@@ -1,6 +1,6 @@
 require 'uri'
 require_relative 'git_download'
-require_relative '../uitils/l_util'
+require_relative '../utils/l_util'
 require_relative '../config/podspec'
 
 module  LgPodPlugin
@@ -26,17 +26,17 @@ module  LgPodPlugin
 
     def download
       if self.git && self.tag
-        return self.github_download_tag_zip self.path
+        self.github_download_tag_zip self.path
       elsif self.git && self.branch
-        return self.github_download_branch_zip self.path
+        self.github_download_branch_zip self.path
       elsif self.git && self.commit
-        return self.github_download_commit_zip self.path
+        self.github_download_commit_zip self.path
       end
     end
 
     def github_download_tag_zip(root_path)
       project_name = LUtils.get_git_project_name self.git
-      download_urls = self.github_download_repository_archive_zip(root_path, project_name)
+      download_urls = self.download_archive_zip(project_name)
       if self.spec == nil
         podspec_filename = self.name + ".podspec"
         podspec_content = GithubAPI.get_podspec_file_content self.git, self.tag, podspec_filename
@@ -51,12 +51,12 @@ module  LgPodPlugin
       download_params["podspec"] = self.spec if self.spec
       download_params["source_files"] = self.spec.source_files.keys if self.spec
       download_params["podspec_content"] = podspec_content if podspec_content
-      return download_params
+      download_params
     end
 
     def github_download_branch_zip(root_path)
       project_name = LUtils.get_git_project_name self.git
-      download_urls = self.github_download_repository_archive_zip(root_path, project_name)
+      download_urls = self.download_archive_zip(project_name)
       if self.spec == nil
         podspec_filename = self.name + ".podspec"
         podspec_content = GithubAPI.get_podspec_file_content self.git, self.branch, podspec_filename
@@ -71,12 +71,12 @@ module  LgPodPlugin
       download_params["podspec"] = self.spec if self.spec
       download_params["source_files"] = self.spec.source_files.keys if self.spec
       download_params["podspec_content"] = podspec_content if podspec_content
-      return download_params
+      download_params
     end
 
     def github_download_commit_zip(root_path)
       project_name = LUtils.get_git_project_name self.git
-      download_urls = self.github_download_repository_archive_zip(root_path, project_name)
+      download_urls = self.download_archive_zip(project_name)
       if self.spec == nil
         podspec_filename = self.name + ".podspec"
         podspec_content = GithubAPI.get_podspec_file_content self.git, self.commit, podspec_filename
@@ -91,11 +91,11 @@ module  LgPodPlugin
       download_params["podspec"] = self.spec if self.spec
       download_params["source_files"] = self.spec.source_files.keys if self.spec
       download_params["podspec_content"] = podspec_content if podspec_content
-      return download_params
+      download_params
     end
 
     # 下载某个文件zip格式
-    def github_download_repository_archive_zip(sanbox_path, project_name)
+    def download_archive_zip(project_name)
       base_url = LUtils.get_gitlab_base_url(self.git)
       if base_url.include?("https://github.com/")
         repo_name = base_url.split("https://github.com/", 0).last
@@ -107,20 +107,20 @@ module  LgPodPlugin
       return nil unless repo_name
       if self.git && self.tag
         download_url = "https://codeload.github.com/#{repo_name}/tar.gz/refs/tags/#{self.tag}"
-        return [{ "filename" => "#{project_name}.tar.gz", "url" => download_url }]
+        [{ "filename" => "#{project_name}.tar.gz", "url" => download_url }]
       elsif self.git && self.branch
         if self.branch == "HEAD"
           download_url = "https://gh.api.99988866.xyz/" + "#{base_url}" + "/archive/#{self.branch}.tar.gz"
-          return [{ "filename" => "#{project_name}.tar.gz", "url" => download_url }]
+          [{ "filename" => "#{project_name}.tar.gz", "url" => download_url }]
         else
           download_url = "https://codeload.github.com/#{repo_name}/tar.gz/refs/heads/#{self.branch}"
-          return [{ "filename" => "#{project_name}.tar.gz", "url" => download_url }]
+          [{ "filename" => "#{project_name}.tar.gz", "url" => download_url }]
         end
       elsif self.git && self.commit
         download_url = "https://codeload.github.com/#{repo_name}/tar.gz/#{self.commit}"
         return [{ "filename" => "#{project_name}.tar.gz", "url" => download_url }]
       else
-        return nil
+        nil
       end
     end
 

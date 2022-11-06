@@ -1,7 +1,7 @@
 require 'json'
 require 'net/http'
 require_relative 'github_api'
-require_relative '../uitils/l_util'
+require_relative '../utils/l_util'
 
 module LgPodPlugin
 
@@ -180,7 +180,7 @@ module LgPodPlugin
         end
         return self.use_default_refs_heads git, branch
       end
-      commit, _ = GithubAPI.request_github_refs_heads git, branch, uri
+      commit, _ = GithubAPI.request_github_refs_heads git, branch
       if commit
         return [commit, branch]
       else
@@ -214,6 +214,7 @@ module LgPodPlugin
       end
     end
 
+    public
     def self.get_podspec_file_content(host, token, project_id, sha, filepath)
       begin
         hash_map = Hash.new

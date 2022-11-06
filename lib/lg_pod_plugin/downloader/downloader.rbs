@@ -1,11 +1,11 @@
-
 module LgPodPlugin
 
-class LDownloader
+  class LDownloader
 
-# 预下载处理
-def pre_download_pod: -> void
-
-end
+    # 预下载处理
+    def pre_download_pod: -> void
+    def pre_download_git_repository: (Hash[String, Object] checkout_options) -> Hash[String, Object]?
+    def select_git_repository_download_strategy: (Pathname path, Hash[String, Object] checkout_options) -> Hash[String, Object]?
+  end
 
 end

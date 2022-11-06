@@ -13,14 +13,17 @@ module LgPodPlugin
       begin
         spec = Pod::Specification.from_file(path)
         return PodSpec.new(spec)
-      rescue => exception
+      rescue
         return nil
       end
     end
 
     public
     def prepare_command
-      return self.spec.to_hash["prepare_command"]
+      json = self.to_pretty_json
+      return nil unless json
+      hash = JSON.parse json
+      hash["prepare_command"]
     end
 
     public
@@ -34,12 +37,12 @@ module LgPodPlugin
     def self.form_string(string, path)
       begin
         #Work around for Rubinius incomplete encoding in 1.9 mode
-        # if string.respond_to?(:encoding) && string.encoding.name != 'UTF-8'
-        #   string.encode!('UTF-8')
-        # end
+        if string.respond_to?(:encoding) && string.encoding.name != 'UTF-8'
+          string = string.force_encoding("gb2312").force_encoding("utf-8")
+        end
         spec = Pod::Specification.from_string string, path
         return PodSpec.new(spec)
-      rescue => exception
+      rescue
         return nil
       end
     end

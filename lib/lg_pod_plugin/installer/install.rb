@@ -23,30 +23,34 @@ module LgPodPlugin
       path = hash[:path]
       return nil if path
       @downloader = LDownloader.new(pod)
-      @download_params = @downloader.pre_download_pod
-      @download_params
+      @downloader.pre_download_pod
     end
 
+    public
     def copy_file_to_caches
       request = @downloader.send(:request)
       name = request.send(:name)
       params = Hash.new.merge!(request.params)
       checkout_options = Hash.new.merge!(request.checkout_options)
       commit = checkout_options[:commit] ||= params[:commit]
-      cache_podspec = request.lg_spec.spec if request.lg_spec
+      if request.lg_spec
+        cache_podspec = request.lg_spec.spec
+      else
+        cache_podspec = nil
+      end
       unless cache_podspec
         cache_podspec = LProject.shared.cache_specs[name]
         request.lg_spec = LgPodPlugin::PodSpec.form_pod_spec cache_podspec if cache_podspec
       end
       pod_is_exist = false
       if cache_podspec
-        local_podspecs = Array.new
+
         destination = self.download_params["destination"]
         if File.exist?(destination.to_path)
           pod_is_exist = true
         end
       else
-        local_podspecs = Array.new
+
         destination = self.download_params["destination"]
         cache_pod_spec_path = self.download_params["cache_pod_spec_path"]
         pod_is_exist = File.exist?(destination)
@@ -56,12 +60,12 @@ module LgPodPlugin
           if cache_podspec
             LProject.shared.cache_specs[name] = cache_podspec
             LCache.write_spec cache_podspec, cache_pod_spec_path
-            LCache.clean_pod_unuse_files destination, cache_podspec
+            LCache.clean_pod_unused_files destination, cache_podspec
           end
         end
         request.lg_spec = LgPodPlugin::PodSpec.form_pod_spec cache_podspec if cache_podspec
       end
-      # pod_is_exist = false
+
       if pod_is_exist
         is_delete = request.params["is_delete"] ||= false
         LProject.shared.need_update_pods.delete(name) if is_delete
@@ -70,7 +74,6 @@ module LgPodPlugin
       else
         git = checkout_options[:git]
         return unless git
-        tag = checkout_options[:tag]
         branch = checkout_options[:branch]
         checkout_options[:name] = name if name
         unless branch

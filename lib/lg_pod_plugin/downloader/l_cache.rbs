@@ -3,9 +3,9 @@ module LgPodPlugin
   class LCache
 
     #判断缓存是否存在且有效命中缓存
-    def find_pod_cache: (String name, Hash[Symbol, String] options) -> bool
+    def find_pod_cache: (String name, Hash[Symbol, Object] options) -> [Pathname, Pathname]
     # 拷贝 pod 缓存文件到 sandbox
-    def self.cache_pod: (String name, Pathname target, Hash[Symbol, String] options) -> void
+    def self.cache_pod: (String name, Pathname target, Hash[Symbol, Object] options) -> void
 
   end
 

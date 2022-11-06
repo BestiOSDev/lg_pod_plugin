@@ -1,12 +1,12 @@
 require 'uri'
-require_relative '../uitils/l_util'
+require_relative '../utils/l_util'
 
 module LgPodPlugin
 
   class GithubAPI
 
     #获取 gitlab最新 commit_id
-    def self.request_github_refs_heads(git, branch, uri = nil)
+    def self.request_github_refs_heads(git, branch)
       base_url = LUtils.get_gitlab_base_url git
       if base_url.include?("https://github.com/")
         repo_name = base_url.split("https://github.com/", 0).last
@@ -40,6 +40,7 @@ module LgPodPlugin
 
     end
 
+    public
     def self.get_gitlab_repository_tree(git, sha)
       base_url = LUtils.get_gitlab_base_url git
       if base_url.include?("https://github.com/")
@@ -69,6 +70,7 @@ module LgPodPlugin
       end
     end
 
+    public
     def self.get_podspec_file_content(git, sha, filename)
       base_url = LUtils.get_gitlab_base_url git
       if base_url.include?("https://github.com/")
@@ -82,7 +84,7 @@ module LgPodPlugin
       begin
         uri = URI("https://raw.githubusercontent.com/#{repo_name}/#{sha}/#{filename}")
         res = Net::HTTP.get_response(uri)
-        if res.body
+        if res.body != nil
           if LUtils.is_a_string?(res.body)
             if res.body.respond_to?(:encoding) && res.body.encoding.name != 'UTF-8'
               text = res.body.force_encoding("gb2312").force_encoding("utf-8")

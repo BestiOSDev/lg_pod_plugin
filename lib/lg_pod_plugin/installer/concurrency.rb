@@ -5,6 +5,7 @@ module  LgPodPlugin
 
   class Concurrency
 
+    public
     def self.async_download_pods(installers)
       return if installers.empty?
       json_text = installers.map(&:download_params).uniq.to_json

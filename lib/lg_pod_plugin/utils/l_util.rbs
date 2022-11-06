@@ -9,15 +9,15 @@ module LgPodPlugin
     def self.is_a_string?: (String obj) -> bool
 
     # 解压文件
-    def self.unzip_file: (String zip_file, String dest_dir) -> bool
+    # def self.unzip_file: (String zip_file, String dest_dir) -> bool
 
     # 下载 zip 格式文件
-    def self.download_gitlab_zip_file:(Pathname path, String token, String download_url, String filename, bool async) -> [String, String]
+    # def self.download_gitlab_zip_file:(Pathname path, String token, String download_url, String filename, bool async) -> [String, String]
 
     # gitlab 下载压缩文件
     def self.download_github_zip_file: (String path, String download_url, String file_name) -> void
 
-    def self.git_to_uri: (String git) -> URI
+    # def self.git_to_uri: (String git) -> URI
 
     # 通过 git ls-remote获取最新 commit
     def self.refs_from_ls_remote: (String git, String branch) -> String

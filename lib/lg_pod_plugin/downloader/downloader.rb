@@ -15,9 +15,6 @@ module LgPodPlugin
     # 预下载处理
     def pre_download_pod
       name = self.request.name
-      # if name == "R.swift"
-      #   pp name
-      # end
       if self.request.lg_spec
         podspec = self.request.lg_spec.spec
       else
@@ -51,7 +48,6 @@ module LgPodPlugin
       else
         LgPodPlugin.log_green "Using `#{name}`"
       end
-      pod_is_exist = false
       hash_map = self.request.get_cache_key_params
       # 发现本地有缓存, 不需要更新缓存
       if self.request.single_git
@@ -65,7 +61,7 @@ module LgPodPlugin
         self.request.checkout_options.delete(:branch) if commit
         self.request.checkout_options[:commit] = commit if commit
         LgPodPlugin.log_green "find the cache of `#{name}`, you can use it now."
-        return nil
+         nil
       else
         LgPodPlugin.log_green "find the new commit of `#{name}`, Git downloading now."
         # 本地 git 下载 pod 目录
@@ -109,16 +105,16 @@ module LgPodPlugin
             FileUtils.rm_rf podspec_path
           end
           return download_params
-        elsif download_params && File.exist?(download_params)
+        elsif File.exist?(download_params.to_s) && download_params
           FileUtils.chdir download_params
-          LgPodPlugin::LCache.cache_pod(name, download_params, { :git => git }, podspec, self.request.released_pod) if self.request.single_git
-          LgPodPlugin::LCache.cache_pod(name, download_params, self.request.get_cache_key_params,podspec, self.request.released_pod)
+          LgPodPlugin::LCache.cache_pod(name, download_params.to_path, { :git => git }, podspec, self.request.released_pod) if self.request.single_git
+          LgPodPlugin::LCache.cache_pod(name, download_params.to_path, self.request.get_cache_key_params,podspec, self.request.released_pod)
           FileUtils.chdir(LFileManager.download_director)
           FileUtils.rm_rf(download_params)
           self.request.checkout_options.delete(:branch) if commit
           self.request.checkout_options[:commit] = commit if commit
         end
-        return nil
+        nil
       end
 
     end
@@ -126,12 +122,11 @@ module LgPodPlugin
     def pre_download_git_repository(checkout_options = {})
       lg_pod_path = LFileManager.cache_workspace(LProject.shared.workspace)
       lg_pod_path.mkdir(0700) unless lg_pod_path.exist?
-      download_params = select_git_repository_download_strategy(lg_pod_path, checkout_options)
-      return download_params
+      download_repository_strategy(lg_pod_path, checkout_options)
     end
 
     # 根据不同 git 源 选择下载策略
-    def select_git_repository_download_strategy(path, checkout_options = {})
+    def download_repository_strategy(path, checkout_options = {})
       FileUtils.chdir(path)
       git = checkout_options[:git]
       http = checkout_options[:http]
@@ -139,9 +134,9 @@ module LgPodPlugin
         begin
           checkout_options[:path] = path
           http_download = LgPodPlugin::HTTPDownloader.new(checkout_options)
-          return http_download.download
+          http_download.download
         rescue
-          return nil
+          nil
         end
       elsif git
         checkout_options[:path] = path
@@ -149,13 +144,10 @@ module LgPodPlugin
         git_download = LgPodPlugin::GitDownloader.new(checkout_options)
         return git_download.download
       else
-        return nil
+        nil
       end
 
     end
-
-
-
 
   end
 

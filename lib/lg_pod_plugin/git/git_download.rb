@@ -40,8 +40,9 @@ module  LgPodPlugin
     end
 
     # 是否能够使用 gitlab 下载 zip 文件
+    public
     def is_use_gitlab_archive_file(git)
-      return false unless self.config && self.config.access_token
+      return false unless self.config&.access_token
       return true if self.config.project
       project_name = LUtils.get_git_project_name(git)
       self.config.project = GitLabAPI.request_project_info(config.host, project_name, config.access_token, git)

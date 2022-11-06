@@ -14,11 +14,7 @@ module LgPodPlugin
         elsif e.is_a?(Hash)
           key = e.keys.last ||= ""
           val = e[key].last ||= ""
-          if val.is_a?(Hash)
-            false
-          else
-            true
-          end
+          !val.is_a?(Hash)
         else
           true
         end
