@@ -48,7 +48,7 @@ module LgPodPlugin
         end
       end
       # 通过 swift 可执行文件进行异步下载任务
-      LgPodPlugin::Concurrency.async_download_pods all_installers.values
+      LgPodPlugin::Concurrency.async_download_pods(all_installers.values)
     end
 
     def self.check_podfile_exist?(workspace)

@@ -23,7 +23,8 @@ module LgPodPlugin
       path = hash[:path]
       return nil if path
       @downloader = LDownloader.new(pod)
-      @downloader.pre_download_pod
+      self.download_params = @downloader.pre_download_pod
+      return self.download_params
     end
 
     public
@@ -38,23 +39,20 @@ module LgPodPlugin
       else
         cache_podspec = nil
       end
+
       unless cache_podspec
         cache_podspec = LProject.shared.cache_specs[name]
         request.lg_spec = LgPodPlugin::PodSpec.form_pod_spec cache_podspec if cache_podspec
       end
-      pod_is_exist = false
+
       if cache_podspec
-
         destination = self.download_params["destination"]
-        if File.exist?(destination.to_path)
-          pod_is_exist = true
-        end
-      else
-
-        destination = self.download_params["destination"]
-        cache_pod_spec_path = self.download_params["cache_pod_spec_path"]
         pod_is_exist = File.exist?(destination)
-        local_spec_path = destination.glob("#{name}.podspec").last
+      else
+        destination = self.download_params["destination"]
+        pod_is_exist = File.exist?(destination)
+        cache_pod_spec_path = self.download_params["cache_pod_spec_path"]
+        local_spec_path = destination.glob("#{name}.podspec{,.json}").last
         if local_spec_path && File.exist?(local_spec_path)
           cache_podspec = Pod::Specification.from_file local_spec_path
           if cache_podspec
@@ -97,7 +95,6 @@ module LgPodPlugin
         FileUtils.rm_rf(download_params)
         request.checkout_options.delete(:branch) if commit
         request.checkout_options[:commit] = commit if commit
-
       end
 
     end
