@@ -59,16 +59,7 @@ module LgPodPlugin
       else
         return nil
       end
-      # trees = GitLabAPI.get_gitlab_repository_tree host, token, project.id, sha
-      # if trees.empty?
-      #   download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
-      #   return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
-      # end
       podspec_filename = self.name + ".podspec"
-      # unless trees.include?(podspec_filename)
-      #   download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
-      #   return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
-      # end
       podspec_content = GitLabAPI.get_podspec_file_content(host, token, project.id, sha, podspec_filename)
       unless podspec_content && LUtils.is_a_string?(podspec_content)
         download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
@@ -77,10 +68,16 @@ module LgPodPlugin
       pod_spec_file_path = sandbox_path.join("#{podspec_filename}")
       lg_spec = LgPodPlugin::PodSpec.form_string(podspec_content, pod_spec_file_path)
       unless lg_spec
-        File.open(pod_spec_file_path, "w+") do |f|
-          f.write podspec_content
+        if podspec_content
+          begin
+            File.open(pod_spec_file_path, "w+") do |f|
+              f.write podspec_content
+            end
+          rescue => exception
+            LgPodPlugin.log_red "#{exception}"
+          end
+          @podspec_content = podspec_content
         end
-        @podspec_content = podspec_content
         download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
         return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
       end
@@ -105,6 +102,7 @@ module LgPodPlugin
     def gitlab_download_branch_zip(root_path)
       token = self.config.access_token
       download_urls = self.download_archive_zip(root_path)
+      return nil unless download_urls
       download_params = Hash.new
       download_params["token"] = token
       download_params["name"] = self.name
@@ -128,6 +126,7 @@ module LgPodPlugin
     def gitlab_download_tag_zip(root_path)
       token = self.config.access_token
       download_urls = self.download_archive_zip(root_path)
+      return nil unless download_urls
       download_params = Hash.new
       download_params["token"] = token
       download_params["name"] = self.name
@@ -150,8 +149,8 @@ module LgPodPlugin
     # 通过 commit 下载zip包
     def gitlab_download_commit_zip(root_path)
       token = self.config.access_token
-
       download_urls = self.download_archive_zip(root_path)
+      return nil unless download_urls
       download_params = Hash.new
       download_params["token"] = token
       download_params["name"] = self.name
