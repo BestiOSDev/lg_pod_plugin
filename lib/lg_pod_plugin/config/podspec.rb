@@ -71,13 +71,13 @@ module LgPodPlugin
       @spec = spec
       attributes_hash = spec.send(:attributes_hash)
       return unless attributes_hash.is_a?(Hash)
-      license = attributes_hash["license"]
-      if license.is_a?(Hash)
-        license_file = license["file"]
-        set.add(license_file) if license_file
-      else
-        set.add("LICENSE")
-      end
+      # license = attributes_hash["license"]
+      # if license.is_a?(Hash)
+      #   license_file = license["file"]
+      #   set.add(license_file) if license_file
+      # else
+      #   set.add("LICENSE")
+      # end
       # 解析主模块依赖信息
       set.merge(parse_subspec_with(attributes_hash))
       subspecs = spec.subspecs

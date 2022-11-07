@@ -63,7 +63,6 @@ module LgPodPlugin
         end
         request.lg_spec = LgPodPlugin::PodSpec.form_pod_spec cache_podspec if cache_podspec
       end
-
       if pod_is_exist
         is_delete = request.params["is_delete"] ||= false
         LProject.shared.need_update_pods.delete(name) if is_delete

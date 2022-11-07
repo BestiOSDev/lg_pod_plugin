@@ -42,7 +42,25 @@ module LgPodPlugin
       download_urls = self.download_archive_zip(project_name)
       if self.spec == nil
         podspec_filename = self.name + ".podspec"
-        podspec_content = GithubAPI.get_podspec_file_content self.git, self.tag, podspec_filename, "version"
+        podspec_filepath = GithubAPI.get_podspec_file_content root_path.join(podspec_filename), self.git, self.tag, podspec_filename
+        if File.exist?(podspec_filepath)
+          self.spec = LgPodPlugin::PodSpec.form_file podspec_filepath
+          if self.spec
+            podspec_content = nil
+          else
+            aFile = File.new(podspec_filepath, "r")
+            if aFile
+              podspec_content = aFile.sysread(10000)
+              if podspec_content && podspec_content.respond_to?(:encoding) && podspec_content.encoding.name != 'UTF-8'
+                podspec_content = podspec_content.force_encoding("gb2312").force_encoding("utf-8")
+              end
+            else
+              podspec_content = nil
+            end
+          end
+        else
+          podspec_content = nil
+        end
       else
         podspec_content = nil
       end
@@ -68,7 +86,25 @@ module LgPodPlugin
       download_urls = self.download_archive_zip(project_name)
       if self.spec == nil
         podspec_filename = self.name + ".podspec"
-        podspec_content = GithubAPI.get_podspec_file_content self.git, self.branch, podspec_filename, "branch"
+        podspec_filepath = GithubAPI.get_podspec_file_content root_path.join(podspec_filename), self.git, self.branch, podspec_filename
+        if File.exist?(podspec_filepath)
+          self.spec = LgPodPlugin::PodSpec.form_file podspec_filepath
+          if self.spec
+            podspec_content = nil
+          else
+            aFile = File.new(podspec_filepath, "r")
+            if aFile
+              podspec_content = aFile.sysread(10000)
+              if podspec_content && podspec_content.respond_to?(:encoding) && podspec_content.encoding.name != 'UTF-8'
+                podspec_content = podspec_content.force_encoding("gb2312").force_encoding("utf-8")
+              end
+            else
+              podspec_content = nil
+            end
+          end
+        else
+          podspec_content = nil
+        end
       else
         podspec_content = nil
       end
@@ -93,7 +129,25 @@ module LgPodPlugin
       download_urls = self.download_archive_zip(project_name)
       if self.spec == nil
         podspec_filename = self.name + ".podspec"
-        podspec_content = GithubAPI.get_podspec_file_content self.git, self.commit, podspec_filename, "commit"
+        podspec_filepath = GithubAPI.get_podspec_file_content root_path.join(podspec_filename), self.git, self.commit, podspec_filename
+        if File.exist?(podspec_filepath)
+          self.spec = LgPodPlugin::PodSpec.form_file podspec_filepath
+          if self.spec
+            podspec_content = nil
+          else
+            aFile = File.new(podspec_filepath, "r")
+            if aFile
+              podspec_content = aFile.sysread(10000)
+              if podspec_content && podspec_content.respond_to?(:encoding) && podspec_content.encoding.name != 'UTF-8'
+                podspec_content = podspec_content.force_encoding("gb2312").force_encoding("utf-8")
+              end
+            else
+              podspec_content = nil
+            end
+          end
+        else
+          podspec_content = nil
+        end
       else
         podspec_content = nil
       end

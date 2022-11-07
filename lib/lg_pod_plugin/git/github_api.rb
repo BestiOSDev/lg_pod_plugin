@@ -84,7 +84,7 @@ module LgPodPlugin
     end
 
     public
-    def self.get_podspec_file_content(git, sha, filename, version_type = "branch")
+    def self.get_podspec_file_content(path, git, sha, filename)
       base_url = LUtils.get_gitlab_base_url git
       if base_url.include?("https://github.com/")
         repo_name = base_url.split("https://github.com/", 0).last
@@ -96,20 +96,9 @@ module LgPodPlugin
       return Set.new unless repo_name
       begin
         uri = URI("https://cdn.jsdelivr.net/gh/#{repo_name}@#{sha}/#{filename}")
-        http_heads = {"Content-Type" => "application/octet-stream", "X-JSD-Version" => sha, "X-JSD-Version-Type" => version_type, "Connection" => "keep-alive","Vary" => "Accept-Encoding", "X-Cache" => "HIT, HIT", "Cache-Control" => "public, max-age=31536000, s-maxage=31536000, immutable"}
-        res = Net::HTTP.get_response(uri, http_heads)
-        case res
-        when Net::HTTPSuccess, Net::HTTPRedirection
-          if LUtils.is_a_string?(res.body)
-            if res.body.respond_to?(:encoding) && res.body.encoding.name != 'UTF-8'
-              text = res.body.force_encoding("gb2312").force_encoding("utf-8")
-              return text
-            else
-              return res.body
-            end
-          else
-            return nil
-          end
+        reslut = %x(curl -s -o #{path} --connect-timeout 3 #{uri.to_s})
+        if reslut&.empty?
+          return path
         else
           return nil
         end
