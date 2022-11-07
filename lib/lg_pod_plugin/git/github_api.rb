@@ -18,7 +18,7 @@ module LgPodPlugin
       return [nil, nil] unless repo_name
       request_url = "https://api.github.com/repos/" + repo_name
       if branch
-        request_url += ("/commits/" + branch)
+        request_url += ("/branches")
       else
         request_url += ("/commits/" + "HEAD")
       end
@@ -28,9 +28,21 @@ module LgPodPlugin
         case res
         when Net::HTTPSuccess, Net::HTTPRedirection
           json = JSON.parse(res.body)
-          return [nil, nil] unless json.is_a?(Hash)
-          sha = json["sha"]
-          return [sha, branch]
+          if branch
+            return [nil, nil] unless json.is_a?(Array)
+            json.each do |element|
+              name = element["name"]
+              if name == branch
+                commit = element["commit"]
+                sha = commit["sha"]
+                return [sha, commit]
+              end
+            end
+          else
+            return [nil, nil] unless json.is_a?(Hash)
+            sha = json["sha"]
+            return [sha, branch]
+          end
         else
           return [nil, nil]
         end
