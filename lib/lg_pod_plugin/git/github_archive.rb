@@ -54,11 +54,12 @@ module LgPodPlugin
       if self.spec
         download_params["podspec"] = self.spec
         download_params["source_files"] = self.spec.source_files.keys
+        download_params["podspec_content"] = nil
       else
         download_params["podspec"] = nil
         download_params["source_files"] = ["All"]
+        download_params["podspec_content"] = podspec_content if podspec_content
       end
-      download_params["podspec_content"] = podspec_content if podspec_content
       download_params
     end
 
