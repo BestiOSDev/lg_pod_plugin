@@ -38,6 +38,7 @@ module LgPodPlugin
                 return [sha, commit]
               end
             end
+            return [nil, branch]
           else
             return [nil, nil] unless json.is_a?(Hash)
             sha = json["sha"]
@@ -83,7 +84,7 @@ module LgPodPlugin
     end
 
     public
-    def self.get_podspec_file_content(git, sha, filename)
+    def self.get_podspec_file_content(git, sha, filename, version_type = "branch")
       base_url = LUtils.get_gitlab_base_url git
       if base_url.include?("https://github.com/")
         repo_name = base_url.split("https://github.com/", 0).last
@@ -94,9 +95,11 @@ module LgPodPlugin
       end
       return Set.new unless repo_name
       begin
-        uri = URI("https://raw.githubusercontent.com/#{repo_name}/#{sha}/#{filename}")
-        res = Net::HTTP.get_response(uri)
-        if res.body != nil
+        uri = URI("https://cdn.jsdelivr.net/gh/#{repo_name}@#{sha}/#{filename}")
+        http_heads = {"Content-Type" => "application/octet-stream", "X-JSD-Version" => sha, "X-JSD-Version-Type" => version_type, "Connection" => "keep-alive","Vary" => "Accept-Encoding", "X-Cache" => "HIT, HIT", "Cache-Control" => "public, max-age=31536000, s-maxage=31536000, immutable"}
+        res = Net::HTTP.get_response(uri, http_heads)
+        case res
+        when Net::HTTPSuccess, Net::HTTPRedirection
           if LUtils.is_a_string?(res.body)
             if res.body.respond_to?(:encoding) && res.body.encoding.name != 'UTF-8'
               text = res.body.force_encoding("gb2312").force_encoding("utf-8")

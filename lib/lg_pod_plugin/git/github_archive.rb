@@ -39,7 +39,7 @@ module  LgPodPlugin
       download_urls = self.download_archive_zip(project_name)
       if self.spec == nil
         podspec_filename = self.name + ".podspec"
-        podspec_content = GithubAPI.get_podspec_file_content self.git, self.tag, podspec_filename
+        podspec_content = GithubAPI.get_podspec_file_content self.git, self.tag, podspec_filename, "version"
       else
         podspec_content = nil
       end
@@ -59,7 +59,7 @@ module  LgPodPlugin
       download_urls = self.download_archive_zip(project_name)
       if self.spec == nil
         podspec_filename = self.name + ".podspec"
-        podspec_content = GithubAPI.get_podspec_file_content self.git, self.branch, podspec_filename
+        podspec_content = GithubAPI.get_podspec_file_content self.git, self.branch, podspec_filename, "branch"
       else
         podspec_content = nil
       end
@@ -79,7 +79,7 @@ module  LgPodPlugin
       download_urls = self.download_archive_zip(project_name)
       if self.spec == nil
         podspec_filename = self.name + ".podspec"
-        podspec_content = GithubAPI.get_podspec_file_content self.git, self.commit, podspec_filename
+        podspec_content = GithubAPI.get_podspec_file_content self.git, self.commit, podspec_filename, "commit"
       else
         podspec_content = nil
       end
