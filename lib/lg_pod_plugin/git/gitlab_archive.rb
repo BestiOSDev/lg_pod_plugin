@@ -59,29 +59,33 @@ module LgPodPlugin
       else
         return nil
       end
-      podspec_filename = self.name + ".podspec"
-      podspec_content = GitLabAPI.get_podspec_file_content(host, token, project.id, sha, podspec_filename)
-      unless podspec_content && LUtils.is_a_string?(podspec_content)
-        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
-        return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
-      end
-      pod_spec_file_path = sandbox_path.join("#{podspec_filename}")
-      lg_spec = LgPodPlugin::PodSpec.form_string(podspec_content, pod_spec_file_path)
+
+      lg_spec = self.spec
       unless lg_spec
-        if podspec_content
-          begin
-            File.open(pod_spec_file_path, "w+") do |f|
-              f.write podspec_content
-            end
-          rescue => exception
-            LgPodPlugin.log_red "#{exception}"
-          end
-          @podspec_content = podspec_content
+        podspec_filename = self.name + ".podspec"
+        podspec_content = GitLabAPI.get_podspec_file_content(host, token, project.id, sha, podspec_filename)
+        unless podspec_content && LUtils.is_a_string?(podspec_content)
+          download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
+          return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
         end
-        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
-        return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
+        pod_spec_file_path = sandbox_path.join("#{podspec_filename}")
+        lg_spec = LgPodPlugin::PodSpec.form_string(podspec_content, pod_spec_file_path)
+        unless lg_spec
+          if podspec_content
+            begin
+              File.open(pod_spec_file_path, "w+") do |f|
+                f.write podspec_content
+              end
+            rescue => exception
+              LgPodPlugin.log_red "#{exception}"
+            end
+            @podspec_content = podspec_content
+          end
+          download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
+          return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
+        end
+        self.spec = lg_spec
       end
-      self.spec = lg_spec
       download_params = Array.new
       @source_files = lg_spec.source_files.keys
       lg_spec.source_files.each_key do |key|
