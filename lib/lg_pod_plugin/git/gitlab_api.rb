@@ -189,30 +189,30 @@ module LgPodPlugin
     end
 
     #获取项目中仓库文件和目录的列表
-    def self.get_gitlab_repository_tree(host, token, project_id, sha)
-      begin
-        hash_map = Hash.new
-        hash_map["ref"] = sha
-        hash_map["access_token"] = token
-        hash_map["per_page"] = 50
-        uri = URI("#{host}/api/v4/projects/#{project_id}/repository/tree")
-        uri.query = URI.encode_www_form(hash_map)
-        res = Net::HTTP.get_response(uri)
-        if res.body
-          array = JSON.parse(res.body)
-        else
-          array = nil
-        end
-        return Set.new unless array && array.is_a?(Array)
-        files = array.collect { |dict|
-          dict["path"]
-        }
-        set = Set.new.merge files
-        return set
-      rescue
-        return Set.new
-      end
-    end
+    # def self.get_gitlab_repository_tree(host, token, project_id, sha)
+    #   begin
+    #     hash_map = Hash.new
+    #     hash_map["ref"] = sha
+    #     hash_map["access_token"] = token
+    #     hash_map["per_page"] = 50
+    #     uri = URI("#{host}/api/v4/projects/#{project_id}/repository/tree")
+    #     uri.query = URI.encode_www_form(hash_map)
+    #     res = Net::HTTP.get_response(uri)
+    #     if res.body
+    #       array = JSON.parse(res.body)
+    #     else
+    #       array = nil
+    #     end
+    #     return Set.new unless array && array.is_a?(Array)
+    #     files = array.collect { |dict|
+    #       dict["path"]
+    #     }
+    #     set = Set.new.merge files
+    #     return set
+    #   rescue
+    #     return Set.new
+    #   end
+    # end
 
     public
     def self.get_podspec_file_content(host, token, project_id, sha, filepath)
