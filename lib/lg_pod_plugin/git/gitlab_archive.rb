@@ -85,8 +85,8 @@ module LgPodPlugin
         return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
       end
       self.spec = lg_spec
-      @source_files = lg_spec.source_files.keys
       download_params = Array.new
+      @source_files = lg_spec.source_files.keys
       lg_spec.source_files.each_key do |key|
         # next unless trees.include?(key)
         path = LUtils.url_encode(key)

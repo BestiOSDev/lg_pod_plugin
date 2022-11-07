@@ -3,12 +3,15 @@ require_relative 'git_download'
 require_relative '../utils/l_util'
 require_relative '../config/podspec'
 
-module  LgPodPlugin
+module LgPodPlugin
 
   class GitHubArchive
     private
+
     attr_reader :checkout_options
+
     public
+
     REQUIRED_ATTRS ||= %i[git tag name commit branch config path spec].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
@@ -48,8 +51,13 @@ module  LgPodPlugin
       download_params["type"] = "github-tag"
       download_params["path"] = root_path.to_path
       download_params["download_urls"] = download_urls
-      download_params["podspec"] = self.spec if self.spec
-      download_params["source_files"] = self.spec.source_files.keys if self.spec
+      if self.spec
+        download_params["podspec"] = self.spec
+        download_params["source_files"] = self.spec.source_files.keys
+      else
+        download_params["podspec"] = nil
+        download_params["source_files"] = ["All"]
+      end
       download_params["podspec_content"] = podspec_content if podspec_content
       download_params
     end
@@ -68,8 +76,13 @@ module  LgPodPlugin
       download_params["type"] = "github-branch"
       download_params["path"] = root_path.to_path
       download_params["download_urls"] = download_urls
-      download_params["podspec"] = self.spec if self.spec
-      download_params["source_files"] = self.spec.source_files.keys if self.spec
+      if self.spec
+        download_params["podspec"] = self.spec
+        download_params["source_files"] = self.spec.source_files.keys
+      else
+        download_params["podspec"] = nil
+        download_params["source_files"] = ["All"]
+      end
       download_params["podspec_content"] = podspec_content if podspec_content
       download_params
     end
@@ -88,8 +101,13 @@ module  LgPodPlugin
       download_params["type"] = "github-commit"
       download_params["path"] = root_path.to_path
       download_params["download_urls"] = download_urls
-      download_params["podspec"] = self.spec if self.spec
-      download_params["source_files"] = self.spec.source_files.keys if self.spec
+      if self.spec
+        download_params["podspec"] = self.spec
+        download_params["source_files"] = self.spec.source_files.keys
+      else
+        download_params["podspec"] = nil
+        download_params["source_files"] = ["All"]
+      end
       download_params["podspec_content"] = podspec_content if podspec_content
       download_params
     end
@@ -123,7 +141,6 @@ module  LgPodPlugin
         nil
       end
     end
-
 
   end
 end
