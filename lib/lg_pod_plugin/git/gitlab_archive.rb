@@ -59,17 +59,16 @@ module LgPodPlugin
       else
         return nil
       end
-
-      trees = GitLabAPI.get_gitlab_repository_tree host, token, project.id, sha
-      if trees.empty?
-        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
-        return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
-      end
+      # trees = GitLabAPI.get_gitlab_repository_tree host, token, project.id, sha
+      # if trees.empty?
+      #   download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
+      #   return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
+      # end
       podspec_filename = self.name + ".podspec"
-      unless trees.include?(podspec_filename)
-        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
-        return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
-      end
+      # unless trees.include?(podspec_filename)
+      #   download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
+      #   return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
+      # end
       podspec_content = GitLabAPI.get_podspec_file_content(host, token, project.id, sha, podspec_filename)
       unless podspec_content && LUtils.is_a_string?(podspec_content)
         download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
@@ -89,7 +88,7 @@ module LgPodPlugin
       @source_files = lg_spec.source_files.keys
       download_params = Array.new
       lg_spec.source_files.each_key do |key|
-        next unless trees.include?(key)
+        # next unless trees.include?(key)
         path = LUtils.url_encode(key)
         download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2#{"\\?"}" + "path#{"\\="}#{path}#{"\\&"}sha#{"\\="}#{sha}"
         download_params.append({ "filename" => "#{key}.tar.bz2", "url" => download_url })
