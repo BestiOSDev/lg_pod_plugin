@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
   spec.files = Dir["lib/**/*.rb","lib/lg_pod_plugin/installer/PodDownload"] + %w{ README.md LICENSE bin/lg}
   spec.executables = %w{ lg }
   spec.require_paths = %w{ lib }
-  spec.add_runtime_dependency 'git', '~> 1.12.0'
+  # spec.add_runtime_dependency 'git', '~> 1.12.0'
   # spec.add_runtime_dependency 'archive-zip', '~> 0.12.0'
   spec.add_runtime_dependency 'cocoapods', '~> 1.11.3'
   spec.add_runtime_dependency 'claide', '>= 1.0.2', '< 2.0'

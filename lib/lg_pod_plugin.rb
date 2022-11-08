@@ -1,4 +1,4 @@
-require 'git'
+# require 'git'
 require 'claide'
 require 'cocoapods-downloader'
 require "lg_pod_plugin/version"

@@ -1,4 +1,4 @@
-require 'git'
+
 require 'cocoapods-core'
 require_relative '../git/http_download'
 require_relative '../git/git_download'
