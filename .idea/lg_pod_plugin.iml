@@ -32,7 +32,7 @@
     <orderEntry type="library" scope="PROVIDED" name="debase (v3.0.0.beta.5, ruby-3.1.2-p20) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="debase-ruby_core_source (v0.10.17, ruby-3.1.2-p20) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="escape (v0.0.4, ruby-3.1.2-p20) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="ethon (v0.15.0, ruby-3.1.2-p20) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="ethon (v0.16.0, ruby-3.1.2-p20) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="ffi (v1.15.5, ruby-3.1.2-p20) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="fourflusher (v2.3.1, ruby-3.1.2-p20) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="fuzzy_match (v2.0.4, ruby-3.1.2-p20) [gem]" level="application" />
@@ -52,43 +52,14 @@
     <orderEntry type="library" scope="PROVIDED" name="rexml (v3.2.5, ruby-3.1.2-p20) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="ruby-debug-ide (v3.0.0.beta.5, ruby-3.1.2-p20) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="ruby-macho (v2.5.1, ruby-3.1.2-p20) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="sqlite3 (v1.5.3, ruby-3.1.2-p20) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="typhoeus (v1.4.0, ruby-3.1.2-p20) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="tzinfo (v2.0.5, ruby-3.1.2-p20) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="xcodeproj (v1.22.0, ruby-3.1.2-p20) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="zeitwerk (v2.6.4, ruby-3.1.2-p20) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="zeitwerk (v2.6.5, ruby-3.1.2-p20) [gem]" level="application" />
   </component>
   <component name="RakeTasksCache">
     <option name="myRootTask">
-      <RakeTaskImpl id="rake">
-        <subtasks>
-          <RakeTaskImpl description="Build lg_pod_plugin-1.0.5.gem into the pkg directory" fullCommand="build" id="build" />
-          <RakeTaskImpl id="build">
-            <subtasks>
-              <RakeTaskImpl description="Generate SHA512 checksum if lg_pod_plugin-1.0.5.gem into the checksums directory" fullCommand="build:checksum" id="checksum" />
-            </subtasks>
-          </RakeTaskImpl>
-          <RakeTaskImpl description="Remove any temporary products" fullCommand="clean" id="clean" />
-          <RakeTaskImpl description="Remove any generated files" fullCommand="clobber" id="clobber" />
-          <RakeTaskImpl description="Build and install lg_pod_plugin-1.0.5.gem into system gems" fullCommand="install" id="install" />
-          <RakeTaskImpl id="install">
-            <subtasks>
-              <RakeTaskImpl description="Build and install lg_pod_plugin-1.0.5.gem into system gems without network access" fullCommand="install:local" id="local" />
-            </subtasks>
-          </RakeTaskImpl>
-          <RakeTaskImpl description="Create tag v1.0.5 and build and push lg_pod_plugin-1.0.5.gem to rubygems.org" fullCommand="release[remote]" id="release[remote]" />
-          <RakeTaskImpl description="Run RSpec code examples" fullCommand="spec" id="spec" />
-          <RakeTaskImpl description="" fullCommand="default" id="default" />
-          <RakeTaskImpl description="" fullCommand="release" id="release" />
-          <RakeTaskImpl id="release">
-            <subtasks>
-              <RakeTaskImpl description="" fullCommand="release:guard_clean" id="guard_clean" />
-              <RakeTaskImpl description="" fullCommand="release:rubygem_push" id="rubygem_push" />
-              <RakeTaskImpl description="" fullCommand="release:source_control_push" id="source_control_push" />
-            </subtasks>
-          </RakeTaskImpl>
-        </subtasks>
-      </RakeTaskImpl>
+      <RakeTaskImpl id="rake" />
     </option>
   </component>
 </module>

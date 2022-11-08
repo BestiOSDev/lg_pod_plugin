@@ -1,6 +1,5 @@
-require "sqlite3"
 require 'singleton'
-
+require_relative '../../sqlite3-1.5.3-arm64-darwin/lib/sqlite3'
 module LgPodPlugin
 
   class ProjectModel
