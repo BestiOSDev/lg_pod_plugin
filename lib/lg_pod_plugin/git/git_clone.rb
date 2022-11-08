@@ -80,29 +80,6 @@ module LgPodPlugin
       system(cmds_to_s)
     end
 
-    # 根据参数生成下载 url
-    # def get_gitlab_download_url(base_url, branch, tag, commit, project_name)
-    #   if base_url.include?("http:") || base_url.include?("https:")
-    #     if branch
-    #       return base_url + "/-/archive/" + branch + "/#{project_name}-#{branch}.zip"
-    #     elsif tag
-    #       return base_url + "/-/archive/" + tag + "/#{project_name}-#{tag}.zip"
-    #     elsif commit
-    #       return base_url + "/-/archive/" + commit + "/#{project_name}-#{commit}.zip"
-    #     else
-    #       return nil
-    #     end
-    #   end
-    #   return nil unless base_url.include?("ssh://git@gitlab") || base_url.include?("git@")
-    #   project = self.config.project
-    #   if project && project.web_url && project.web_url.include?("http")
-    #     get_gitlab_download_url(project.web_url, branch, tag, commit, project_name)
-    #   else
-    #     nil
-    #   end
-    # end
-
-
   end
 
 end

@@ -40,11 +40,11 @@ module LgPodPlugin
     def github_download_tag_zip(root_path)
       project_name = LUtils.get_git_project_name self.git
       download_urls = self.download_archive_zip(project_name)
-      unless self.spec
-        podspec_filename = self.name + ".podspec"
-        podspec_content = GithubAPI.get_podspec_file_content self.git, self.commit, podspec_filename
-        self.spec = LgPodPlugin::PodSpec.form_string(podspec_content, root_path + "/#{podspec_filename}") if podspec_content
-      end
+      # unless self.spec
+      #   podspec_filename = self.name + ".podspec"
+      #   podspec_content = GithubAPI.get_podspec_file_content self.git, self.commit, podspec_filename
+      #   self.spec = LgPodPlugin::PodSpec.form_string(podspec_content, root_path + "/#{podspec_filename}") if podspec_content
+      # end
       download_params = Hash.new
       download_params["name"] = self.name
       download_params["type"] = "github-tag"
@@ -57,7 +57,7 @@ module LgPodPlugin
       else
         download_params["podspec"] = nil
         download_params["source_files"] = ["All"]
-        download_params["podspec_content"] = podspec_content if podspec_content
+        # download_params["podspec_content"] = podspec_content if podspec_content
       end
       download_params
     end
@@ -65,11 +65,11 @@ module LgPodPlugin
     def github_download_branch_zip(root_path)
       project_name = LUtils.get_git_project_name self.git
       download_urls = self.download_archive_zip(project_name)
-      unless self.spec
-        podspec_filename = self.name + ".podspec"
-        podspec_content = GithubAPI.get_podspec_file_content self.git, self.commit, podspec_filename
-        self.spec = LgPodPlugin::PodSpec.form_string(podspec_content, root_path + "/#{podspec_filename}") if podspec_content
-      end
+      # unless self.spec
+      #   podspec_filename = self.name + ".podspec"
+      #   podspec_content = GithubAPI.get_podspec_file_content self.git, self.commit, podspec_filename
+      #   self.spec = LgPodPlugin::PodSpec.form_string(podspec_content, root_path + "/#{podspec_filename}") if podspec_content
+      # end
       download_params = Hash.new
       download_params["name"] = self.name
       download_params["type"] = "github-branch"
@@ -81,19 +81,19 @@ module LgPodPlugin
       else
         download_params["podspec"] = nil
         download_params["source_files"] = ["All"]
+        # download_params["podspec_content"] = podspec_content if podspec_content
       end
-      download_params["podspec_content"] = podspec_content if podspec_content
       download_params
     end
 
     def github_download_commit_zip(root_path)
       project_name = LUtils.get_git_project_name self.git
       download_urls = self.download_archive_zip(project_name)
-      unless self.spec
-        podspec_filename = self.name + ".podspec"
-        podspec_content = GithubAPI.get_podspec_file_content self.git, self.commit, podspec_filename
-        self.spec = LgPodPlugin::PodSpec.form_string(podspec_content, root_path + "/#{podspec_filename}") if podspec_content
-      end
+      # unless self.spec
+      #   podspec_filename = self.name + ".podspec"
+      #   podspec_content = GithubAPI.get_podspec_file_content self.git, self.commit, podspec_filename
+      #   self.spec = LgPodPlugin::PodSpec.form_string(podspec_content, root_path + "/#{podspec_filename}") if podspec_content
+      # end
       download_params = Hash.new
       download_params["name"] = self.name
       download_params["type"] = "github-commit"
@@ -105,8 +105,8 @@ module LgPodPlugin
       else
         download_params["podspec"] = nil
         download_params["source_files"] = ["All"]
+        # download_params["podspec_content"] = podspec_content if podspec_content
       end
-      download_params["podspec_content"] = podspec_content if podspec_content
       download_params
     end
 
