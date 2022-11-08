@@ -47,10 +47,18 @@ module LgPodPlugin
 
       if cache_podspec
         destination = self.download_params["destination"]
-        pod_is_exist = File.exist?(destination)
+        if destination && File.exist?(destination) && !Pathname(destination).children.empty?
+          pod_is_exist = true
+        else
+          pod_is_exist = false
+        end
       else
         destination = self.download_params["destination"]
-        pod_is_exist = File.exist?(destination)
+        if destination && File.exist?(destination) && !Pathname(destination).children.empty?
+          pod_is_exist = true
+        else
+          pod_is_exist = false
+        end
         cache_pod_spec_path = self.download_params["cache_pod_spec_path"]
         local_spec_path = destination.glob("#{name}.podspec{,.json}").last
         if local_spec_path && File.exist?(local_spec_path)
@@ -71,6 +79,7 @@ module LgPodPlugin
       else
         git = checkout_options[:git]
         return unless git
+        cache_podspec = request.lg_spec.spec if request.lg_spec
         branch = checkout_options[:branch]
         checkout_options[:name] = name if name
         unless branch
@@ -86,9 +95,9 @@ module LgPodPlugin
         return unless download_params && File.exist?(download_params)
         FileUtils.chdir download_params
         if request.single_git
-          LgPodPlugin::LCache.cache_pod(name, download_params, { :git => git }, nil, request.released_pod)
+          LgPodPlugin::LCache.cache_pod(name, download_params, { :git => git }, cache_podspec, request.released_pod)
         else
-          LgPodPlugin::LCache.cache_pod(name, download_params, request.get_cache_key_params, nil, request.released_pod)
+          LgPodPlugin::LCache.cache_pod(name, download_params, request.get_cache_key_params, cache_podspec, request.released_pod)
         end
         FileUtils.chdir(LFileManager.download_director)
         FileUtils.rm_rf(download_params)
