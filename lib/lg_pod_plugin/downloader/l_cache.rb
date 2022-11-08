@@ -19,7 +19,7 @@ module LgPodPlugin
     end
 
     #判断缓存是否存在且有效命中缓存
-    private
+    public
     def find_pod_cache(name, options, spec = nil, released_pod = false)
       hash_map = Hash.new.merge!(options)
       request = LCache.download_request(name, hash_map, spec, released_pod)
