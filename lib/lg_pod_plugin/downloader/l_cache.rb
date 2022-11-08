@@ -14,8 +14,11 @@ module LgPodPlugin
     public
     def pod_cache_exist(name, options, spec = nil, released_pod = false)
       destination, cache_pod_spec = self.find_pod_cache name, options, spec, released_pod
-      is_exist = (File.exist?(destination.to_path) && File.exist?(cache_pod_spec))
-      [is_exist, destination, cache_pod_spec]
+      if (File.exist?(destination) && !destination.children.empty?)
+        [true, destination, cache_pod_spec]
+      else
+        [false, destination, cache_pod_spec]
+      end
     end
 
     #判断缓存是否存在且有效命中缓存
@@ -163,7 +166,7 @@ module LgPodPlugin
       _, pods_pecs = get_local_spec(request, target)
       pods_pecs.each do |_, s_spec|
         destination = path_for_pod(request, :name => name, :params => checkout_options)
-        unless File.exist?(destination)
+        unless File.exist?(destination) && destination.children.empty?
           LgPodPlugin.log_green "Copying #{name} from `#{target}` to `#{destination}` "
           copy_and_clean(target, destination, s_spec)
         end
