@@ -1,4 +1,4 @@
-require 'sqlite3/errors'
+require_relative 'errors'
 
 module SQLite3
 

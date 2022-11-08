@@ -1,5 +1,5 @@
-require 'sqlite3/constants'
-require 'sqlite3/errors'
+require_relative 'constants'
+require_relative 'errors'
 
 module SQLite3
 

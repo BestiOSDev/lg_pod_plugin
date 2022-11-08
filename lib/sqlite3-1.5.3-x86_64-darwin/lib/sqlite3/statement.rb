@@ -1,5 +1,5 @@
-require 'sqlite3/errors'
-require 'sqlite3/resultset'
+require_relative 'errors'
+require_relative 'resultset'
 
 class String
   def to_blob

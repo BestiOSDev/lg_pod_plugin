@@ -1,4 +1,4 @@
-require 'sqlite3/constants'
+require_relative 'constants'
 
 module SQLite3
 
