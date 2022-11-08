@@ -1,5 +1,5 @@
 require 'singleton'
-arch = %x(arch)
+arch = %x(ruby -v)
 if arch.include?("arm64")
   require_relative '../../sqlite3-1.5.3-arm64-darwin/lib/sqlite3'
 else
