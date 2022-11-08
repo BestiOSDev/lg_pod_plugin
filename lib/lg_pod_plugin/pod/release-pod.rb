@@ -134,12 +134,16 @@ module LgPodPlugin
       if update
         need_update_pods = LProject.shared.need_update_pods ||= Hash.new
         pods = need_update_pods.keys ||= []
-        verify_lockfile_exists!(lockfile)
-        verify_pods_are_installed!(pods, lockfile)
-        if pods.empty?
-          installer.update = true
-        else
-          installer.update = { :pods => pods }
+        begin
+          verify_lockfile_exists!(lockfile)
+          verify_pods_are_installed!(pods, lockfile)
+          if pods.empty?
+            installer.update = true
+          else
+            installer.update = { :pods => pods }
+          end
+        rescue
+          installer.update = false
         end
       else
         installer.update = false
