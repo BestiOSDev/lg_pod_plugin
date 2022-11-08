@@ -136,8 +136,9 @@ module LgPodPlugin
           http_download = LgPodPlugin::HTTPDownloader.new(checkout_options)
           http_download.download
         rescue => exception
-          LgPodPlugin.log_red "download_repository_strategy方法捕获到异常: #{exception}"
-          nil
+          LgPodPlugin.log_red "异常信息: #{$!}"
+          LgPodPlugin.log_yellow " 异常位置: #{$@}"
+          return nil
         end
       elsif git
         checkout_options[:path] = path
@@ -145,7 +146,7 @@ module LgPodPlugin
         git_download = LgPodPlugin::GitDownloader.new(checkout_options)
         return git_download.download
       else
-        nil
+        return nil
       end
 
     end

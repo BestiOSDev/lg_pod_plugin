@@ -33,8 +33,9 @@ module  LgPodPlugin
           git_clone = GitRepository.new(checkout_options)
           return git_clone.download
         end
-      rescue => execption
-        LgPodPlugin.log_red "捕获到异常: #{execption}"
+      rescue
+        LgPodPlugin.log_red "异常信息: #{$!}"
+        LgPodPlugin.log_yellow " 异常位置: #{$@}"
         git_clone = GitRepository.new(checkout_options)
         return  git_clone.download
       end
