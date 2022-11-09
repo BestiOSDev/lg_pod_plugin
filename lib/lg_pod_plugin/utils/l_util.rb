@@ -2,7 +2,6 @@ require 'json'
 require 'resolv'
 require "ipaddr"
 require 'base64'
-# require 'archive/zip'
 require 'fileutils'
 require_relative 'aes-crypt'
 

@@ -83,6 +83,10 @@ module LgPodPlugin
       subspecs = spec.subspecs
       unless subspecs.is_a?(Array)
         self.source_files = parse_with_set set
+        if self.source_files.has_key?("*")
+          self.source_files.delete("*")
+          self.source_files["All"] = "All"
+        end
         self.json_files = spec.to_pretty_json
         return
       end
@@ -94,6 +98,10 @@ module LgPodPlugin
         set.merge(sub_set)
       end
       self.source_files = parse_with_set set
+      if self.source_files.has_key?("*")
+        self.source_files.delete("*")
+        self.source_files["All"] = "All"
+      end
       self.json_files = spec.to_pretty_json
     end
 

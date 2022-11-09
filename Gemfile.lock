@@ -5,7 +5,6 @@ PATH
       aescrypt (~> 1.0)
       claide (>= 1.0.2, < 2.0)
       cocoapods (~> 1.11.3)
-      git (~> 1.12.0)
 
 GEM
   remote: https://gems.ruby-china.com/
@@ -123,6 +122,7 @@ GEM
     zeitwerk (2.6.6)
 
 PLATFORMS
+  arm64-darwin-22
   x86_64-darwin-21
 
 DEPENDENCIES
