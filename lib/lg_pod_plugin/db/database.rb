@@ -215,6 +215,11 @@ module LgPodPlugin
       project_info
     end
 
+    def delete_project_by_id(project_id)
+      ps = @db.prepare("DELETE FROM #{K_USER_PROJECTS} WHERE id = :n")
+      ps.execute('n' => project_id)
+    end
+
     def insert_pod_refs(name, git, branch, tag, commit)
       id = LPodLatestRefs.get_pod_id(name, git)
       pod = LPodLatestRefs.new(id, name, git, branch, tag, commit)

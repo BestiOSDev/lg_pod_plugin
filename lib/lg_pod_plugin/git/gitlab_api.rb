@@ -152,6 +152,11 @@ module LgPodPlugin
           sha = json["id"]
           return [sha, nil]
         else
+          body = JSON.parse(res.body)
+          message = body["message"]
+          if message == "404 Project Not Found"
+            LSqliteDb.shared.delete_project_by_id(project.id)
+          end
           return self.use_default_refs_heads git, branch
         end
       rescue => exception
@@ -223,9 +228,15 @@ module LgPodPlugin
         uri = URI("#{host}/api/v4/projects/#{project_id}/repository/files/#{filepath}")
         uri.query = URI.encode_www_form(hash_map)
         res = Net::HTTP.get_response(uri)
-        if res.body
+        case res
+        when Net::HTTPSuccess, Net::HTTPRedirection
           json = JSON.parse(res.body)
         else
+          body = JSON.parse(res.body)
+          message = body["message"]
+          if message == "404 Project Not Found"
+            LSqliteDb.shared.delete_project_by_id(project_id)
+          end
           json = nil
         end
         return nil unless json && json.is_a?(Hash)
