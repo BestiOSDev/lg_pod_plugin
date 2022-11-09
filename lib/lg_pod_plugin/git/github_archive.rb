@@ -7,11 +7,8 @@ module LgPodPlugin
 
   class GitHubArchive
     private
-
     attr_reader :checkout_options
-
     public
-
     REQUIRED_ATTRS ||= %i[git tag name commit branch config path spec].freeze
     attr_accessor(*REQUIRED_ATTRS)
 

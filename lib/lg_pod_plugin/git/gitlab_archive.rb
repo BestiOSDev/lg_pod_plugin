@@ -7,13 +7,11 @@ module LgPodPlugin
   class GitLabArchive
 
     private
-
     attr_reader :source_files
     attr_reader :podspec_content
     attr_reader :checkout_options
 
     public
-
     REQUIRED_ATTRS ||= %i[git tag name commit branch config path spec].freeze
     attr_accessor(*REQUIRED_ATTRS)
 

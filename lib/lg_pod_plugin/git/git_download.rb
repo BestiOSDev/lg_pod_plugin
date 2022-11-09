@@ -7,16 +7,13 @@ require_relative '../downloader/request'
 
 module  LgPodPlugin
   class GitDownloader
-    private
-    attr_reader :checkout_options
-    private
-    attr_reader :git
-    attr_reader :config
-
+    attr_accessor :git
+    attr_accessor :config
+    attr_accessor :checkout_options
     def initialize(checkout_options = {})
-      @git = checkout_options[:git]
-      @config = checkout_options[:config]
-      @checkout_options = checkout_options
+      self.git = checkout_options[:git]
+      self.config = checkout_options[:config]
+      self.checkout_options = checkout_options
     end
 
     #开始下载
