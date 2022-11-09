@@ -89,7 +89,7 @@ module LgPodPlugin
       download_params = Array.new
       @source_files = lg_spec.source_files.keys
       lg_spec.source_files.each_key do |key|
-        next if key == "All"
+        next if key == "All" || key == "LICENSE" || key == "License"
         path = LUtils.url_encode(key)
         download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2#{"\\?"}" + "path#{"\\="}#{path}#{"\\&"}sha#{"\\="}#{sha}"
         download_params.append({ "filename" => "#{key}.tar.bz2", "url" => download_url })
