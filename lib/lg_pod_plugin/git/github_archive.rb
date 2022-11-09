@@ -121,16 +121,39 @@ module LgPodPlugin
         repo_name = nil
       end
       return nil unless repo_name
+      network_ok = false
+      result = %x(ping gh.api.99988866.xyz -t 1)
+      if !result || result == "" || result.include?("timeout")
+        network_ok = false
+      else
+        network_ok = true
+      end
       if self.git && self.tag
         download_url = "https://codeload.github.com/#{repo_name}/tar.gz/refs/tags/#{self.tag}"
         [{ "filename" => "#{project_name}.tar.gz", "url" => download_url }]
+        # if network_ok
+        #   repo_info = GithubAPI.get_repo_info(repo_name)
+        #   html_url = repo_info["html_url"]
+        #   if html_url
+        #     base_url = html_url
+        #   end
+        #   download_url = "https://gh.api.99988866.xyz/#{base_url}/archive/refs/tags/#{self.tag}.tar.gz"
+        #   [{ "filename" => "#{project_name}.tar.gz", "url" => download_url }]
+        # else
+        #
+        # end
       elsif self.git && self.branch
-        if self.branch == "HEAD"
-          download_url = "https://gh.api.99988866.xyz/" + "#{base_url}" + "/archive/#{self.branch}.tar.gz"
+        if network_ok
+          download_url = "https://gh.api.99988866.xyz/#{base_url}/archive/#{self.branch}.tar.gz"
           [{ "filename" => "#{project_name}.tar.gz", "url" => download_url }]
         else
-          download_url = "https://codeload.github.com/#{repo_name}/tar.gz/refs/heads/#{self.branch}"
-          [{ "filename" => "#{project_name}.tar.gz", "url" => download_url }]
+          if self.branch == "HEAD"
+            download_url = "https://gh.api.99988866.xyz/" + "#{base_url}" + "/archive/#{self.branch}.tar.gz"
+            [{ "filename" => "#{project_name}.tar.gz", "url" => download_url }]
+          else
+            download_url = "https://codeload.github.com/#{repo_name}/tar.gz/refs/heads/#{self.branch}"
+            [{ "filename" => "#{project_name}.tar.gz", "url" => download_url }]
+          end
         end
       elsif self.git && self.commit
         download_url = "https://codeload.github.com/#{repo_name}/tar.gz/#{self.commit}"
