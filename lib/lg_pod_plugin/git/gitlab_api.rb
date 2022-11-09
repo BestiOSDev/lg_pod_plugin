@@ -112,16 +112,16 @@ module LgPodPlugin
           path = json["path"] ||= ""
           path_with_namespace = json["path_with_namespace"] ||= ""
           name_with_namespace = (json["name_with_namespace"] ||= "").gsub(/[ ]/, '')
-          next unless (name == project_name || path == project_name)
-          next unless git.include?(name_with_namespace) || git.include?(path_with_namespace)
-          id = json["id"]
-          web_url = json["web_url"]
-          description = json["description"]
-          ssh_url_to_repo = json["ssh_url_to_repo"]
-          http_url_to_repo = json["http_url_to_repo"]
-          project = ProjectModel.new(id, name, description, path, ssh_url_to_repo, http_url_to_repo, web_url, name_with_namespace, path_with_namespace)
-          LSqliteDb.shared.insert_project(project)
-          return project
+          if git.include?(path_with_namespace) || git.include?(name_with_namespace)
+            id = json["id"]
+            web_url = json["web_url"]
+            description = json["description"]
+            ssh_url_to_repo = json["ssh_url_to_repo"]
+            http_url_to_repo = json["http_url_to_repo"]
+            project = ProjectModel.new(id, name, description, path, ssh_url_to_repo, http_url_to_repo, web_url, name_with_namespace, path_with_namespace)
+            LSqliteDb.shared.insert_project(project)
+            return project
+          end
         end
         return nil
       rescue
