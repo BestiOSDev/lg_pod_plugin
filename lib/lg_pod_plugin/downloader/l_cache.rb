@@ -166,7 +166,7 @@ module LgPodPlugin
       _, pods_pecs = get_local_spec(request, target)
       pods_pecs.each do |_, s_spec|
         destination = path_for_pod(request, :name => name, :params => checkout_options)
-        unless File.exist?(destination) && destination.children.empty?
+        if !File.exist?(destination) || destination.children.empty?
           LgPodPlugin.log_green "Copying #{name} from `#{target}` to `#{destination}` "
           copy_and_clean(target, destination, s_spec)
         end
