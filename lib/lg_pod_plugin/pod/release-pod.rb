@@ -43,7 +43,7 @@ module LgPodPlugin
         checksum = spec.send(:checksum)
         if http
           if http.include?("https://github.com") && http.include?("releases/download")
-            http = "https://gh.api.99988866.xyz/" + http
+            http = "https://ghproxy.com/" + http
             source["http"] = http
           end
           version = attributes_hash["version"]
