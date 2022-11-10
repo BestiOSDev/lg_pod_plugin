@@ -85,6 +85,7 @@ module LgPodPlugin
     end
 
     public
+
     def self.get_podspec_file_content(git, sha, filename)
       base_url = LUtils.get_gitlab_base_url git
       if base_url.include?("https://github.com/")
@@ -118,7 +119,7 @@ module LgPodPlugin
         end
         return nil unless json && json.is_a?(Hash)
         content = json["content"]
-        return nil  unless content && LUtils.is_a_string?(content)
+        return nil unless content && LUtils.is_a_string?(content)
         encoding = json["encoding"] ||= "base64"
         if encoding == "base64"
           content = LUtils.base64_decode(content)
