@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
 require 'cocoapods'
 require 'lg_pod_plugin'
-LgPodPlugin.log_green "欢迎使用 `lg_pod_plugin`"
+LgPodPlugin.log_blue "欢迎使用 `lg_pod_plugin`"
 LgPodPlugin::Command.run(ARGV)

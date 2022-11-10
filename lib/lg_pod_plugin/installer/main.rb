@@ -24,7 +24,7 @@ module LgPodPlugin
       update = (command == "update")
       LSqliteDb.shared.init_database
       repo_update = options[:repo_update] ||= false
-      LgPodPlugin.log_green "当前工作目录 #{workspace}"
+      LgPodPlugin.log_blue "当前工作目录 #{workspace}"
       podfile_path = check_podfile_exist?(workspace)
       return unless podfile_path
       project = LProject.shared.setup(workspace, podfile_path, update, repo_update)
@@ -36,7 +36,7 @@ module LgPodPlugin
 
     def self.install_external_pod(project)
       #下载 External pods
-      LgPodPlugin.log_green "Pre-downloading External Pods" unless project.targets.empty?
+      LgPodPlugin.log_blue "Pre-downloading External Pods" unless project.targets.empty?
       all_installers = Hash.new
       project.targets.each do |target|
         target.dependencies.each do |_, pod|

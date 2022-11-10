@@ -49,7 +49,7 @@ module LgPodPlugin
         begin_time = Time.now.to_i
         LgPodPlugin::Main.run("install", { :verbose => self.log, :repo_update => self.repo_update })
         end_time = Time.now.to_i
-        LgPodPlugin.log_green "`lg install`安装所需时间: #{end_time - begin_time}"
+        LgPodPlugin.log_blue "`lg install`安装所需时间: #{end_time - begin_time}"
       end
 
     end

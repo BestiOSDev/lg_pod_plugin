@@ -121,7 +121,7 @@ module LgPodPlugin
       workspace = LProject.shared.workspace
       FileUtils.chdir(workspace)
       # 安装 release_pod
-      LgPodPlugin.log_green "Pre-downloading Release Pods"
+      LgPodPlugin.log_blue "Pre-downloading Release Pods"
       Pod::Config.instance.verbose = verbose
       pods_path = LProject.shared.workspace.join('Pods')
       podfile = LProject.shared.podfile
