@@ -49,9 +49,7 @@ module LgPodPlugin
           version = attributes_hash["version"]
           requirements = {:http => http, :version => version}
         elsif git && tag
-          unless LUtils.is_a_string? tag
-            tag = tag.to_s
-          end
+          tag = tag.to_s unless LUtils.is_a_string? tag
           requirements = { :git => git, :tag => tag }
         else
           next
