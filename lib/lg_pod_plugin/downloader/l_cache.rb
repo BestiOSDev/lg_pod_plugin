@@ -25,6 +25,9 @@ module LgPodPlugin
     public
     def find_pod_cache(name, options, spec = nil, released_pod = false)
       hash_map = Hash.new.merge!(options)
+      if hash_map.has_key?(:version)
+        hash_map.delete(:version)
+      end
       request = LCache.download_request(name, hash_map, spec, released_pod)
       destination = LCache.path_for_pod(request, {})
       cache_pod_spec = LCache.path_for_spec(request, {})

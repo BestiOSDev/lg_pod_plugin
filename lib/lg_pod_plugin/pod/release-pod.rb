@@ -15,7 +15,7 @@ module LgPodPlugin
     end
 
     def self.check_release_pod_exist(name, requirements, spec, released_pod)
-      is_exist, _, _ = !(LCache.new.pod_cache_exist(name, requirements, spec, released_pod))
+      is_exist, _, _ = (LCache.new.pod_cache_exist(name, requirements, spec, released_pod))
       return is_exist
     end
 
