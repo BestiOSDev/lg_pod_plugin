@@ -29,9 +29,9 @@ module LgPodPlugin
     def preprocess_request
       http = self.checkout_options[:http]
       if http
-        self.single_git = false
-        self.net_ping = nil
         self.config = nil
+        self.net_ping = nil
+        self.single_git = false
         self.params = Hash.new
       else
         tag = self.checkout_options[:tag]
@@ -47,7 +47,6 @@ module LgPodPlugin
         self.config = LConfig.get_config(git, self.net_ping.uri)
         self.params = self.get_request_params
       end
-
     end
 
     public

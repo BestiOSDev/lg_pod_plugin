@@ -12,7 +12,6 @@ module LgPodPlugin
     attr_reader :hostname
     private
     attr_reader :uri
-
     public
     def initialize(git)
       begin
@@ -63,7 +62,8 @@ module LgPodPlugin
           return ip_address
         end
       rescue
-        result = %x(ping #{uri.host} -t 1)
+        LgPodPlugin.log_yellow("time ping #{uri.host} -t 1")
+        result = %x(time ping #{uri.host} -t 1)
         return if !result || result == "" || result.include?("timeout")
         match = %r{\d+.\d+.\d+.\d+}.match(result)
         return if match.nil?
