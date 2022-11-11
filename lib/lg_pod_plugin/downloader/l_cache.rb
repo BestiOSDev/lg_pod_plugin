@@ -14,7 +14,8 @@ module LgPodPlugin
     public
     def pod_cache_exist(name, options, spec = nil, released_pod = false)
       destination, cache_pod_spec = self.find_pod_cache name, options, spec, released_pod
-      if (File.exist?(destination) && !destination.children.empty?)
+      target = LProject.shared.workspace.join("Pods").join(name)
+      if (File.exist?(destination) && !destination.children.empty?) && File.exist?(target) && !target.children.empty?
         [true, destination, cache_pod_spec]
       else
         [false, destination, cache_pod_spec]
