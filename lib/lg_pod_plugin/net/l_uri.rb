@@ -62,8 +62,8 @@ module LgPodPlugin
           return ip_address
         end
       rescue
-        LgPodPlugin.log_yellow("time ping #{uri.host} -t 1")
-        result = %x(time ping #{uri.host} -t 1)
+        # LgPodPlugin.log_yellow("time ping #{uri.host} -t 1")
+        result = %x(ping #{uri.host} -t 1)
         return if !result || result == "" || result.include?("timeout")
         match = %r{\d+.\d+.\d+.\d+}.match(result)
         return if match.nil?
