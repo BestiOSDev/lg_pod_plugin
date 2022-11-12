@@ -57,13 +57,13 @@ module LgPodPlugin
       else
         return nil
       end
-
       lg_spec = self.spec
       unless lg_spec
         podspec_filename = self.name + ".podspec"
         podspec_content = GitLabAPI.get_podspec_file_content(host, token, project.id, sha, podspec_filename)
         unless podspec_content && LUtils.is_a_string?(podspec_content)
-          download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
+          download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2\\?" + "sha\\=#{sha}"
+          download_url += "\\&access_token\\=#{token}" if token
           return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
         end
         pod_spec_file_path = sandbox_path.join("#{podspec_filename}")
@@ -79,7 +79,8 @@ module LgPodPlugin
             end
             @podspec_content = podspec_content
           end
-          download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
+          download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2\\?" + "sha\\=#{sha}"
+          download_url += "\\&access_token\\=#{token}" if token
           return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
         end
         self.spec = lg_spec
@@ -90,10 +91,12 @@ module LgPodPlugin
         next if key == "All" || key == "LICENSE" || key == "License"
         path = LUtils.url_encode(key)
         download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2#{"\\?"}" + "path#{"\\="}#{path}#{"\\&"}sha#{"\\="}#{sha}"
-        download_params.append({ "filename" => "#{key}.tar.bz2", "url" => download_url })
+        download_url += "\\&access_token\\=#{token}" if token
+        download_params.append({ "filename" => "#{path}.tar.bz2", "url" => download_url })
       end
       if download_params.empty?
-        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
+        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2\\?" + "sha\\=#{sha}"
+        download_url += "\\&access_token\\=#{token}" if token
         [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
       else
         download_params

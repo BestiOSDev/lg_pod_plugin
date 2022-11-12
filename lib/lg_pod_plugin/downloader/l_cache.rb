@@ -47,7 +47,7 @@ module LgPodPlugin
         Pod::Downloader::Request.new(spec: nil, released: false , name: name, params: params)
       end
     end
-
+    #MARK - 缓存方法
     def self.path_for_pod(request, slug_opts = {})
       root = self.root_path
       root + request.slug(**slug_opts)

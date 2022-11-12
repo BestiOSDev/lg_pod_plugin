@@ -220,6 +220,7 @@ module LgPodPlugin
     # end
 
     public
+
     def self.get_podspec_file_content(host, token, project_id, sha, filepath)
       begin
         hash_map = Hash.new
