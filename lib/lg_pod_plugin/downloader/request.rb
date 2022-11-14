@@ -23,7 +23,13 @@ module LgPodPlugin
       if pod.spec
         @lg_spec = pod.spec
       end
-      self.preprocess_request
+      require 'benchmark'
+      col_width = 10
+      Benchmark.bm(col_width) do |bm|
+        bm.report("time") do
+          self.preprocess_request
+        end
+      end
     end
 
     def preprocess_request
