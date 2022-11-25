@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="89329c8f-6f9f-45fc-b90a-a343198fdcfb" name="变更" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/test_hash.rb" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../lg_pod_plugin(github)/lib/lg_pod_plugin/downloader/downloader.rb" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/../lg_pod_plugin(github)/lib/lg_pod_plugin/downloader/downloader.rbs" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/../lg_pod_plugin(github)/lib/lg_pod_plugin/downloader/l_cache.rb" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/../lg_pod_plugin(github)/lib/lg_pod_plugin/downloader/request.rb" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/../lg_pod_plugin(github)/lib/lg_pod_plugin/git/github_api.rb" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../lg_pod_plugin(github)/lib/lg_pod_plugin/git/github_archive.rb" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../lg_pod_plugin(github)/lib/lg_pod_plugin/git/gitlab_api.rb" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/../lg_pod_plugin(github)/lib/lg_pod_plugin/git/gitlab_archive.rb" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../lg_pod_plugin(github)/lib/lg_pod_plugin/installer/concurrency.rb" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/../lg_pod_plugin(github)/lib/lg_pod_plugin/installer/main.rb" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/../lg_pod_plugin(github)/lib/lg_pod_plugin/pod/release-pod.rb" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file:///opt/homebrew/lib/ruby/gems/3.1.0/gems/cocoapods-1.11.3/lib/cocoapods/downloader.rb" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file:///opt/homebrew/lib/ruby/gems/3.1.0/gems/cocoapods-1.11.3/lib/cocoapods/sandbox/podspec_finder.rb" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2GylMT9aYeq6mTOpWr1lLhvQ18u" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/dongzb01/Desktop/my_gems/lg_pod_plugin(github)/lib/lg_pod_plugin/installer&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;ruby.rails.projectView.checked&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;org.jetbrains.plugins.ruby.settings.RubyActiveModuleSdkConfigurable&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/../lg_pod_plugin(github)/lib/lg_pod_plugin/installer" />
+      <recent name="$PROJECT_DIR$" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Ruby.test">
+    <configuration name="test" type="RubyRunConfigurationType" factoryName="Ruby" temporary="true">
+      <module name="CocoaPodsLocal" />
+      <RUBY_RUN_CONFIG NAME="RUBY_ARGS" VALUE="" />
+      <RUBY_RUN_CONFIG NAME="WORK DIR" VALUE="$MODULE_DIR$" />
+      <RUBY_RUN_CONFIG NAME="SHOULD_USE_SDK" VALUE="false" />
+      <RUBY_RUN_CONFIG NAME="ALTERN_SDK_NAME" VALUE="" />
+      <RUBY_RUN_CONFIG NAME="myPassParentEnvs" VALUE="true" />
+      <EXTENSION ID="BundlerRunConfigurationExtension" BUNDLE_MODE="AUTO" bundleExecEnabled="true" />
+      <EXTENSION ID="RubyCoverageRunConfigurationExtension" track_test_folders="true" runner="rcov" ENABLE_BRANCH_COVERAGE="true" ENABLE_FORKED_COVERAGE="true">
+        <COVERAGE_PATTERN ENABLED="true">
+          <PATTERN REGEXPS="/.rvm/" INCLUDED="false" />
+        </COVERAGE_PATTERN>
+      </EXTENSION>
+      <EXTENSION ID="org.jetbrains.plugins.ruby.rails.run.RailsRunConfigurationExtension" SCRATCH_USE_RAILS_RUNNER="false" />
+      <RUBY_RUN_CONFIG NAME="SCRIPT_PATH" VALUE="$MODULE_DIR$/test.rb" />
+      <RUBY_RUN_CONFIG NAME="SCRIPT_ARGS" VALUE="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test_aes" type="RubyRunConfigurationType" factoryName="Ruby" temporary="true">
+      <module name="CocoaPodsLocal" />
+      <RUBY_RUN_CONFIG NAME="RUBY_ARGS" VALUE="" />
+      <RUBY_RUN_CONFIG NAME="WORK DIR" VALUE="$MODULE_DIR$" />
+      <RUBY_RUN_CONFIG NAME="SHOULD_USE_SDK" VALUE="false" />
+      <RUBY_RUN_CONFIG NAME="ALTERN_SDK_NAME" VALUE="" />
+      <RUBY_RUN_CONFIG NAME="myPassParentEnvs" VALUE="true" />
+      <EXTENSION ID="BundlerRunConfigurationExtension" BUNDLE_MODE="AUTO" bundleExecEnabled="true" />
+      <EXTENSION ID="RubyCoverageRunConfigurationExtension" track_test_folders="true" runner="rcov" ENABLE_BRANCH_COVERAGE="true" ENABLE_FORKED_COVERAGE="true">
+        <COVERAGE_PATTERN ENABLED="true">
+          <PATTERN REGEXPS="/.rvm/" INCLUDED="false" />
+        </COVERAGE_PATTERN>
+      </EXTENSION>
+      <EXTENSION ID="org.jetbrains.plugins.ruby.rails.run.RailsRunConfigurationExtension" SCRATCH_USE_RAILS_RUNNER="false" />
+      <RUBY_RUN_CONFIG NAME="SCRIPT_PATH" VALUE="$MODULE_DIR$/test_aes.rb" />
+      <RUBY_RUN_CONFIG NAME="SCRIPT_ARGS" VALUE="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test_hash" type="RubyRunConfigurationType" factoryName="Ruby" temporary="true">
+      <module name="CocoaPodsLocal" />
+      <RUBY_RUN_CONFIG NAME="RUBY_ARGS" VALUE="" />
+      <RUBY_RUN_CONFIG NAME="WORK DIR" VALUE="$MODULE_DIR$" />
+      <RUBY_RUN_CONFIG NAME="SHOULD_USE_SDK" VALUE="false" />
+      <RUBY_RUN_CONFIG NAME="ALTERN_SDK_NAME" VALUE="" />
+      <RUBY_RUN_CONFIG NAME="myPassParentEnvs" VALUE="true" />
+      <EXTENSION ID="BundlerRunConfigurationExtension" BUNDLE_MODE="AUTO" bundleExecEnabled="true" />
+      <EXTENSION ID="RubyCoverageRunConfigurationExtension" track_test_folders="true" runner="rcov" ENABLE_BRANCH_COVERAGE="true" ENABLE_FORKED_COVERAGE="true">
+        <COVERAGE_PATTERN ENABLED="true">
+          <PATTERN REGEXPS="/.rvm/" INCLUDED="false" />
+        </COVERAGE_PATTERN>
+      </EXTENSION>
+      <EXTENSION ID="org.jetbrains.plugins.ruby.rails.run.RailsRunConfigurationExtension" SCRATCH_USE_RAILS_RUNNER="false" />
+      <RUBY_RUN_CONFIG NAME="SCRIPT_PATH" VALUE="$MODULE_DIR$/test_hash.rb" />
+      <RUBY_RUN_CONFIG NAME="SCRIPT_ARGS" VALUE="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Ruby.test" />
+        <item itemvalue="Ruby.test_hash" />
+        <item itemvalue="Ruby.test_aes" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
+  <component name="SpringUtil" SPRING_PRE_LOADER_OPTION="true" RAKE_SPRING_PRE_LOADER_OPTION="true" RAILS_SPRING_PRE_LOADER_OPTION="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="默认任务">
+      <changelist id="89329c8f-6f9f-45fc-b90a-a343198fdcfb" name="变更" comment="" />
+      <created>1667368656771</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1667368656771</updated>
+      <workItem from="1667368657981" duration="3301000" />
+      <workItem from="1667374017363" duration="1424000" />
+      <workItem from="1667375825346" duration="3347000" />
+      <workItem from="1667379287388" duration="6296000" />
+      <workItem from="1667389327472" duration="7724000" />
+      <workItem from="1667440248248" duration="11096000" />
+      <workItem from="1667454452540" duration="15212000" />
+      <workItem from="1667470528685" duration="328000" />
+      <workItem from="1667473385043" duration="2306000" />
+      <workItem from="1667545205893" duration="724000" />
+      <workItem from="1667545932910" duration="10300000" />
+      <workItem from="1667557044428" duration="648000" />
+      <workItem from="1667610939996" duration="17384000" />
+      <workItem from="1667646397299" duration="32083000" />
+      <workItem from="1667723038245" duration="179000" />
+      <workItem from="1667723225381" duration="3201000" />
+      <workItem from="1667727889274" duration="5108000" />
+      <workItem from="1667785299007" duration="1559000" />
+      <workItem from="1667787080397" duration="357000" />
+      <workItem from="1667787883818" duration="5071000" />
+      <workItem from="1667794312518" duration="1293000" />
+      <workItem from="1667795822528" duration="190000" />
+      <workItem from="1667802867570" duration="1364000" />
+      <workItem from="1667811578036" duration="4358000" />
+      <workItem from="1667816020870" duration="724000" />
+      <workItem from="1667819755351" duration="1768000" />
+      <workItem from="1667871488393" duration="2663000" />
+      <workItem from="1667874557169" duration="341000" />
+      <workItem from="1667879798002" duration="1952000" />
+      <workItem from="1667883653554" duration="1159000" />
+      <workItem from="1667885251017" duration="378000" />
+      <workItem from="1667891518906" duration="1712000" />
+      <workItem from="1667894534316" duration="993000" />
+      <workItem from="1667895538691" duration="267000" />
+      <workItem from="1667896868628" duration="393000" />
+      <workItem from="1667897621604" duration="5802000" />
+      <workItem from="1667903559845" duration="619000" />
+      <workItem from="1667909177380" duration="1359000" />
+      <workItem from="1667957793492" duration="9538000" />
+      <workItem from="1667972442509" duration="23000" />
+      <workItem from="1667972467152" duration="4591000" />
+      <workItem from="1667977338998" duration="594000" />
+      <workItem from="1667977934678" duration="1175000" />
+      <workItem from="1667981740204" duration="1991000" />
+      <workItem from="1667984275941" duration="1953000" />
+      <workItem from="1667988075226" duration="846000" />
+      <workItem from="1668048445570" duration="1104000" />
+      <workItem from="1668049821186" duration="290000" />
+      <workItem from="1668057729057" duration="1187000" />
+      <workItem from="1668060434329" duration="968000" />
+      <workItem from="1668066939015" duration="6264000" />
+      <workItem from="1668130927240" duration="1024000" />
+      <workItem from="1668131954518" duration="3273000" />
+      <workItem from="1668138797301" duration="782000" />
+      <workItem from="1668156690103" duration="2139000" />
+      <workItem from="1668159190932" duration="211000" />
+      <workItem from="1668159931864" duration="560000" />
+      <workItem from="1668162086524" duration="592000" />
+      <workItem from="1668162730243" duration="105000" />
+      <workItem from="1668170386418" duration="113000" />
+      <workItem from="1668171688976" duration="4328000" />
+      <workItem from="1668243545934" duration="3342000" />
+      <workItem from="1668248557286" duration="204000" />
+      <workItem from="1668313166740" duration="286000" />
+      <workItem from="1668415382263" duration="1983000" />
+      <workItem from="1668484871375" duration="237000" />
+      <workItem from="1668485157991" duration="495000" />
+      <workItem from="1668491086545" duration="173000" />
+      <workItem from="1668491261225" duration="172000" />
+      <workItem from="1668564067450" duration="150000" />
+      <workItem from="1668564690554" duration="3908000" />
+      <workItem from="1668569788630" duration="735000" />
+      <workItem from="1668736679861" duration="1000" />
+      <workItem from="1669088792490" duration="1503000" />
+      <workItem from="1669104272076" duration="1140000" />
+      <workItem from="1669105539385" duration="1499000" />
+      <workItem from="1669108929367" duration="350000" />
+      <workItem from="1669113113840" duration="4564000" />
+      <workItem from="1669180636061" duration="859000" />
+      <workItem from="1669187261095" duration="661000" />
+      <workItem from="1669289911701" duration="297000" />
+      <workItem from="1669290263359" duration="58000" />
+      <workItem from="1669290497027" duration="178000" />
+      <workItem from="1669291665909" duration="1420000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <pin-to-top-manager>
+      <pinned-members>
+        <PinnedItemInfo parentTag="Pod::Specification" memberName="@swift_versions" />
+        <PinnedItemInfo parentTag="Net::HTTPFound" memberName="@header" />
+        <PinnedItemInfo parentTag="LgPodPlugin::PodSpec" memberName="@source_files" />
+        <PinnedItemInfo parentTag="LgPodPlugin::LConfig" memberName="@project" />
+        <PinnedItemInfo parentTag="Net::HTTPFound" memberName="@message" />
+      </pinned-members>
+    </pin-to-top-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/CocoaPodsLocal@test_mqtt.rcov" NAME="test_mqtt 覆盖结果" MODIFIED="1668564208813" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="CocoaPodsLocal" />
+    <SUITE FILE_PATH="coverage/CocoaPodsLocal@test_unzip.rcov" NAME="test_unzip 覆盖结果" MODIFIED="1667546006261" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="CocoaPodsLocal" />
+    <SUITE FILE_PATH="coverage/CocoaPodsLocal@test_hash.rcov" NAME="test_hash 覆盖结果" MODIFIED="1669181289854" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="CocoaPodsLocal" />
+    <SUITE FILE_PATH="coverage/CocoaPodsLocal@test.rcov" NAME="test 覆盖结果" MODIFIED="1669292107635" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="CocoaPodsLocal" />
+    <SUITE FILE_PATH="coverage/CocoaPodsLocal@test_aes.rcov" NAME="test_aes 覆盖结果" MODIFIED="1669180917371" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="CocoaPodsLocal" />
+    <SUITE FILE_PATH="coverage/CocoaPodsLocal@test_download.rcov" NAME="test_download 覆盖结果" MODIFIED="1667958861291" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="CocoaPodsLocal" />
+  </component>
+</project>
