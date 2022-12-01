@@ -1,4 +1,4 @@
-安装和使用教程: https://juejin.cn/post/7142388587852464135
+安装和使用教程: https://juejin.cn/post/7169834584106860575
 # LgPodPlugin
 
 Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/lg_pod_plugin`. To experiment with that code, run `bin/console` for an interactive prompt.
