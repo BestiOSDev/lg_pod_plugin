@@ -148,13 +148,10 @@ bundle exec lg install --no-repo-update --verbose
 pod install 耗时: 1612 秒, 约合 26.86 分钟
 
 安装过程中 git clone 速度缓慢, 经常卡主一两分钟不动, 这也是当初为什么开发 `lg_pod_plugin` 的初衷
-
 ![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/6b77127f61d1499584b7d53a6a074496~tplv-k3u1fbpfcp-watermark.image?)
 lg install 耗时: 178秒
 安装过程流畅, 基本上可以一次性下载所有依赖组件, 很少出现失败的情况.
-
 ![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/c5d4f1d3ba1744019b7df095ee761d34~tplv-k3u1fbpfcp-watermark.image?)
-
 实验结论
 
 本次实验结果并非准确结果, 由于时间关系只做了一组实验对比, `lg_pod_plugin` 速度至少可以达到 cocoapods 的 5 倍左右.
