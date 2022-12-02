@@ -20,7 +20,6 @@ module LgPodPlugin
     end
 
     public
-
     # 获取 GitLab access_token
     def self.request_gitlab_access_token(host, username, password)
       user_id = LUserAuthInfo.get_user_id(host)
@@ -40,6 +39,10 @@ module LgPodPlugin
           json = JSON.parse(res.body)
         else
           json = JSON.parse(res.body)
+          error = json["error"]
+          if error == "invalid_grant"
+            LSqliteDb.shared.delete_user_info(user_id)
+          end
           raise json["error_description"]
         end
         access_token = json["access_token"]
@@ -50,7 +53,6 @@ module LgPodPlugin
         LSqliteDb.shared.insert_user_info(user_model)
         LgPodPlugin.log_green "请求成功: `access_token` => #{access_token}, expires_in => #{expires_in}"
       rescue => exception
-        LSqliteDb.shared.delete_user_info(user_id)
         LgPodPlugin.log_red "获取 `access_token` 失败, error => #{exception.to_s}"
       end
     end

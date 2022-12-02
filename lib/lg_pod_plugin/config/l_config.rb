@@ -40,7 +40,6 @@ module LgPodPlugin
           user_info = new_user_info
         end
       end
-
       config = LConfig.new
       config.host = uri.hostname
       config.access_token = user_info.access_token
@@ -52,7 +51,6 @@ module LgPodPlugin
         config.project = GitLabAPI.request_project_info(config.host, config.project_name, config.access_token, git)
       end
       return config
-
     end
 
   end
