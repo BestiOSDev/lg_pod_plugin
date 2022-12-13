@@ -107,8 +107,8 @@ module LgPodPlugin
           return download_params
         elsif File.exist?(download_params.to_s) && download_params
           FileUtils.chdir download_params
-          LgPodPlugin::LCache.cache_pod(name, download_params.to_path, { :git => git }, podspec, self.request.released_pod) if self.request.single_git
-          LgPodPlugin::LCache.cache_pod(name, download_params.to_path, self.request.get_cache_key_params,podspec, self.request.released_pod)
+          LgPodPlugin::LCache.cache_pod(name, download_params, { :git => git }, podspec, self.request.released_pod) if self.request.single_git
+          LgPodPlugin::LCache.cache_pod(name, download_params, self.request.get_cache_key_params,podspec, self.request.released_pod)
           FileUtils.chdir(LFileManager.download_director)
           FileUtils.rm_rf(download_params)
           self.request.checkout_options.delete(:branch) if commit

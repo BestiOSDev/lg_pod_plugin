@@ -51,9 +51,12 @@ module LgPodPlugin
 
     # git clone commit
     def git_clone_by_commit(path, temp_name)
-      Git.init(temp_name)
+      unless File.exist?(temp_name)
+        FileUtils.mkdir(temp_name)
+      end
       FileUtils.chdir(temp_name)
-      LgPodPlugin.log_blue "git clone #{self.git}"
+      system("git init")
+      LgPodPlugin.log_blue "git clone -b #{self.commit} #{self.git}"
       system("git remote add origin #{self.git}")
       system("git fetch origin #{self.commit}")
       system("git reset --hard FETCH_HEAD")
