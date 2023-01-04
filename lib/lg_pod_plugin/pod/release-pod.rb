@@ -86,6 +86,7 @@ module LgPodPlugin
       end
       installer.send(:write_lockfiles)
       installer.send(:perform_post_install_actions)
+      LockfileModel.writeToFile()
     end
 
     def self.lockfile_missing_pods(pods, lockfile)
@@ -135,10 +136,16 @@ module LgPodPlugin
         begin
           verify_lockfile_exists!(lockfile)
           verify_pods_are_installed!(pods, lockfile)
-          if pods.empty?
-            installer.update = true
+          internal_data = lockfile.send(:internal_data)
+          flag = internal_data["LOCKFILE TYPE"]
+          if flag != nil
+            if pods.empty?
+              installer.update = true
+            else
+              installer.update = { :pods => pods }
+            end
           else
-            installer.update = { :pods => pods }
+            installer.update = false
           end
         rescue
           installer.update = false

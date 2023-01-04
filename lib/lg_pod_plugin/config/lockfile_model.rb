@@ -54,6 +54,13 @@ module LgPodPlugin
       hash ? hash : {}
     end
 
+    def self.writeToFile()
+      lockfile = LProject.shared.lockfile
+      hash = lockfile.send(:internal_data)
+      hash["LOCKFILE TYPE"] = "LgPodPlugin"
+      lockfile_path = lockfile.send(:defined_in_file)
+      lockfile.send(:write_to_disk, lockfile_path)
+    end
 
   end
 end
