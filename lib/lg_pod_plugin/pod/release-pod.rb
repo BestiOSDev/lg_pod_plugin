@@ -86,7 +86,28 @@ module LgPodPlugin
       end
       installer.send(:write_lockfiles)
       installer.send(:perform_post_install_actions)
-      LockfileModel.writeToFile()
+      write_podfile_lock
+      write_manifest_lock
+    end
+
+    def self.write_podfile_lock
+      lockfile_path = LProject.shared.workspace.join("Podfile.lock")
+      lockfile = Pod::Lockfile.from_file(lockfile_path) if lockfile_path.exist?
+      return unless lockfile
+      hash = lockfile.send(:internal_data)
+      hash["LOCKFILE TYPE"] = "LgPodPlugin"
+      lockfile_path = lockfile.send(:defined_in_file)
+      lockfile.send(:write_to_disk, lockfile_path)
+    end
+
+    def self.write_manifest_lock
+      lockfile_path = LProject.shared.workspace.join("Pods").join("Manifest.lock")
+      lockfile = Pod::Lockfile.from_file(lockfile_path) if lockfile_path.exist?
+      return unless lockfile
+      hash = lockfile.send(:internal_data)
+      hash["LOCKFILE TYPE"] = "LgPodPlugin"
+      lockfile_path = lockfile.send(:defined_in_file)
+      lockfile.send(:write_to_disk, lockfile_path)
     end
 
     def self.lockfile_missing_pods(pods, lockfile)
