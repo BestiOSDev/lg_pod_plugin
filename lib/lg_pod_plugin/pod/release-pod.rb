@@ -1,5 +1,6 @@
 require 'cocoapods'
 require 'cocoapods-core'
+require 'cocoapods/user_interface'
 require_relative '../config/podspec'
 require_relative '../installer/concurrency'
 
@@ -84,30 +85,24 @@ module LgPodPlugin
       else
         installer.integrate
       end
-      installer.send(:write_lockfiles)
+      self.write_lockfiles(installer)
       installer.send(:perform_post_install_actions)
-      write_podfile_lock
-      write_manifest_lock
     end
 
-    def self.write_podfile_lock
-      lockfile_path = LProject.shared.workspace.join("Podfile.lock")
-      lockfile = Pod::Lockfile.from_file(lockfile_path) if lockfile_path.exist?
-      return unless lockfile
-      hash = lockfile.send(:internal_data)
-      hash["LOCKFILE TYPE"] = "LgPodPlugin"
-      lockfile_path = lockfile.send(:defined_in_file)
-      lockfile.send(:write_to_disk, lockfile_path)
-    end
+    def self.write_lockfiles(installer)
+      config = Pod::Config.instance
+      lockfile = installer.send(:generate_lockfile)
+      Pod::UI.message "- Writing Lockfile in #{Pod::UI.path config.lockfile_path}" do hash = lockfile.send(:internal_data)
+        hash["LOCKFILE TYPE"] = "LgPodPlugin"
+        lockfile.write_to_disk(config.lockfile_path)
+      end
 
-    def self.write_manifest_lock
-      lockfile_path = LProject.shared.workspace.join("Pods").join("Manifest.lock")
-      lockfile = Pod::Lockfile.from_file(lockfile_path) if lockfile_path.exist?
-      return unless lockfile
-      hash = lockfile.send(:internal_data)
-      hash["LOCKFILE TYPE"] = "LgPodPlugin"
-      lockfile_path = lockfile.send(:defined_in_file)
-      lockfile.send(:write_to_disk, lockfile_path)
+      sandbox = installer.send(:sandbox)
+      Pod::UI.message "- Writing Manifest in #{Pod::UI.path sandbox.manifest_path}" do
+        hash = lockfile.send(:internal_data)
+        hash["LOCKFILE TYPE"] = "LgPodPlugin"
+        lockfile.write_to_disk(sandbox.manifest_path)
+      end
     end
 
     def self.lockfile_missing_pods(pods, lockfile)
