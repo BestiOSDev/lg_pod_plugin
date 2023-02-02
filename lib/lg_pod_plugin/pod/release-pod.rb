@@ -133,7 +133,7 @@ module LgPodPlugin
       end
     end
 
-    def self.install_release_pod(update, repo_update, verbose)
+    def self.install_release_pod(update, repo_update, verbose, clean_install)
       #切换工作目录到当前工程下, 开始执行pod install
       workspace = LProject.shared.workspace
       FileUtils.chdir(workspace)
@@ -170,7 +170,7 @@ module LgPodPlugin
         installer.update = false
       end
       installer.deployment = false
-      installer.clean_install = false
+      installer.clean_install = clean_install
       installer.prepare
       resolve_dependencies(lockfile, installer)
       dependencies(installer)

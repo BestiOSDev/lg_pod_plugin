@@ -31,7 +31,8 @@ module LgPodPlugin
       self.install_external_pod(project)
       # # 安装开发版本pod
       verbose = options[:verbose] ||= false
-      ReleasePod.install_release_pod(update, repo_update, verbose)
+      clean_install = options[:clean_install] ||= false
+      ReleasePod.install_release_pod(update, repo_update, verbose, clean_install)
     end
 
     def self.install_external_pod(project)
