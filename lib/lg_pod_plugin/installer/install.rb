@@ -37,29 +37,13 @@ module LgPodPlugin
       if request.lg_spec
         cache_podspec = request.lg_spec.spec
       else
-        cache_podspec = nil
-      end
-
-      unless cache_podspec
         cache_podspec = LProject.shared.cache_specs[name]
         request.lg_spec = LgPodPlugin::PodSpec.form_pod_spec cache_podspec if cache_podspec
       end
-
-      if cache_podspec
-        destination = self.download_params["destination"]
-        if destination && File.exist?(destination) && !Pathname(destination).children.empty?
-          pod_is_exist = true
-        else
-          pod_is_exist = false
-        end
-      else
-        destination = self.download_params["destination"]
-        if destination && File.exist?(destination) && !Pathname(destination).children.empty?
-          pod_is_exist = true
-        else
-          pod_is_exist = false
-        end
-        cache_pod_spec_path = self.download_params["cache_pod_spec_path"]
+      destination = self.download_params["destination"]
+      cache_pod_spec_path = self.download_params["cache_pod_spec_path"]
+      # podspec.json 不存在
+      unless cache_podspec
         local_spec_path = destination.glob("#{name}.podspec{,.json}").last
         if local_spec_path && File.exist?(local_spec_path)
           cache_podspec = Pod::Specification.from_file local_spec_path
@@ -70,6 +54,12 @@ module LgPodPlugin
           end
         end
         request.lg_spec = LgPodPlugin::PodSpec.form_pod_spec cache_podspec if cache_podspec
+      end
+      # 判断缓存是否下载成功
+      if (destination && File.exist?(destination) && !Pathname(destination).children.empty?) && (cache_pod_spec_path && File.exist?(cache_pod_spec_path))
+        pod_is_exist = true
+      else
+        pod_is_exist = false
       end
       if pod_is_exist
         is_delete = request.params["is_delete"] ||= false

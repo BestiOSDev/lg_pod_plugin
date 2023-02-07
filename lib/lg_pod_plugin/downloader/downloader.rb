@@ -50,11 +50,7 @@ module LgPodPlugin
       end
       hash_map = self.request.get_cache_key_params
       # 发现本地有缓存, 不需要更新缓存
-      if self.request.single_git
-        pod_is_exist, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, podspec, self.request.released_pod)
-      else
-        pod_is_exist, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, podspec, self.request.released_pod)
-      end
+      pod_is_exist, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, podspec, self.request.released_pod)
       if pod_is_exist
         is_delete = self.request.params["is_delete"] ||= false
         LProject.shared.need_update_pods.delete(name) if is_delete
@@ -102,7 +98,6 @@ module LgPodPlugin
                 download_params.delete("podspec_content")
               end
             end
-            FileUtils.rm_rf podspec_path
           end
           return download_params
         elsif File.exist?(download_params.to_s) && download_params

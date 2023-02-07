@@ -68,17 +68,17 @@ module LgPodPlugin
         end
         pod_spec_file_path = sandbox_path.join("#{podspec_filename}")
         lg_spec = LgPodPlugin::PodSpec.form_string(podspec_content, pod_spec_file_path)
-        unless lg_spec
-          if podspec_content
-            begin
-              File.open(pod_spec_file_path, "w+") do |f|
-                f.write podspec_content
-              end
-            rescue => exception
-              LgPodPlugin.log_red "#{exception}"
+        if podspec_content
+          begin
+            File.open(pod_spec_file_path, "w+") do |f|
+              f.write podspec_content
             end
-            @podspec_content = podspec_content
+          rescue => exception
+            LgPodPlugin.log_red "#{exception}"
           end
+          @podspec_content = podspec_content
+        end
+        unless lg_spec
           download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2\\?" + "sha\\=#{sha}"
           download_url += "\\&access_token\\=#{token}" if token
           return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
