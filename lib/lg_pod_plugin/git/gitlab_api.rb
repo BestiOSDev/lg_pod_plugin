@@ -24,22 +24,13 @@ module LgPodPlugin
     def self.request_gitlab_access_token(host, username, password)
       user_id = LUserAuthInfo.get_user_id(host)
       begin
-        uri = URI("#{host}/oauth/token")
+        uri = URI("https://gitlab-ha.immotors.com/oauth/token")
         hash_map = { "grant_type" => "password", "username" => username, "password" => password }
         LgPodPlugin.log_green "开始请求 access_token, url => #{uri.to_s} "
-        req = Net::HTTP::Post.new(uri)
-        req.set_form_data(hash_map)
-        res = Net::HTTP.start((uri.hostname ||= ""), uri.port) do |http|
-          http.open_timeout = 15
-          http.read_timeout = 15
-          http.request(req)
-        end
-        case res
-        when Net::HTTPSuccess, Net::HTTPRedirection
-          json = JSON.parse(res.body)
-        else
-          json = JSON.parse(res.body)
-          error = json["error"]
+        req = Net::HTTP.post_form(uri, hash_map)
+        json = JSON.parse(req.body)
+        error = json["error"]
+        if error != nil
           if error == "invalid_grant"
             LSqliteDb.shared.delete_user_info(user_id)
           end

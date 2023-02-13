@@ -29,8 +29,8 @@ module LgPodPlugin
         end
       end
       return unless uri
-      ip_address = getaddress(uri)
-      return unless ip_address
+      ip_address = uri.host
+      # return unless ip_address
       if git.include?("ssh") || git.include?("git@gitlab") || git.include?("git@")
         @uri = URI("http://#{ip_address}#{uri.path}")
       else

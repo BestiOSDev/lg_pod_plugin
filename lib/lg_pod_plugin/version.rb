@@ -1,3 +1,3 @@
 module LgPodPlugin
-  VERSION = "1.1.5.7"
+  VERSION = "1.1.5.8"
 end
