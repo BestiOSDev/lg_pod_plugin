@@ -4,10 +4,11 @@ module LgPodPlugin
   class LPodTarget
     attr_reader :name
     attr_reader :dependencies
+    attr_reader :internal_hash
     def initialize(target)
-      internal_hash = target.send(:internal_hash)
-      @name = internal_hash["name"]
-      array = Array.new(internal_hash['dependencies'] ||= [])
+      @internal_hash = target.send(:internal_hash)
+      @name = @internal_hash["name"]
+      array = Array.new(@internal_hash['dependencies'] ||= [])
       dependencies = array.reject do |e|
         if LUtils.is_a_string?(e)
           true
@@ -29,5 +30,6 @@ module LgPodPlugin
       end
       @dependencies = external_pods
     end
+
   end
 end

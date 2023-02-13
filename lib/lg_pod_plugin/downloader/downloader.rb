@@ -49,13 +49,13 @@ module LgPodPlugin
         LgPodPlugin.log_green "Using `#{name}`"
       end
       hash_map = self.request.get_cache_key_params
+      self.request.checkout_options.delete(:branch) if commit
+      self.request.checkout_options[:commit] = commit if commit
       # 发现本地有缓存, 不需要更新缓存
       pod_is_exist, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, podspec, self.request.released_pod)
       if pod_is_exist
         is_delete = self.request.params["is_delete"] ||= false
         LProject.shared.need_update_pods.delete(name) if is_delete
-        self.request.checkout_options.delete(:branch) if commit
-        self.request.checkout_options[:commit] = commit if commit
         LgPodPlugin.log_green "find the cache of `#{name}`, you can use it now."
          nil
       else
@@ -106,8 +106,6 @@ module LgPodPlugin
           LgPodPlugin::LCache.cache_pod(name, download_params, self.request.get_cache_key_params,podspec, self.request.released_pod)
           FileUtils.chdir(LFileManager.download_director)
           FileUtils.rm_rf(download_params)
-          self.request.checkout_options.delete(:branch) if commit
-          self.request.checkout_options[:commit] = commit if commit
         end
         nil
       end

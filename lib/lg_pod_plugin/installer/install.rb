@@ -64,8 +64,6 @@ module LgPodPlugin
       if pod_is_exist
         is_delete = request.params["is_delete"] ||= false
         LProject.shared.need_update_pods.delete(name) if is_delete
-        request.checkout_options.delete(:branch) if commit
-        request.checkout_options[:commit] = commit if commit
       else
         git = checkout_options[:git]
         return unless git
@@ -91,8 +89,6 @@ module LgPodPlugin
         end
         FileUtils.chdir(LFileManager.download_director)
         FileUtils.rm_rf(download_params)
-        request.checkout_options.delete(:branch) if commit
-        request.checkout_options[:commit] = commit if commit
       end
 
     end
