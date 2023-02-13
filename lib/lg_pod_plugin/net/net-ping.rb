@@ -12,7 +12,7 @@ module LgPodPlugin
       uri = LURI.new(url)
       if uri.host
         self.uri = uri
-        self.ip = uri.ip
+        self.ip = uri.host
         self.network_ok = true
       else
         self.uri = nil

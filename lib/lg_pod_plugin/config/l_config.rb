@@ -23,7 +23,7 @@ module LgPodPlugin
       user_info = LSqliteDb.shared.query_user_info(user_id)
       # 用户授权 token 不存在, 提示用户输入用户名密码
       unless user_info
-        user_info = GitLabAPI.get_gitlab_access_token_input(uri, user_id, nil, nil)
+        user_info = GitLabAPI.get_gitlab_access_token_input(uri, user_id,nil ,nil )
         return nil unless user_info
       end
       time_now = Time.now.to_i
