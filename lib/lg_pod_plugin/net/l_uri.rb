@@ -5,7 +5,7 @@ module LgPodPlugin
 
   class LURI
     public
-    attr_reader :path
+    # attr_reader :path
     attr_reader :host
     attr_reader :scheme
     attr_reader :hostname
@@ -13,51 +13,47 @@ module LgPodPlugin
     attr_reader :uri
     public
     def initialize(git)
-      begin
-        uri = URI(git)
-      rescue => exception
-        if git.include?("git@") && git.include?(":")
-          match = %r{(?<=git@).*?(?=:)}.match(git)
-          host = match ? match[0] : ""
+      if git.include?("git@") && git.include?(":")
+        match = %r{(?<=git@).*?(?=:)}.match(git)
+        host = match ? match[0] : ""
+        if is_address(host)
           base_url = LUtils.get_gitlab_base_url(git)
           path = base_url.split(":").last
-          uri = URI("http://#{host}/#{path}")
+          origin_uri = URI("http://#{host}/#{path}")
         else
-          LgPodPlugin.log_red exception
-          uri = nil
+          base_url = LUtils.get_gitlab_base_url(git)
+          path = base_url.split(":").last
+          origin_uri = URI("https://#{host}/#{path}")
         end
-      end
-      return unless uri
-      if git.include?("ssh") || git.include?("git@gitlab") || git.include?("git@")
-        redirect_url = get_redirect_url("https://#{uri.host}#{uri.path}")
-        @uri = URI(redirect_url)
       else
-        redirect_url = get_redirect_url("#{uri.scheme}://#{uri.host}#{uri.path}")
-        @uri = URI(redirect_url)
+        origin_uri = URI(git)
       end
-      @host = @uri.host ||= ""
-      @path = @uri.path ||= ""
-      @scheme = @uri.scheme ||= ""
+      return if origin_uri.nil?
+      redirect_url = LProject.shared.redirect_url_hash[origin_uri.host]
+      if redirect_url
+        @uri = redirect_url
+      else
+        @uri = URI(get_redirect_url(origin_uri.scheme + "://" + origin_uri.host))
+        LProject.shared.redirect_url_hash[origin_uri.host] = @uri
+      end
+      @host = @uri.host
+      @scheme = @uri.scheme ||= "https"
       @hostname =  @scheme + "://" + @host
     end
 
     def get_redirect_url(host)
       redirect_url = Net::HTTP.get_response(URI(host))['location']
-      begin
-        uri = URI(redirect_url)
-        return uri.scheme + "://" + uri.host
-      rescue
-        return host
-      end
+      return host unless redirect_url
+      uri = URI(redirect_url)
+      return uri.scheme + "://" + uri.host
     end
-
 
     private
     #判断是否是 IP 地址
-    # def is_address(host)
-    #   match = %r{^((2[0-4]\d|25[0-5]|[01]?\d\d?)\.){3}(2[0-4]\d|25[0-5]|[01]?\d\d?)$}.match(host)
-    #   !(match.nil?)
-    # end
+    def is_address(host)
+      match = %r{^((2[0-4]\d|25[0-5]|[01]?\d\d?)\.){3}(2[0-4]\d|25[0-5]|[01]?\d\d?)$}.match(host)
+      !(match.nil?)
+    end
 
     # 获取 ip 地址
     # private

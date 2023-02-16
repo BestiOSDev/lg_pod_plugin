@@ -19,7 +19,7 @@ module LgPodPlugin
 
     public
     def self.run(command, options = {})
-      self.clean_sandbox
+      clean_sandbox()
       workspace = Pathname(Dir.pwd)
       update = (command == "update")
       LSqliteDb.shared.init_database

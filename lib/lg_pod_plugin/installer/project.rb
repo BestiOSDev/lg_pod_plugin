@@ -16,6 +16,7 @@ module LgPodPlugin
     attr_reader :external_pods
     attr_reader :need_update_pods
     attr_accessor :cache_specs
+    attr_accessor :redirect_url_hash
     def setup(workspace,podfile_path, update, repo_update)
       @podfile = Pod::Podfile.from_file(podfile_path)
       @update = update
@@ -35,7 +36,8 @@ module LgPodPlugin
       @cache_specs = Hash.new
       @external_pods = Hash.new.merge!(external_pods)
       @need_update_pods = Hash.new.merge!(external_pods)
-      self
+      @redirect_url_hash = Hash.new
+      return self
     end
 
     def self.shared
