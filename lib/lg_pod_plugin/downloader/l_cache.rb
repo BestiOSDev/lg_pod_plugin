@@ -109,7 +109,7 @@ module LgPodPlugin
     end
 
     def self.clean_pod_unused_files(destination, spec)
-      specs_by_platform = group_sub_specs_by_platform(spec)
+      specs_by_platform = group_subspecs_by_platform(spec)
       destination.parent.mkpath
       self.write_lock(destination) do
         Pod::Installer::PodSourcePreparer.new(spec, destination).prepare!
