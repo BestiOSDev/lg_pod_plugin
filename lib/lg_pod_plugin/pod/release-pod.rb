@@ -47,8 +47,7 @@ module LgPodPlugin
             http = "https://ghproxy.com/" + http
             source["http"] = http
           end
-          version = attributes_hash["version"]
-          requirements = {:http => http, :version => version}
+          requirements = {:http => http }
         elsif git && tag
           tag = tag.to_s unless LUtils.is_a_string? tag
           requirements = { :git => git, :tag => tag }
@@ -74,14 +73,17 @@ module LgPodPlugin
       # 通过 swift 可执行文件进行异步下载任务
       LgPodPlugin::Concurrency.async_download_pods all_installers
     end
+    
 
     def self.dependencies(installer)
       installer.download_dependencies
       installer.send(:validate_targets)
+      installer.send(:clean_sandbox)
       installation_options = installer.send(:installation_options)
       skip_pods_project_generation = installation_options.send(:skip_pods_project_generation)
       if skip_pods_project_generation
         installer.show_skip_pods_project_generation_message
+        installer.send(:run_podfile_post_install_hooks)
       else
         installer.integrate
       end
@@ -132,7 +134,7 @@ module LgPodPlugin
         raise Pod::Informative, "No `Podfile.lock' found in the project directory, run `pod install'."
       end
     end
-
+    
     def self.install_release_pod(update, repo_update, verbose, clean_install)
       #切换工作目录到当前工程下, 开始执行pod install
       workspace = LProject.shared.workspace

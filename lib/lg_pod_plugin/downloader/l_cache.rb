@@ -17,7 +17,7 @@ module LgPodPlugin
       if (File.exist?(destination) && !destination.children.empty?) && cache_pod_spec.exist?
         return [true, destination, cache_pod_spec]
       else
-        [false, destination, cache_pod_spec]
+        return [false, destination, cache_pod_spec]
       end
     end
 
@@ -58,12 +58,12 @@ module LgPodPlugin
       Pathname.new(path.to_path + '.podspec.json')
     end
 
-    def self.cached_spec(request)
-      path = path_for_spec(request)
-      path.file? && Specification.from_file(path)
-    rescue JSON::ParserError
-      nil
-    end
+    # def self.cached_spec(request)
+    #   path = path_for_spec(request)
+    #   path.file? && Specification.from_file(path)
+    # rescue JSON::ParserError
+    #   nil
+    # end
 
     def self.get_local_spec(request, target)
       result = Pod::Downloader::Response.new
@@ -86,7 +86,7 @@ module LgPodPlugin
       [result, local_specs]
     end
 
-    def self.group_sub_specs_by_platform(spec)
+    def self.group_subspecs_by_platform(spec)
       specs_by_platform = {}
       [spec, *spec.recursive_subspecs].each do |ss|
         ss.available_platforms.each do |platform|
@@ -98,7 +98,7 @@ module LgPodPlugin
     end
 
     def self.copy_and_clean(source, destination, spec)
-      specs_by_platform = group_sub_specs_by_platform(spec)
+      specs_by_platform = group_subspecs_by_platform(spec)
       destination.parent.mkpath
       self.write_lock(destination) do
         FileUtils.rm_rf(destination)
@@ -110,6 +110,7 @@ module LgPodPlugin
 
     def self.clean_pod_unused_files(destination, spec)
       specs_by_platform = group_sub_specs_by_platform(spec)
+      destination.parent.mkpath
       self.write_lock(destination) do
         Pod::Installer::PodSourcePreparer.new(spec, destination).prepare!
         Pod::Sandbox::PodDirCleaner.new(destination, specs_by_platform).clean!
@@ -117,37 +118,37 @@ module LgPodPlugin
     end
 
     def self.write_lock(location, &block)
-      self.lock(location, File::LOCK_EX, &block)
+      Pod::Downloader::Cache.lock(location, File::LOCK_SH, &block)
     end
 
-    def self.lock(location, lock_type)
-      raise ArgumentError, 'no block given' unless block_given?
-      lockfile = "#{location}.lock"
-      f = nil
-      loop do
-        f.close if f
-        f = File.open(lockfile, File::CREAT, 0o644)
-        f.flock(lock_type)
-        break if self.valid_lock?(f, lockfile)
-      end
-      begin
-        yield location
-      ensure
-        if lock_type == File::LOCK_SH
-          f.flock(File::LOCK_EX)
-          File.delete(lockfile) if self.valid_lock?(f, lockfile)
-        else
-          File.delete(lockfile)
-        end
-        f.close
-      end
-    end
+    # def self.lock(location, lock_type)
+    #   raise ArgumentError, 'no block given' unless block_given?
+    #   lockfile = "#{location}.lock"
+    #   f = nil
+    #   loop do
+    #     f.close if f
+    #     f = File.open(lockfile, File::CREAT, 0o644)
+    #     f.flock(lock_type)
+    #     break if self.valid_lock?(f, lockfile)
+    #   end
+    #   begin
+    #     yield location
+    #   ensure
+    #     if lock_type == File::LOCK_SH
+    #       f.flock(File::LOCK_EX)
+    #       File.delete(lockfile) if self.valid_lock?(f, lockfile)
+    #     else
+    #       File.delete(lockfile)
+    #     end
+    #     f.close
+    #   end
+    # end
 
-    def self.valid_lock?(file, filename)
-      file.stat.ino == File.stat(filename).ino
-    rescue Errno::ENOENT
-      false
-    end
+    # def self.valid_lock?(file, filename)
+    #   file.stat.ino == File.stat(filename).ino
+    # rescue Errno::ENOENT
+    #   false
+    # end
 
     public
     def self.write_spec(spec, path)
