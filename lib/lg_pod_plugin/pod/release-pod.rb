@@ -158,7 +158,7 @@ module LgPodPlugin
           flag = internal_data["LOCKFILE TYPE"]
           if flag != nil
             if pods.empty?
-              installer.update = true
+              installer.update = false
             else
               installer.update = { :pods => pods }
             end
