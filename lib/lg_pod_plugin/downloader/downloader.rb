@@ -54,10 +54,8 @@ module LgPodPlugin
       # 发现本地有缓存, 不需要更新缓存
       pod_is_exist, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, podspec, self.request.released_pod)
       if pod_is_exist
-        is_delete = self.request.params["is_delete"] ||= false
-        LProject.shared.need_update_pods.delete(name) if is_delete
         LgPodPlugin.log_green "find the cache of `#{name}`, you can use it now."
-         nil
+        return nil
       else
         LgPodPlugin.log_green "find the new commit of `#{name}`, Git downloading now."
         # 本地 git 下载 pod 目录

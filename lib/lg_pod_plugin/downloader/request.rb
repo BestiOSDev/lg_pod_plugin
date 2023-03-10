@@ -24,12 +24,6 @@ module LgPodPlugin
         @lg_spec = pod.spec
       end
       self.preprocess_request
-      # require 'benchmark'
-      # col_width = 10
-      # Benchmark.bm(col_width) do |bm|
-      #   bm.report("time") do
-      #   end
-      # end
     end
 
     def preprocess_request
@@ -113,11 +107,6 @@ module LgPodPlugin
       hash_map[:git] = git if git
       if git && tag
         hash_map[:tag] = tag
-        if tag != lock_tag
-          hash_map["is_delete"] = false
-        else
-          hash_map["is_delete"] = true
-        end
         return hash_map
       elsif git && branch
         hash_map[:branch] = branch
@@ -127,7 +116,6 @@ module LgPodPlugin
           new_commit = pod_info[:sha] ||= ""
           if lock_branch == branch && new_commit == lock_commit
             hash_map[:commit] = lock_commit
-            hash_map["is_delete"] = true
             return hash_map
           end
         end
@@ -137,19 +125,7 @@ module LgPodPlugin
         elsif lock_commit && !lock_commit.empty?
           hash_map[:commit] = lock_commit
         end
-        if !new_commit || !lock_commit || new_commit.empty? || lock_commit.empty?
-          hash_map["is_delete"] = false
-        elsif new_commit != lock_commit
-          hash_map["is_delete"] = false
-        else
-          hash_map["is_delete"] = true
-        end
       elsif git && commit
-        if commit != lock_commit
-          hash_map["is_delete"] = false
-        else
-          hash_map["is_delete"] = true
-        end
         hash_map[:commit] = commit
         return hash_map
       else
@@ -173,7 +149,6 @@ module LgPodPlugin
             if new_branch
               hash_map[:branch] = new_branch
             end
-            hash_map["is_delete"] = true
             return hash_map
           end
         end
@@ -181,11 +156,6 @@ module LgPodPlugin
         hash_map[:branch] = new_branch if new_branch
         if new_commit && !new_commit.empty?
           hash_map[:commit] = new_commit
-        end
-        if !new_commit || new_commit.empty?
-          hash_map["is_delete"] = true
-        else
-          hash_map["is_delete"] = false
         end
       end
       hash_map

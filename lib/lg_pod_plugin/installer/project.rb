@@ -35,7 +35,7 @@ module LgPodPlugin
       end
       @cache_specs = Hash.new
       @external_pods = Hash.new.merge!(external_pods)
-      @need_update_pods = Hash.new.merge!(external_pods)
+      @need_update_pods = Hash.new
       @redirect_url_hash = Hash.new
       return self
     end

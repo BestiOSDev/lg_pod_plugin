@@ -21,7 +21,7 @@ module LgPodPlugin
     end
 
     def self.resolve_dependencies(lockfile, installer)
-      installer.resolve_dependencies
+      installer.send(:resolve_dependencies)
       external_pods = LProject.shared.external_pods ||= {}
       analysis_result = installer.send(:analysis_result)
       return unless analysis_result
@@ -75,8 +75,8 @@ module LgPodPlugin
     end
     
 
-    def self.dependencies(installer)
-      installer.download_dependencies
+    def self.download_dependencies(installer)
+      installer.send(:download_dependencies)
       installer.send(:validate_targets)
       installer.send(:clean_sandbox)
       installation_options = installer.send(:installation_options)
@@ -175,7 +175,7 @@ module LgPodPlugin
       installer.clean_install = clean_install
       installer.prepare
       resolve_dependencies(lockfile, installer)
-      dependencies(installer)
+      download_dependencies(installer)
     end
 
   end
