@@ -121,35 +121,6 @@ module LgPodPlugin
       Pod::Downloader::Cache.lock(location, File::LOCK_SH, &block)
     end
 
-    # def self.lock(location, lock_type)
-    #   raise ArgumentError, 'no block given' unless block_given?
-    #   lockfile = "#{location}.lock"
-    #   f = nil
-    #   loop do
-    #     f.close if f
-    #     f = File.open(lockfile, File::CREAT, 0o644)
-    #     f.flock(lock_type)
-    #     break if self.valid_lock?(f, lockfile)
-    #   end
-    #   begin
-    #     yield location
-    #   ensure
-    #     if lock_type == File::LOCK_SH
-    #       f.flock(File::LOCK_EX)
-    #       File.delete(lockfile) if self.valid_lock?(f, lockfile)
-    #     else
-    #       File.delete(lockfile)
-    #     end
-    #     f.close
-    #   end
-    # end
-
-    # def self.valid_lock?(file, filename)
-    #   file.stat.ino == File.stat(filename).ino
-    # rescue Errno::ENOENT
-    #   false
-    # end
-
     public
     def self.write_spec(spec, path)
       path.dirname.mkpath

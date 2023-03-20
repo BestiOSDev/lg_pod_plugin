@@ -82,26 +82,10 @@ module LgPodPlugin
 
     public
     def get_lock_params
-      begin
-        _release_pods = self.lockfile.release_pods ||= []
-        _external_source = (self.lockfile.external_sources_data[self.name])
-        _external_source = {} unless _external_source
-        _checkout_options = self.lockfile.checkout_options_for_pod_named(self.name)
-      rescue
-        _release_pods = {}
-        _external_source = {}
-        _checkout_options = {}
-      end
-
       git = self.checkout_options[:git]
       tag = self.checkout_options[:tag]
       commit = self.checkout_options[:commit]
       branch = self.checkout_options[:branch]
-
-      lock_git = _external_source[:git] ||= _checkout_options[:git]
-      lock_tag = _external_source[:tag] ||= _release_pods[self.name]
-      lock_branch = _external_source[:branch] ||= ""
-      lock_commit = _checkout_options[:commit] ||= ""
 
       hash_map = Hash.new
       hash_map[:git] = git if git
@@ -110,53 +94,15 @@ module LgPodPlugin
         return hash_map
       elsif git && branch
         hash_map[:branch] = branch
-        if lock_commit && !lock_commit.empty? && !LProject.shared.update
-          pod_info = LSqliteDb.shared.query_branch_with_sha(self.name, git, lock_commit)
-          lock_branch = pod_info[:branch] if lock_branch.empty?
-          new_commit = pod_info[:sha] ||= ""
-          if lock_branch == branch && new_commit == lock_commit
-            hash_map[:commit] = lock_commit
-            return hash_map
-          end
-        end
         _, new_commit = git_ls_remote_refs(self.name, git, branch)
-        if new_commit && !new_commit.empty?
-          hash_map[:commit] = new_commit
-        elsif lock_commit && !lock_commit.empty?
-          hash_map[:commit] = lock_commit
-        end
+        hash_map[:commit] = new_commit if new_commit
       elsif git && commit
         hash_map[:commit] = commit
         return hash_map
       else
-        if lock_git && !LProject.shared.update
-          id = LPodLatestRefs.get_pod_id(self.name, git)
-          pod_info = LSqliteDb.shared.query_pod_refs(id)
-          if pod_info&.commit
-            if pod_info
-              new_commit = pod_info.commit
-            else
-              new_commit = nil
-            end
-            if pod_info
-              new_branch = pod_info.branch
-            else
-              new_branch = nil
-            end
-            if new_commit
-              hash_map[:commit] = new_commit
-            end
-            if new_branch
-              hash_map[:branch] = new_branch
-            end
-            return hash_map
-          end
-        end
         new_branch, new_commit = git_ls_remote_refs(self.name, git, nil)
         hash_map[:branch] = new_branch if new_branch
-        if new_commit && !new_commit.empty?
-          hash_map[:commit] = new_commit
-        end
+        hash_map[:commit] = new_commit if new_commit
       end
       hash_map
     end
