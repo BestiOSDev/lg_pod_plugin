@@ -29,24 +29,25 @@ module LgPodPlugin
         origin_uri = URI(git)
       end
       return if origin_uri.nil?
-      redirect_url = LProject.shared.redirect_url_hash[origin_uri.host]
-      if redirect_url
-        @uri = redirect_url
-      else
-        @uri = URI(get_redirect_url(origin_uri.scheme + "://" + origin_uri.host))
-        LProject.shared.redirect_url_hash[origin_uri.host] = @uri
-      end
+      @uri = origin_uri
+      # redirect_url = LProject.shared.redirect_url_hash[origin_uri.host]
+      # if redirect_url
+      #   @uri = redirect_url
+      # else
+      #   @uri = URI(get_redirect_url(origin_uri.scheme + "://" + origin_uri.host))
+      #   LProject.shared.redirect_url_hash[origin_uri.host] = @uri
+      # end
       @host = @uri.host
       @scheme = @uri.scheme ||= "https"
       @hostname =  @scheme + "://" + @host
     end
 
-    def get_redirect_url(host)
-      redirect_url = Net::HTTP.get_response(URI(host))['location']
-      return host unless redirect_url
-      uri = URI(redirect_url)
-      return uri.scheme + "://" + uri.host
-    end
+    # def get_redirect_url(host)
+    #   redirect_url = Net::HTTP.get_response(URI(host))['location']
+    #   return host unless redirect_url
+    #   uri = URI(redirect_url)
+    #   return uri.scheme + "://" + uri.host
+    # end
 
     private
     #判断是否是 IP 地址

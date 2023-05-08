@@ -22,6 +22,7 @@ module LgPodPlugin
       else
         request_url += ("/commits/" + "HEAD")
       end
+      LgPodPlugin.log_blue "http reqeust: #{request_url}"
       begin
         uri = URI(request_url)
         res = Net::HTTP.get_response(uri)

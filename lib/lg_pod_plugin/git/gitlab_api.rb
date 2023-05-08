@@ -178,11 +178,11 @@ module LgPodPlugin
         end
         return self.use_default_refs_heads git, branch
       end
-      commit, _ = GithubAPI.request_github_refs_heads git, branch
+      commit, _ = self.use_default_refs_heads git, branch
       if commit
         return [commit, branch]
       else
-        return self.use_default_refs_heads git, branch
+        return GithubAPI.request_github_refs_heads git, branch
       end
     end
 
