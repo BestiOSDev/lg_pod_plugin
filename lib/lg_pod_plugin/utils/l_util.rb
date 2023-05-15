@@ -3,20 +3,20 @@ require 'resolv'
 require "ipaddr"
 require 'base64'
 require 'fileutils'
-require_relative 'aes-crypt'
+# require_relative 'aes-crypt'
 
 module LgPodPlugin
 
   class LUtils
 
-    def self.encrypt(message, password)
-      encrypted_data = AESCrypt.encrypt(message, password)
-      encrypted_data.tr("\n", "")
-    end
-
-    def self.decrypt(message, password)
-      AESCrypt.decrypt message, password
-    end
+    # def self.encrypt(message, password)
+    #   encrypted_data = AESCrypt.encrypt(message, password)
+    #   encrypted_data.tr("\n", "")
+    # end
+    #
+    # def self.decrypt(message, password)
+    #   AESCrypt.decrypt message, password
+    # end
 
     def self.md5(text)
       return "" unless text

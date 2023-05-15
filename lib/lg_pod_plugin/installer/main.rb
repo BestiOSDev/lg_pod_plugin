@@ -11,7 +11,6 @@ module LgPodPlugin
       sand_box = LFileManager.download_director
       sand_box.each_child do |f|
         ftype = File::ftype(f)
-        next unless ftype == "directory"
         next if f.to_path.include?("database")
         FileUtils.rm_rf f.to_path
       end
