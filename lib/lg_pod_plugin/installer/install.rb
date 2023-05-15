@@ -69,12 +69,9 @@ module LgPodPlugin
       git = checkout_options[:git]
       return unless git
       cache_podspec = request.lg_spec.spec if request.lg_spec
-      branch = checkout_options[:branch]
+      branch = checkout_options[:branch] ||= request.params[:branch]
       checkout_options[:name] = name if name
-      unless branch
-        branch = self.request.params[:branch] if request.params[:branch]
-        checkout_options[:branch] = branch if branch
-      end
+      checkout_options[:branch] = branch if branch
       lg_pod_path = LFileManager.cache_workspace(LProject.shared.workspace)
       lg_pod_path.mkdir(0700) unless lg_pod_path.exist?
       checkout_options[:path] = lg_pod_path
