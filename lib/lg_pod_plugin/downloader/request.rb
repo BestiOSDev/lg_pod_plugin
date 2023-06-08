@@ -125,7 +125,7 @@ module LgPodPlugin
       if branch
         new_commit, _ = GitLabAPI.request_github_refs_heads git, branch, self.net_ping.uri
         unless new_commit
-          id = LPodLatestRefs.get_pod_id(name, git)
+          id = LPodLatestRefs.get_pod_id(name, git, branch)
           pod_info = LSqliteDb.shared.query_pod_refs(id)
           new_commit = pod_info ? pod_info.commit : nil
           return [branch, new_commit]
@@ -137,14 +137,14 @@ module LgPodPlugin
       else
         new_commit, new_branch = GitLabAPI.request_github_refs_heads git, nil, self.net_ping.uri
         unless new_commit
-          id = LPodLatestRefs.get_pod_id(name, git)
+          id = LPodLatestRefs.get_pod_id(name, git, "HEAD")
           pod_info = LSqliteDb.shared.query_pod_refs(id)
           new_commit = pod_info ? pod_info.commit : nil
           new_branch = pod_info ? pod_info.branch : nil
           return [new_branch, new_commit]
         end
         if new_commit
-          LSqliteDb.shared.insert_pod_refs(name, git, new_branch, nil, new_commit)
+          LSqliteDb.shared.insert_pod_refs(name, git, "HEAD", nil, new_commit)
         end
         [new_branch, new_commit]
       end
