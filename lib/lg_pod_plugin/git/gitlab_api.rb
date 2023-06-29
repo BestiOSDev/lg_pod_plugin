@@ -7,6 +7,33 @@ module LgPodPlugin
 
   class GitLabAPI
 
+    # 通过读取本地文件获取 access_token
+    def self.get_gitlab_access_token(uri, user_id)
+      text = LUtils.encrypt("AzfAjh-xTzyRBXmYuGBr", "AZMpxzVxzbo3sFDLRZMpxzVxzbo3sFDZ")
+      db_path = LFileManager.download_director.join("database")
+      db_path.mkdir unless db_path.exist?
+      token_file = db_path.join("access_token.json")
+      return self.get_gitlab_access_token_input(uri, user_id, nil, nil) unless token_file.exist?
+      json = JSON.parse(File.read("#{token_file.to_path}"))
+      encrypt_access_token = json["access_token"]
+      return self.get_gitlab_access_token_input(uri, user_id, nil, nil) if encrypt_access_token.nil?
+      access_token = LUtils.decrypt(encrypt_access_token, "AZMpxzVxzbo3sFDLRZMpxzVxzbo3sFDZ")
+      token_vaild = GitLabAPI.request_user_emails(uri.hostname, access_token)
+      if token_vaild == "invalid token"
+        FileUtils.rm_rf token_file
+        return self.get_gitlab_access_token_input(uri, user_id, nil, nil) if encrypt_access_token.nil?
+      end
+      user_id = LUserAuthInfo.get_user_id(uri.hostname)
+      refresh_token = json["refresh_token"]
+      expires_in = json["expires_in"] ||= 7879680
+      created_at = json["created_at"] ||= Time.now.to_i
+      user_model = LUserAuthInfo.new(user_id, "", "", uri.hostname, access_token, refresh_token, (created_at + expires_in))
+      LSqliteDb.shared.insert_user_info(user_model)
+      LgPodPlugin.log_green "请求成功: `access_token` => #{access_token}, expires_in => #{expires_in}"
+      return user_model
+    end
+
+    # 通过输入用户名和密码 获取 access_token
     def self.get_gitlab_access_token_input(uri, user_id, username = nil, password = nil)
       unless username && password
         LgPodPlugin.log_yellow "请输入 `#{uri.to_s}` 的用户名"
@@ -17,6 +44,40 @@ module LgPodPlugin
       GitLabAPI.request_gitlab_access_token(uri.hostname, username, password)
       user_info = LSqliteDb.shared.query_user_info(user_id)
       return user_info
+    end
+    # 检查 token 是否在有效期内
+    def self.check_gitlab_access_token_valid(uri, user_info)
+      time_now = Time.now.to_i
+      # 判断 token 是否失效
+      if user_info.expires_in <= time_now
+        refresh_token = user_info.refresh_token
+        if refresh_token.nil? || refresh_token == "" # 使用本地令牌访问
+          project_name = LUtils.get_git_project_name(uri.to_s)
+          token_vaild = GitLabAPI.request_user_emails(uri.hostname, user_info.access_token)
+          if token_vaild == "success"
+            new_user_info = LUserAuthInfo.new(user_info.id, "", "", uri.hostname, user_info.access_token, nil, (time_now + 7879680))
+            LSqliteDb.shared.insert_user_info(user_info)
+            return new_user_info
+          else
+            token_file = LFileManager.download_director.join("database").join("access_token.json")
+            FileUtils.rm_rf token_file if token_file.exist?
+            return self.get_gitlab_access_token_input(uri, user_info.id, nil, nil)
+          end
+        else
+          # 刷新 token 失败时, 通过已经保存的用户名密码来刷新 token
+          new_user_info = GitLabAPI.refresh_gitlab_access_token uri.hostname, refresh_token
+          if new_user_info.nil?
+            username = user_info.username
+            password = user_info.password
+            user_info = GitLabAPI.get_gitlab_access_token_input(uri, user_info.user_id, username, password)
+            return nil unless user_info
+          else
+            user_info = new_user_info
+          end
+        end
+      else
+        return user_info
+      end
     end
 
     public
@@ -225,6 +286,31 @@ module LgPodPlugin
         end
       rescue
         return nil
+      end
+    end
+
+    # 通过名称搜索项目信息
+    public
+    def self.request_user_emails(host, access_token)
+      begin
+        hash_map = {"access_token": access_token}
+        uri = URI("#{host}/api/v4/user/emails")
+        uri.query = URI.encode_www_form(hash_map)
+        res = Net::HTTP.get_response(uri)
+        if res.body
+          array = JSON.parse(res.body)
+        else
+          array = []
+        end
+        if array.is_a?(Array)
+          return "success"
+        elsif array.is_a?(Hash)
+          return "invalid token"
+        else
+          return "invalid token"
+        end
+      rescue
+        return "invalid token"
       end
     end
 

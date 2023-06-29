@@ -30,13 +30,6 @@ module LgPodPlugin
       end
       return if origin_uri.nil?
       @uri = origin_uri
-      # redirect_url = LProject.shared.redirect_url_hash[origin_uri.host]
-      # if redirect_url
-      #   @uri = redirect_url
-      # else
-      #   @uri = URI(get_redirect_url(origin_uri.scheme + "://" + origin_uri.host))
-      #   LProject.shared.redirect_url_hash[origin_uri.host] = @uri
-      # end
       @host = @uri.host
       @scheme = @uri.scheme ||= "https"
       @hostname =  @scheme + "://" + @host

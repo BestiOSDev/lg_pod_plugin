@@ -23,23 +23,11 @@ module LgPodPlugin
       user_info = LSqliteDb.shared.query_user_info(user_id)
       # 用户授权 token 不存在, 提示用户输入用户名密码
       unless user_info
-        user_info = GitLabAPI.get_gitlab_access_token_input(uri, user_id,nil ,nil )
+        user_info = GitLabAPI.get_gitlab_access_token(uri, user_id)
         return nil unless user_info
       end
-      time_now = Time.now.to_i
-      # 判断 token 是否失效
-      if user_info.expires_in <= time_now
-        # 刷新 token 失败时, 通过已经保存的用户名密码来刷新 token
-        new_user_info = GitLabAPI.refresh_gitlab_access_token uri.hostname, user_info.refresh_token
-        if new_user_info.nil?
-          username = user_info.username
-          password = user_info.password
-          user_info = GitLabAPI.get_gitlab_access_token_input(uri, user_id, username, password)
-          return nil unless user_info
-        else
-          user_info = new_user_info
-        end
-      end
+      user_info = GitLabAPI.check_gitlab_access_token_valid(uri, user_info)
+      return nil unless user_info
       config = LConfig.new
       config.host = uri.hostname
       config.access_token = user_info.access_token
