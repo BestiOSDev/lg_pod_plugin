@@ -9,7 +9,6 @@ module LgPodPlugin
 
     # 通过读取本地文件获取 access_token
     def self.get_gitlab_access_token(uri, user_id)
-      text = LUtils.encrypt("AzfAjh-xTzyRBXmYuGBr", "AZMpxzVxzbo3sFDLRZMpxzVxzbo3sFDZ")
       db_path = LFileManager.download_director.join("database")
       db_path.mkdir unless db_path.exist?
       token_file = db_path.join("access_token.json")

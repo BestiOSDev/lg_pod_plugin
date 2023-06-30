@@ -8,11 +8,21 @@ module LgPodPlugin
     def self.request_gitlab_access_token: (String host, String username, String password) -> void
 
     # 刷新gitlab_token
+    public
     def self.refresh_gitlab_access_token: (String host, String refresh_token) -> void
 
     # 通过名称搜索项目信息
+    public
     def self.request_project_info: (String host, String project_name, String access_token) -> ProjectModel
 
+    public
+    def self.get_gitlab_access_token: (String uri, String user_id)  -> LUserAuthInfo?
+
+    # 获取用户注册邮件信息
+    public
+    def self.request_user_emails: (String host, String access_token) -> String
+    # 检查 access_token 是否在有效期
+    def self.check_gitlab_access_token_valid: (String uri, LUserAuthInfo user_info) -> LUserAuthInfo?
   end
 
 end

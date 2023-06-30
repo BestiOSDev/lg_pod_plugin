@@ -29,7 +29,7 @@ module LgPodPlugin
         self.log = argv.flag?('verbose')
         repo_flag = argv.flag?('repo-update')
         if repo_flag.nil?
-          self.repo_update = true
+          self.repo_update = false
         else
           self.repo_update = repo_flag
         end
