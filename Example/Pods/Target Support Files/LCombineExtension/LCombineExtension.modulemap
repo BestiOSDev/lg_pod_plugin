@@ -1,0 +1,6 @@
+framework module LCombineExtension {
+  umbrella header "LCombineExtension-umbrella.h"
+
+  export *
+  module * { export * }
+}
