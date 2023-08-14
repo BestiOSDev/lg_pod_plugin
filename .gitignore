@@ -54,3 +54,19 @@ build-iPhoneSimulator/
 
 # Used by RuboCop. Remote config files pulled in from inherit_from directive.
 # .rubocop-https?--*
+Example/Pods/Pods.xcodeproj/xcuserdata/dongzb01.xcuserdatad/xcschemes/CocoaLumberjack.xcscheme
+Example/Pods/Pods.xcodeproj/xcuserdata/dongzb01.xcuserdatad/xcschemes/LCombineExtension.xcscheme
+Example/Pods/Pods.xcodeproj/xcuserdata/dongzb01.xcuserdatad/xcschemes/Pods-TargetB.xcscheme
+Example/Pods/Pods.xcodeproj/xcuserdata/dongzb01.xcuserdatad/xcschemes/Pods-TestExample.xcscheme
+Example/Pods/Pods.xcodeproj/xcuserdata/dongzb01.xcuserdatad/xcschemes/xcschememanagement.plist
+Example/TestExample.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+Example/TestExample.xcodeproj/project.xcworkspace/xcuserdata/dongzb01.xcuserdatad/UserInterfaceState.xcuserstate
+Example/TestExample.xcodeproj/xcuserdata/dongzb01.xcuserdatad/xcschemes/TestExample.xcscheme
+Example/TestExample.xcodeproj/xcuserdata/dongzb01.xcuserdatad/xcschemes/xcschememanagement.plist
+Example/TestExample.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+Example/TestExample.xcworkspace/xcuserdata/dongzb01.xcuserdatad/UserInterfaceState.xcuserstate
+Example/TestExample.xcworkspace/xcuserdata/dongzb01.xcuserdatad/xcdebugger/Breakpoints_v2.xcbkptlist
+Example/TestExample.xcworkspace/xcuserdata/dongzb01.xcuserdatad/xcschemes/xcschememanagement.plist
+Example/.idea/.gitignore
+Example/.idea/modules.xml
+Example/.idea/xcode.xml
