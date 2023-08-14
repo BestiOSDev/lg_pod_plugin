@@ -1,10 +1,6 @@
 require 'singleton'
-arch = %x(ruby -v)
-if arch.include?("arm64")
-  require_relative '../../sqlite3-1.5.3-arm64-darwin/lib/sqlite3'
-else
-  require_relative '../../sqlite3-1.5.3-x86_64-darwin/lib/sqlite3'
-end
+# arch = %x(ruby -v)
+require 'sqlite3'
 module LgPodPlugin
 
   class ProjectModel
