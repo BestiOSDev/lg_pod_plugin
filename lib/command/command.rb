@@ -6,6 +6,7 @@ module LgPodPlugin
     require_relative 'update'
     require_relative 'init'
     require_relative 'install'
+    require_relative 'doctor'
     self.command = 'lg'
     self.version = VERSION
     self.abstract_command = true
