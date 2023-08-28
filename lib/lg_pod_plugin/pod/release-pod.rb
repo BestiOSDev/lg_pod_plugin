@@ -87,25 +87,25 @@ module LgPodPlugin
       else
         installer.integrate
       end
-      self.write_lockfiles(installer)
+      # self.write_lockfiles(installer)
       installer.send(:perform_post_install_actions)
     end
 
-    def self.write_lockfiles(installer)
-      config = Pod::Config.instance
-      lockfile = installer.send(:generate_lockfile)
-      Pod::UI.message "- Writing Lockfile in #{Pod::UI.path config.lockfile_path}" do hash = lockfile.send(:internal_data)
-        hash["LOCKFILE TYPE"] = "LgPodPlugin"
-        lockfile.write_to_disk(config.lockfile_path)
-      end
-
-      sandbox = installer.send(:sandbox)
-      Pod::UI.message "- Writing Manifest in #{Pod::UI.path sandbox.manifest_path}" do
-        hash = lockfile.send(:internal_data)
-        hash["LOCKFILE TYPE"] = "LgPodPlugin"
-        lockfile.write_to_disk(sandbox.manifest_path)
-      end
-    end
+    # def self.write_lockfiles(installer)
+    #   config = Pod::Config.instance
+    #   lockfile = installer.send(:generate_lockfile)
+    #   Pod::UI.message "- Writing Lockfile in #{Pod::UI.path config.lockfile_path}" do hash = lockfile.send(:internal_data)
+    #     hash["LOCKFILE TYPE"] = "LgPodPlugin"
+    #     lockfile.write_to_disk(config.lockfile_path)
+    #   end
+    #
+    #   sandbox = installer.send(:sandbox)
+    #   Pod::UI.message "- Writing Manifest in #{Pod::UI.path sandbox.manifest_path}" do
+    #     hash = lockfile.send(:internal_data)
+    #     hash["LOCKFILE TYPE"] = "LgPodPlugin"
+    #     lockfile.write_to_disk(sandbox.manifest_path)
+    #   end
+    # end
 
     def self.lockfile_missing_pods(pods, lockfile)
       lockfile_roots = lockfile.pod_names.map { |pod| Pod::Specification.root_name(pod) }
@@ -155,15 +155,10 @@ module LgPodPlugin
           verify_lockfile_exists!(lockfile)
           verify_pods_are_installed!(pods, lockfile)
           internal_data = lockfile.send(:internal_data)
-          flag = internal_data["LOCKFILE TYPE"]
-          if flag != nil
-            if pods.empty?
-              installer.update = true
-            else
-              installer.update = { :pods => pods }
-            end
+          if pods.empty?
+            installer.update = true
           else
-            installer.update = false
+            installer.update = { :pods => pods }
           end
         rescue
           installer.update = false
