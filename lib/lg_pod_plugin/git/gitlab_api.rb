@@ -146,6 +146,7 @@ module LgPodPlugin
         user_model.access_token = access_token
         user_model.refresh_token = refresh_token
         LSqliteDb.shared.insert_user_info(user_model)
+        LgPodPlugin.log_green "刷新token成功: `refresh_token` => #{refresh_token}, expires_in => #{expires_in}"
         return user_model
       rescue => exception
         LgPodPlugin.log_yellow "刷新 `access_token` 失败, error => #{exception.to_s}"
