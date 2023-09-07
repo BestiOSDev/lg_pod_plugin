@@ -47,9 +47,9 @@ module LgPodPlugin
     # 检查 token 是否在有效期内
     def self.check_gitlab_access_token_valid(uri, user_info)
       time_now = Time.now.to_i
+      refresh_token = user_info.refresh_token
       # 判断 token 是否失效
-      if user_info.expires_in <= time_now
-        refresh_token = user_info.refresh_token
+      if user_info.expires_in  <= time_now
         if refresh_token.nil? || refresh_token == "" # 使用本地令牌访问
           project_name = LUtils.get_git_project_name(uri.to_s)
           token_vaild = GitLabAPI.request_user_emails(uri.hostname, user_info.access_token)
@@ -64,19 +64,26 @@ module LgPodPlugin
           end
         else
           # 刷新 token 失败时, 通过已经保存的用户名密码来刷新 token
-          new_user_info = GitLabAPI.refresh_gitlab_access_token uri.hostname, refresh_token
-          if new_user_info.nil?
-            username = user_info.username
-            password = user_info.password
-            user_info = GitLabAPI.get_gitlab_access_token_input(uri, user_info.user_id, username, password)
-            return nil unless user_info
-          else
-            user_info = new_user_info
-          end
+          return refreshUserToken uri, refresh_token, user_info.id, user_info.username, user_info.password
         end
       else
-        return user_info
+        if LProject.shared.tokenRefresh
+          user_info = refreshUserToken uri, refresh_token, user_info.id, user_info.username, user_info.password
+          LProject.shared.tokenRefresh = false
+          return  user_info
+        else
+          return user_info
+        end
       end
+    end
+
+    def self.refreshUserToken(uri, refresh_token, user_id, username, password)
+      # 刷新 token 失败时, 通过已经保存的用户名密码来刷新 token
+      new_user_info = GitLabAPI.refresh_gitlab_access_token uri.hostname, refresh_token
+      unless new_user_info
+        return GitLabAPI.get_gitlab_access_token_input(uri, user_id, username, password)
+      end
+      return new_user_info
     end
 
     public
@@ -93,6 +100,7 @@ module LgPodPlugin
         if error != nil
           if error == "invalid_grant"
             LSqliteDb.shared.delete_user_info(user_id)
+            LgPodPlugin.log_yellow "LSqliteDb.shared.delete_user_info(#{user_id}"
           end
           raise json["error_description"]
         end
@@ -120,7 +128,7 @@ module LgPodPlugin
         if res.body
           json = JSON.parse(res.body)
         else
-          return nil
+          json   = nil
         end
         return nil unless json.is_a?(Hash)
         error = json["error"]
