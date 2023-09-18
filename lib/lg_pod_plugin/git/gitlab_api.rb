@@ -174,7 +174,7 @@ module LgPodPlugin
           path = json["path"] ||= ""
           path_with_namespace = json["path_with_namespace"] ||= ""
           name_with_namespace = (json["name_with_namespace"] ||= "").gsub(/[ ]/, '')
-          if git.include?(path_with_namespace) ||  git.include?(name_with_namespace)
+          if git.include?(path_with_namespace) ||  git.downcase.include?(name_with_namespace.downcase)
             id = json["id"]
             web_url = json["web_url"]
             description = json["description"]
