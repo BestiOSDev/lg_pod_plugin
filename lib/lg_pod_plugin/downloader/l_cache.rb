@@ -13,6 +13,10 @@ module LgPodPlugin
 
     public
     def pod_cache_exist(name, options, spec = nil, released_pod = false)
+      # 参数为空不执行下载任务, 交给 cocoapods 处理下载
+      if options.nil?
+        return   [true, nil, nil]
+      end
       destination, cache_pod_spec = self.find_pod_cache name, options, spec, released_pod
       if (File.exist?(destination) && !destination.children.empty?) && cache_pod_spec.exist?
         return [true, destination, cache_pod_spec]
@@ -29,8 +33,8 @@ module LgPodPlugin
         hash_map.delete(:version)
       end
       request = LCache.download_request(name, hash_map, spec, released_pod)
-      destination = LCache.path_for_pod(request, {})
-      cache_pod_spec = LCache.path_for_spec(request, {})
+      destination = LCache.path_for_pod(request)
+      cache_pod_spec = LCache.path_for_spec(request)
       [destination, cache_pod_spec]
     end
 

@@ -241,7 +241,7 @@ module LgPodPlugin
     # 通过github api 获取 git 最新commit
     def self.request_github_refs_heads(git, branch, uri = nil)
       return [nil, nil] unless git
-      unless git.include?("https://github.com/") || git.include?("git@github.com:")
+      unless git.include?("github.com/") || git.include?("git@github.com:")
         if LgPodPlugin::LUtils.is_gitlab_uri(git, "")
           return self.request_gitlab_refs_heads(git, branch, uri)
         end
