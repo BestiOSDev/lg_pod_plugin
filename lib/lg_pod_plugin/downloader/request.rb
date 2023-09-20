@@ -12,7 +12,7 @@ module LgPodPlugin
     attr_accessor :config
     attr_accessor :net_ping
     attr_accessor :params
-    attr_accessor :lockfile
+    # attr_accessor :lockfile
     attr_accessor :checkout_options
     def initialize(pod)
       @name = pod.name
@@ -49,9 +49,9 @@ module LgPodPlugin
     end
 
     public
-    def get_lockfile
-      self.lockfile = LgPodPlugin::LockfileModel.from_file
-    end
+    # def get_lockfile
+      # self.lockfile = LgPodPlugin::LockfileModel.from_file
+    # end
 
     # 获取缓存用的hash_map
     public
@@ -111,9 +111,9 @@ module LgPodPlugin
 
     #获取下载参数
     def get_request_params
-      unless self.lockfile
-        self.lockfile = self.get_lockfile
-      end
+      # unless self.lockfile
+      #   self.lockfile = self.get_lockfile
+      # end
       Hash.new.merge!(self.get_lock_params)
     end
 

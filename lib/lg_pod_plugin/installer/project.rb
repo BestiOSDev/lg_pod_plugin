@@ -8,7 +8,7 @@ module LgPodPlugin
     include Singleton
 
     attr_reader :podfile
-    attr_reader :lockfile
+    # attr_reader :lockfile
     attr_reader :update
     attr_reader :targets
     attr_reader :workspace
@@ -23,8 +23,8 @@ module LgPodPlugin
       @update = update
       @workspace = workspace
       @repo_update = repo_update
-      lockfile_path = workspace.join("Podfile.lock")
-      @lockfile = Pod::Lockfile.from_file(lockfile_path) if lockfile_path.exist?
+      # lockfile_path = workspace.join("Podfile.lock")
+      # @lockfile = Pod::Lockfile.from_file(lockfile_path) if lockfile_path.exist?
       target =  @podfile.send(:current_target_definition)
       children = target.children
       @targets = Array.new

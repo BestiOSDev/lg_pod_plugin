@@ -41,7 +41,7 @@ module LgPodPlugin
         git = source["git"]
         tag = source["tag"]
         http = source["http"]
-        checksum = spec.send(:checksum)
+        # checksum = spec.send(:checksum)
         if http
           if http.include?("https://github.com") && http.include?("releases/download")
             http = "https://ghproxy.com/" + http
@@ -55,14 +55,14 @@ module LgPodPlugin
           next
         end
         pod_exist = check_release_pod_exist(pod_name, requirements, spec, true)
-        if lockfile && checksum
-          internal_data = lockfile.send(:internal_data)
-          lock_checksums = internal_data["SPEC CHECKSUMS"] ||= {}
-          lock_checksum = lock_checksums[pod_name]
-          next if (lock_checksum == checksum) && (pod_exist)
-        else
-          next if pod_exist
-        end
+        next if pod_exist
+        # if lockfile && checksum
+        #   internal_data = lockfile.send(:internal_data)
+        #   lock_checksums = internal_data["SPEC CHECKSUMS"] ||= {}
+        #   lock_checksum = lock_checksums[pod_name]
+        #   next if (lock_checksum == checksum) && (pod_exist)
+        # else
+        # end
         LProject.shared.cache_specs[pod_name] = spec
         lg_spec = LgPodPlugin::PodSpec.form_pod_spec spec
         release_pod = ReleasePod.new(nil, pod_name, requirements, lg_spec)
@@ -87,25 +87,9 @@ module LgPodPlugin
       else
         installer.integrate
       end
-      # self.write_lockfiles(installer)
+      installer.send(:write_lockfiles)
       installer.send(:perform_post_install_actions)
     end
-
-    # def self.write_lockfiles(installer)
-    #   config = Pod::Config.instance
-    #   lockfile = installer.send(:generate_lockfile)
-    #   Pod::UI.message "- Writing Lockfile in #{Pod::UI.path config.lockfile_path}" do hash = lockfile.send(:internal_data)
-    #     hash["LOCKFILE TYPE"] = "LgPodPlugin"
-    #     lockfile.write_to_disk(config.lockfile_path)
-    #   end
-    #
-    #   sandbox = installer.send(:sandbox)
-    #   Pod::UI.message "- Writing Manifest in #{Pod::UI.path sandbox.manifest_path}" do
-    #     hash = lockfile.send(:internal_data)
-    #     hash["LOCKFILE TYPE"] = "LgPodPlugin"
-    #     lockfile.write_to_disk(sandbox.manifest_path)
-    #   end
-    # end
 
     def self.lockfile_missing_pods(pods, lockfile)
       lockfile_roots = lockfile.pod_names.map { |pod| Pod::Specification.root_name(pod) }
@@ -129,11 +113,11 @@ module LgPodPlugin
       end
     end
 
-    def self.verify_lockfile_exists!(lockfile)
-      unless lockfile
-        raise Pod::Informative, "No `Podfile.lock' found in the project directory, run `pod install'."
-      end
-    end
+    # def self.verify_lockfile_exists!(lockfile)
+    #   unless lockfile
+    #     raise Pod::Informative, "No `Podfile.lock' found in the project directory, run `pod install'."
+    #   end
+    # end
     
     def self.install_release_pod(update, repo_update, verbose, clean_install)
       #切换工作目录到当前工程下, 开始执行pod install
@@ -144,17 +128,20 @@ module LgPodPlugin
       Pod::Config.instance.verbose = verbose
       pods_path = LProject.shared.workspace.join('Pods')
       podfile = LProject.shared.podfile
-      lockfile = LProject.shared.lockfile
+      lockfile_path = workspace.join("Podfile.lock")
+      if File.exist?(lockfile_path)
+        FileUtils.rm_rf lockfile_path
+      end
       sandbox = Pod::Sandbox.new(pods_path)
-      installer = Pod::Installer.new(sandbox, podfile, lockfile)
+      installer = Pod::Installer.new(sandbox, podfile, nil)
       installer.repo_update = repo_update
       if update
         need_update_pods = LProject.shared.need_update_pods ||= Hash.new
         pods = need_update_pods.keys ||= []
         begin
-          verify_lockfile_exists!(lockfile)
-          verify_pods_are_installed!(pods, lockfile)
-          internal_data = lockfile.send(:internal_data)
+          # verify_lockfile_exists!(lockfile)
+          # verify_pods_are_installed!(pods, lockfile)
+          # internal_data = lockfile.send(:internal_data)
           if pods.empty?
             installer.update = true
           else
@@ -169,7 +156,7 @@ module LgPodPlugin
       installer.deployment = false
       installer.clean_install = clean_install
       installer.prepare
-      resolve_dependencies(lockfile, installer)
+      resolve_dependencies(nil, installer)
       download_dependencies(installer)
     end
 
