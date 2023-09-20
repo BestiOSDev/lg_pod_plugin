@@ -133,6 +133,9 @@ module LgPodPlugin
         FileUtils.rm_rf lockfile_path
       end
       sandbox = Pod::Sandbox.new(pods_path)
+      if File.exist? sandbox.manifest_path
+        FileUtils.rm_rf sandbox.manifest_path
+      end
       installer = Pod::Installer.new(sandbox, podfile, nil)
       installer.repo_update = repo_update
       if update
