@@ -45,7 +45,6 @@ module LgPodPlugin
           if download_params
             name = download_params["name"]
             all_installers[name] = installer
-            LProject.shared.need_update_pods[name] = "1"
           end
         end
       end

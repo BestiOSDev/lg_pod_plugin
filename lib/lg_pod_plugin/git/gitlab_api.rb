@@ -67,9 +67,9 @@ module LgPodPlugin
           return refreshUserToken uri, refresh_token, user_info.id, user_info.username, user_info.password
         end
       else
-        if LProject.shared.tokenRefresh
+        if LProject.shared.refreshToken != user_info.refresh_token
           user_info = refreshUserToken uri, refresh_token, user_info.id, user_info.username, user_info.password
-          LProject.shared.tokenRefresh = false
+          LProject.shared.refreshToken = user_info.refresh_token
           return  user_info
         else
           return user_info

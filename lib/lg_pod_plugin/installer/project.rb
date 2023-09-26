@@ -8,23 +8,18 @@ module LgPodPlugin
     include Singleton
 
     attr_reader :podfile
-    # attr_reader :lockfile
     attr_reader :update
     attr_reader :targets
     attr_reader :workspace
     attr_reader :repo_update
     attr_reader :external_pods
-    attr_reader :need_update_pods
     attr_accessor :cache_specs
-    attr_accessor :tokenRefresh
-    # attr_accessor :redirect_url_hash
+    attr_accessor :refreshToken
     def setup(workspace,podfile_path, update, repo_update)
       @podfile = Pod::Podfile.from_file(podfile_path)
       @update = update
       @workspace = workspace
       @repo_update = repo_update
-      # lockfile_path = workspace.join("Podfile.lock")
-      # @lockfile = Pod::Lockfile.from_file(lockfile_path) if lockfile_path.exist?
       target =  @podfile.send(:current_target_definition)
       children = target.children
       @targets = Array.new
@@ -36,8 +31,7 @@ module LgPodPlugin
       end
       @cache_specs = Hash.new
       @external_pods = Hash.new.merge!(external_pods)
-      @need_update_pods = Hash.new
-      @tokenRefresh = true
+      @refreshToken = nil
       return self
     end
 

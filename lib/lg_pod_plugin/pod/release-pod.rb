@@ -41,9 +41,8 @@ module LgPodPlugin
         git = source["git"]
         tag = source["tag"]
         http = source["http"]
-        # checksum = spec.send(:checksum)
         if http
-          if http.include?("https://github.com") && http.include?("releases/download")
+          if http.include?("github.com") && http.include?("releases/download")
             http = "https://ghproxy.com/" + http
             source["http"] = http
           end
@@ -54,15 +53,7 @@ module LgPodPlugin
         else
           next
         end
-        pod_exist = check_release_pod_exist(pod_name, requirements, spec, true)
-        next if pod_exist
-        # if lockfile && checksum
-        #   internal_data = lockfile.send(:internal_data)
-        #   lock_checksums = internal_data["SPEC CHECKSUMS"] ||= {}
-        #   lock_checksum = lock_checksums[pod_name]
-        #   next if (lock_checksum == checksum) && (pod_exist)
-        # else
-        # end
+        next if check_release_pod_exist(pod_name, requirements, spec, true)
         LProject.shared.cache_specs[pod_name] = spec
         lg_spec = LgPodPlugin::PodSpec.form_pod_spec spec
         release_pod = ReleasePod.new(nil, pod_name, requirements, lg_spec)
@@ -113,11 +104,11 @@ module LgPodPlugin
       end
     end
 
-    # def self.verify_lockfile_exists!(lockfile)
-    #   unless lockfile
-    #     raise Pod::Informative, "No `Podfile.lock' found in the project directory, run `pod install'."
-    #   end
-    # end
+    def self.verify_lockfile_exists!(lockfile)
+      unless lockfile
+        raise Pod::Informative, "No `Podfile.lock' found in the project directory, run `pod install'."
+      end
+    end
     
     def self.install_release_pod(update, repo_update, verbose, clean_install)
       #切换工作目录到当前工程下, 开始执行pod install
@@ -129,22 +120,15 @@ module LgPodPlugin
       pods_path = LProject.shared.workspace.join('Pods')
       podfile = LProject.shared.podfile
       lockfile_path = workspace.join("Podfile.lock")
-      if File.exist?(lockfile_path)
-        FileUtils.rm_rf lockfile_path
-      end
+      lockfile =   Pod::Lockfile.from_file(lockfile_path)
       sandbox = Pod::Sandbox.new(pods_path)
-      if File.exist? sandbox.manifest_path
-        FileUtils.rm_rf sandbox.manifest_path
-      end
-      installer = Pod::Installer.new(sandbox, podfile, nil)
+      installer = Pod::Installer.new(sandbox, podfile, lockfile)
       installer.repo_update = repo_update
       if update
-        need_update_pods = LProject.shared.need_update_pods ||= Hash.new
-        pods = need_update_pods.keys ||= []
+        pods = LProject.shared.external_pods.keys
         begin
-          # verify_lockfile_exists!(lockfile)
-          # verify_pods_are_installed!(pods, lockfile)
-          # internal_data = lockfile.send(:internal_data)
+          self.verify_lockfile_exists!(lockfile)
+          self.verify_pods_are_installed!(pods, lockfile)
           if pods.empty?
             installer.update = true
           else
@@ -159,7 +143,7 @@ module LgPodPlugin
       installer.deployment = false
       installer.clean_install = clean_install
       installer.prepare
-      resolve_dependencies(nil, installer)
+      resolve_dependencies(lockfile, installer)
       download_dependencies(installer)
     end
 

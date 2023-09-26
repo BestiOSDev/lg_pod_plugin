@@ -21,10 +21,7 @@ module LgPodPlugin
     def install(pod)
       hash = pod.checkout_options
       path = hash[:path]
-      unless path.nil?
-        LProject.shared.need_update_pods[pod.name] = "1"
-        return nil
-      end
+      return nil unless path.nil?
       @downloader = LDownloader.new(pod)
       self.download_params = @downloader.pre_download_pod
       return self.download_params
