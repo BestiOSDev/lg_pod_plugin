@@ -26,6 +26,7 @@ require_relative 'lg_pod_plugin/config/lockfile_model'
 require_relative 'lg_pod_plugin/downloader/downloader'
 require_relative 'lg_pod_plugin/git/git_download'
 require_relative 'lg_pod_plugin/git/git_clone'
+require_relative 'lg_pod_plugin/downloader/overload_cache'
 
 module LgPodPlugin
   autoload :Command, 'command/command'
