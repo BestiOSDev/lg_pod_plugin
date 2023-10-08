@@ -171,7 +171,7 @@ module Pod
         else
           version = Pod::VERSION
         end
-        pod_version = %x(pod --version).split("\n").first
+        pod_version = %x(bundle exec pod --version).split("\n").first
         if version != pod_version
           version = pod_version
           version_file.open('w') { |f| f << version }
