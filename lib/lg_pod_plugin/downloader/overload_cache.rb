@@ -166,11 +166,15 @@ module Pod
       #
       def ensure_matching_version
         version_file = root + 'VERSION'
-        version = version_file.read.strip if version_file.file?
+        if version_file.file?
+          version = version_file.read.strip
+        else
+          version = Pod::VERSION
+        end
         pod_version = %x(pod --version).split("\n").first
         if version != pod_version
           version = pod_version
-          version_file.open('w') { |f| f << Pod::VERSION }
+          version_file.open('w') { |f| f << version }
         end
       end
 

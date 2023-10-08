@@ -67,9 +67,9 @@ module LgPodPlugin
           return refreshUserToken uri, refresh_token, user_info.id, user_info.username, user_info.password
         end
       else
-        if LProject.shared.refreshToken != user_info.refresh_token
+        update_time = user_info.update_time.to_i
+        if time_now - update_time > 1800
           user_info = refreshUserToken uri, refresh_token, user_info.id, user_info.username, user_info.password
-          LProject.shared.refreshToken = user_info.refresh_token
           return  user_info
         else
           return user_info
@@ -108,7 +108,8 @@ module LgPodPlugin
         refresh_token = json["refresh_token"]
         expires_in = json["expires_in"] ||= 7200
         created_at = json["created_at"] ||= Time.now.to_i
-        user_model = LUserAuthInfo.new(user_id, username, password, host, access_token, refresh_token, (created_at + expires_in))
+        time_now = Time.now.to_i
+        user_model = LUserAuthInfo.new(user_id, username, password, host, access_token, refresh_token, (created_at + expires_in), time_now)
         LSqliteDb.shared.insert_user_info(user_model)
         LgPodPlugin.log_green "请求成功: `access_token` => #{access_token}, expires_in => #{expires_in}"
       rescue => exception
@@ -136,15 +137,17 @@ module LgPodPlugin
           error_description = json["error_description"]
           raise error_description
         end
+        time_now = Time.now.to_i
         access_token = json["access_token"]
         refresh_token = json["refresh_token"]
         expires_in = json["expires_in"] ||= 7200
-        created_at = json["created_at"] ||= Time.now.to_i
+        created_at = json["created_at"] ||= time_now
         user_id = LUserAuthInfo.get_user_id(host)
         user_model = LSqliteDb.shared.query_user_info(user_id)
         user_model.expires_in = (created_at + expires_in)
         user_model.access_token = access_token
         user_model.refresh_token = refresh_token
+        user_model.update_time = time_now
         LSqliteDb.shared.insert_user_info(user_model)
         LgPodPlugin.log_green "刷新token成功: `refresh_token` => #{refresh_token}, expires_in => #{expires_in}"
         return user_model

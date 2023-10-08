@@ -21,41 +21,42 @@ module LgPodPlugin
 
   end
 
-  class LPodLatestRefs
-    attr_accessor :id
-    attr_accessor :name
-    attr_accessor :tag
-    attr_accessor :git
-    attr_accessor :branch
-    attr_accessor :commit
-
-    def initialize(id, name, git, branch, tag, commit)
-      self.id = id
-      self.git = git
-      self.tag = tag
-      self.name = name
-      self.branch = branch
-      self.commit = commit
-    end
-
-    def self.get_pod_id(name, git, branch)
-      key = name + git + branch
-      return Digest::MD5.hexdigest(key)
-    end
-
-  end
+  # class LPodLatestRefs
+  #   attr_accessor :id
+  #   attr_accessor :name
+  #   attr_accessor :tag
+  #   attr_accessor :git
+  #   attr_accessor :branch
+  #   attr_accessor :commit
+  #
+  #   def initialize(id, name, git, branch, tag, commit)
+  #     self.id = id
+  #     self.git = git
+  #     self.tag = tag
+  #     self.name = name
+  #     self.branch = branch
+  #     self.commit = commit
+  #   end
+  #
+  #   def self.get_pod_id(name, git, branch)
+  #     key = name + git + branch
+  #     return Digest::MD5.hexdigest(key)
+  #   end
+  #
+  # end
 
   class LUserAuthInfo
-    REQUIRED_ATTRS ||= %i[id username password host access_token refresh_token expires_in].freeze
+    REQUIRED_ATTRS ||= %i[id username password host access_token refresh_token expires_in update_time].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
-    def initialize(id = nil, name = nil, pwd = nil, host = nil, token = nil, refresh_token = nil, time = nil)
+    def initialize(id = nil, name = nil, pwd = nil, host = nil, token = nil, refresh_token = nil, time = nil, update_time = nil)
       self.id = id
       self.host = host
       self.password = pwd
       self.username = name
       self.expires_in = time
       self.access_token = token
+      self.update_time = update_time
       self.refresh_token = refresh_token
     end
 
@@ -106,6 +107,13 @@ module LgPodPlugin
         expires_in TimeStamp NOT NULL DEFAULT CURRENT_TIMESTAMP);"
       self.db.execute(sql1)
 
+      sel_sql = "select * from sqlite_master where name = '#{K_USER_TABLE}' and sql like '%update_time%'; "
+      resultSetPrincipal = self.db.execute(sel_sql)
+      if resultSetPrincipal.count == 0
+        alter = "ALTER TABLE #{K_USER_TABLE}  ADD 'update_time' TimeStamp;"
+        self.db.execute(alter)
+      end
+
       #添加项目表
       sql2 = "create table if not exists #{K_USER_PROJECTS}(
         id varchar(100) primary key not null,
@@ -120,26 +128,27 @@ module LgPodPlugin
        );"
       self.db.execute(sql2)
 
-      #添加项目表
-      sql3 = "create table if not exists #{K_POD_LATEST_REFS}(
-        id varchar(100) primary key not null,
-        name varchar(100),
-	      git varchar(100),
-	      branch varchar(100),
-        tag varchar(100),
-        sha varchar(100)
-        );"
-      self.db.execute(sql3)
+      # #添加项目表
+      # sql3 = "create table if not exists #{K_POD_LATEST_REFS}(
+      #   id varchar(100) primary key not null,
+      #   name varchar(100),
+	    #   git varchar(100),
+	    #   branch varchar(100),
+      #   tag varchar(100),
+      #   sha varchar(100)
+      #   );"
+      # self.db.execute(sql3)
+      #
+      # #添加项目表
+      # sql4 = "create table if not exists #{K_POD_SHA_BRANCH}(
+      #   id varchar(100) primary key not null,
+      #   name varchar(100),
+      #   git varchar(100),
+	    #   branch varchar(100),
+      #   sha varchar(100)
+      #   );"
+      # self.db.execute(sql4)
 
-      #添加项目表
-      sql4 = "create table if not exists #{K_POD_SHA_BRANCH}(
-        id varchar(100) primary key not null,
-        name varchar(100),
-        git varchar(100),
-	      branch varchar(100),
-        sha varchar(100)
-        );"
-      self.db.execute(sql4)
     end
 
     public
@@ -147,11 +156,11 @@ module LgPodPlugin
       # pp "user.id => #{user.id}"
       if self.query_user_info(user.id) != nil
         self.db.execute_batch(
-          "UPDATE #{K_USER_TABLE} SET username = (:username), password = (:password), host = (:host), access_token = (:access_token), expires_in = (:expires_in), refresh_token = (:refresh_token) where (id = :id)", { "username" => user.username, "password" => user.password, "host" => user.host, "access_token" => user.access_token, :expires_in => user.expires_in, :id => user.id, :refresh_token => user.refresh_token }
+          "UPDATE #{K_USER_TABLE} SET username = (:username), password = (:password), host = (:host), access_token = (:access_token), expires_in = (:expires_in), refresh_token = (:refresh_token), update_time = (:update_time) where (id = :id)", { "username" => user.username, "password" => user.password, "host" => user.host, "access_token" => user.access_token, :expires_in => user.expires_in, :id => user.id, :refresh_token => user.refresh_token , :update_time => user.update_time}
         )
       else
-        self.db.execute("INSERT INTO #{K_USER_TABLE} (id, username, password, host, access_token,refresh_token, expires_in)
-            VALUES (?, ?, ?, ?,?,?,?)", [user.id, user.username, user.password, user.host, user.access_token, user.refresh_token, user.expires_in])
+        self.db.execute("INSERT INTO #{K_USER_TABLE} (id, username, password, host, access_token,refresh_token, expires_in, update_time)
+            VALUES (?, ?, ?, ?,?,?,?, ?)", [user.id, user.username, user.password, user.host, user.access_token, user.refresh_token, user.expires_in, user.update_time])
       end
 
     end
@@ -169,6 +178,7 @@ module LgPodPlugin
         user_info.access_token = row[4]
         user_info.refresh_token = row[5]
         user_info.expires_in = row[6]
+        user_info.update_time = row[7]
       end
       user_info
     end
@@ -216,67 +226,67 @@ module LgPodPlugin
       ps.execute('n' => project_id)
     end
 
-    def insert_pod_refs(name, git, branch, tag, commit)
-      id = LPodLatestRefs.get_pod_id(name, git, branch)
-      pod = LPodLatestRefs.new(id, name, git, branch, tag, commit)
-      if self.query_pod_refs(id) != nil
-        self.db.execute_batch(
-          "UPDATE #{K_POD_LATEST_REFS} SET name = (:name), git = (:git), branch = (:branch), tag = (:tag), sha = (:sha) where (id = :id)", { "name" => pod.name, "git" => pod.git, "sha" => pod.commit, "branch" => pod.branch, :tag => pod.tag, :id => pod.id }
-        )
-      else
-        self.db.execute("INSERT INTO #{K_POD_LATEST_REFS} (id, name, git, branch, tag, sha)
-            VALUES (?, ?, ?, ?, ?, ?)", [pod.id, pod.name, pod.git, pod.branch, pod.tag, pod.commit])
-      end
-      self.insert_pod_sha_with_branch(name, git, commit, branch)
-    end
-
-    def query_pod_refs(id)
-      pod_info = nil
-      self.db.execute("select * from #{K_POD_LATEST_REFS} where id = '#{id}';") do |row|
-        id = row[0]
-        name = row[1]
-        git = row[2]
-        branch = row[3]
-        tag = row[4]
-        commit = row[5]
-        pod_info = LPodLatestRefs.new(id, name, git, branch, tag, commit)
-      end
-      pod_info
-    end
+    # def insert_pod_refs(name, git, branch, tag, commit)
+    #   id = LPodLatestRefs.get_pod_id(name, git, branch)
+    #   pod = LPodLatestRefs.new(id, name, git, branch, tag, commit)
+    #   if self.query_pod_refs(id) != nil
+    #     self.db.execute_batch(
+    #       "UPDATE #{K_POD_LATEST_REFS} SET name = (:name), git = (:git), branch = (:branch), tag = (:tag), sha = (:sha) where (id = :id)", { "name" => pod.name, "git" => pod.git, "sha" => pod.commit, "branch" => pod.branch, :tag => pod.tag, :id => pod.id }
+    #     )
+    #   else
+    #     self.db.execute("INSERT INTO #{K_POD_LATEST_REFS} (id, name, git, branch, tag, sha)
+    #         VALUES (?, ?, ?, ?, ?, ?)", [pod.id, pod.name, pod.git, pod.branch, pod.tag, pod.commit])
+    #   end
+    #   self.insert_pod_sha_with_branch(name, git, commit, branch)
+    # end
+    #
+    # def query_pod_refs(id)
+    #   pod_info = nil
+    #   self.db.execute("select * from #{K_POD_LATEST_REFS} where id = '#{id}';") do |row|
+    #     id = row[0]
+    #     name = row[1]
+    #     git = row[2]
+    #     branch = row[3]
+    #     tag = row[4]
+    #     commit = row[5]
+    #     pod_info = LPodLatestRefs.new(id, name, git, branch, tag, commit)
+    #   end
+    #   pod_info
+    # end
 
     # 保存 sha, branch 到数据库
-    def insert_pod_sha_with_branch(name, git, sha, branch)
-      return unless name && git && sha
-      id = Digest::MD5.hexdigest(name + git + sha)
-      if self.query_branch_with_sha(name, git, sha)[:sha] != nil
-        self.db.execute_batch(
-          "UPDATE #{K_POD_SHA_BRANCH} SET name = (:name), git = (:git), branch = (:branch), sha = (:sha) where (id = :id)", { "name" => name, "git" => git, "branch" => branch, :id => id, :sha => sha }
-        )
-      else
-        self.db.execute("INSERT INTO #{K_POD_SHA_BRANCH} (id, name, git, branch, sha)
-            VALUES (?, ?, ?, ?, ?)", [id, name, git, branch, sha])
-      end
-    end
+    # def insert_pod_sha_with_branch(name, git, sha, branch)
+    #   return unless name && git && sha
+    #   id = Digest::MD5.hexdigest(name + git + sha)
+    #   if self.query_branch_with_sha(name, git, sha)[:sha] != nil
+    #     self.db.execute_batch(
+    #       "UPDATE #{K_POD_SHA_BRANCH} SET name = (:name), git = (:git), branch = (:branch), sha = (:sha) where (id = :id)", { "name" => name, "git" => git, "branch" => branch, :id => id, :sha => sha }
+    #     )
+    #   else
+    #     self.db.execute("INSERT INTO #{K_POD_SHA_BRANCH} (id, name, git, branch, sha)
+    #         VALUES (?, ?, ?, ?, ?)", [id, name, git, branch, sha])
+    #   end
+    # end
 
     # 通过 sha 查询对应 branch
-    def query_branch_with_sha(id = nil, name, git, sha)
-      hash_map = Hash.new
-      id = Digest::MD5.hexdigest(name + git + sha) unless id
-      self.db.execute("select * from #{K_POD_SHA_BRANCH} where id = '#{id}' and name = '#{name}' and git = '#{git}' ;") do |row|
-        new_id = row[0]
-        new_sha = row[4]
-        new_git = row[2]
-        new_name = row[1]
-        new_branch = row[3]
-        hash_map[:id] = new_id
-        hash_map[:git] = new_git
-        hash_map[:sha] = new_sha
-        hash_map[:name] = new_name
-        hash_map[:branch] = new_branch
-      end
-      hash_map
-    end
-
+  #   def query_branch_with_sha(id = nil, name, git, sha)
+  #     hash_map = Hash.new
+  #     id = Digest::MD5.hexdigest(name + git + sha) unless id
+  #     self.db.execute("select * from #{K_POD_SHA_BRANCH} where id = '#{id}' and name = '#{name}' and git = '#{git}' ;") do |row|
+  #       new_id = row[0]
+  #       new_sha = row[4]
+  #       new_git = row[2]
+  #       new_name = row[1]
+  #       new_branch = row[3]
+  #       hash_map[:id] = new_id
+  #       hash_map[:git] = new_git
+  #       hash_map[:sha] = new_sha
+  #       hash_map[:name] = new_name
+  #       hash_map[:branch] = new_branch
+  #     end
+  #     hash_map
+  #   end
+  #
   end
 
 end
