@@ -21,36 +21,13 @@ module LgPodPlugin
 
   end
 
-  # class LPodLatestRefs
-  #   attr_accessor :id
-  #   attr_accessor :name
-  #   attr_accessor :tag
-  #   attr_accessor :git
-  #   attr_accessor :branch
-  #   attr_accessor :commit
-  #
-  #   def initialize(id, name, git, branch, tag, commit)
-  #     self.id = id
-  #     self.git = git
-  #     self.tag = tag
-  #     self.name = name
-  #     self.branch = branch
-  #     self.commit = commit
-  #   end
-  #
-  #   def self.get_pod_id(name, git, branch)
-  #     key = name + git + branch
-  #     return Digest::MD5.hexdigest(key)
-  #   end
-  #
-  # end
-
   class LUserAuthInfo
-    REQUIRED_ATTRS ||= %i[id username password host access_token refresh_token expires_in update_time].freeze
+    REQUIRED_ATTRS ||= %i[id username password host access_token refresh_token expires_in update_time type].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
-    def initialize(id = nil, name = nil, pwd = nil, host = nil, token = nil, refresh_token = nil, time = nil, update_time = nil)
+    def initialize(id = nil, name = nil, pwd = nil, host = nil, token = nil, refresh_token = nil, time = nil, update_time = nil, type = 0)
       self.id = id
+      self.type = type
       self.host = host
       self.password = pwd
       self.username = name
@@ -114,6 +91,13 @@ module LgPodPlugin
         self.db.execute(alter)
       end
 
+      user_sel_sql2 = "select * from sqlite_master where name = '#{K_USER_TABLE}' and sql like '%type%'; "
+      resultSetPrincipal2 = self.db.execute(user_sel_sql2)
+      if resultSetPrincipal2.count == 0
+        alter = "ALTER TABLE #{K_USER_TABLE}  ADD 'type' INT;"
+        self.db.execute(alter)
+      end
+
       #添加项目表
       sql2 = "create table if not exists #{K_USER_PROJECTS}(
         id varchar(100) primary key not null,
@@ -128,27 +112,6 @@ module LgPodPlugin
        );"
       self.db.execute(sql2)
 
-      # #添加项目表
-      # sql3 = "create table if not exists #{K_POD_LATEST_REFS}(
-      #   id varchar(100) primary key not null,
-      #   name varchar(100),
-	    #   git varchar(100),
-	    #   branch varchar(100),
-      #   tag varchar(100),
-      #   sha varchar(100)
-      #   );"
-      # self.db.execute(sql3)
-      #
-      # #添加项目表
-      # sql4 = "create table if not exists #{K_POD_SHA_BRANCH}(
-      #   id varchar(100) primary key not null,
-      #   name varchar(100),
-      #   git varchar(100),
-	    #   branch varchar(100),
-      #   sha varchar(100)
-      #   );"
-      # self.db.execute(sql4)
-
     end
 
     public
@@ -156,11 +119,11 @@ module LgPodPlugin
       # pp "user.id => #{user.id}"
       if self.query_user_info(user.id) != nil
         self.db.execute_batch(
-          "UPDATE #{K_USER_TABLE} SET username = (:username), password = (:password), host = (:host), access_token = (:access_token), expires_in = (:expires_in), refresh_token = (:refresh_token), update_time = (:update_time) where (id = :id)", { "username" => user.username, "password" => user.password, "host" => user.host, "access_token" => user.access_token, :expires_in => user.expires_in, :id => user.id, :refresh_token => user.refresh_token , :update_time => user.update_time}
+          "UPDATE #{K_USER_TABLE} SET username = (:username), password = (:password), host = (:host), access_token = (:access_token), expires_in = (:expires_in), refresh_token = (:refresh_token), update_time = (:update_time), type = (:type) where (id = :id)", { "username" => user.username, "password" => user.password, "host" => user.host, "access_token" => user.access_token, :expires_in => user.expires_in, :id => user.id, :refresh_token => user.refresh_token , :update_time => user.update_time, :type => user.type}
         )
       else
-        self.db.execute("INSERT INTO #{K_USER_TABLE} (id, username, password, host, access_token,refresh_token, expires_in, update_time)
-            VALUES (?, ?, ?, ?,?,?,?, ?)", [user.id, user.username, user.password, user.host, user.access_token, user.refresh_token, user.expires_in, user.update_time])
+        self.db.execute("INSERT INTO #{K_USER_TABLE} (id, username, password, host, access_token,refresh_token, expires_in, update_time, type)
+            VALUES (?, ?, ?, ?,?,?,?, ?, ?)", [user.id, user.username, user.password, user.host, user.access_token, user.refresh_token, user.expires_in, user.update_time, user.type])
       end
 
     end
@@ -179,6 +142,7 @@ module LgPodPlugin
         user_info.refresh_token = row[5]
         user_info.expires_in = row[6]
         user_info.update_time = row[7]
+        user_info.type = row[8]
       end
       user_info
     end

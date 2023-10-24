@@ -23,10 +23,11 @@ module LgPodPlugin
         return self.get_gitlab_access_token_input(uri, user_id, nil, nil) if encrypt_access_token.nil?
       end
       user_id = LUserAuthInfo.get_user_id(uri.hostname)
+      now_time = Time.now.to_i
       refresh_token = json["refresh_token"]
       expires_in = json["expires_in"] ||= 7879680
-      created_at = json["created_at"] ||= Time.now.to_i
-      user_model = LUserAuthInfo.new(user_id, "", "", uri.hostname, access_token, refresh_token, (created_at + expires_in))
+      created_at = json["created_at"] ||= now_time
+      user_model = LUserAuthInfo.new(user_id, "", "", uri.hostname, access_token, refresh_token, (created_at + expires_in), now_time, 1)
       LSqliteDb.shared.insert_user_info(user_model)
       LgPodPlugin.log_green "请求成功: `access_token` => #{access_token}, expires_in => #{expires_in}"
       return user_model
@@ -48,13 +49,12 @@ module LgPodPlugin
     def self.check_gitlab_access_token_valid(uri, user_info)
       time_now = Time.now.to_i
       refresh_token = user_info.refresh_token
-      # 判断 token 是否失效
-      if user_info.expires_in  <= time_now
-        if refresh_token.nil? || refresh_token == "" # 使用本地令牌访问
+      if user_info.type == 1
+        if user_info.expires_in  <= time_now
           project_name = LUtils.get_git_project_name(uri.to_s)
           token_vaild = GitLabAPI.request_user_emails(uri.hostname, user_info.access_token)
           if token_vaild == "success"
-            new_user_info = LUserAuthInfo.new(user_info.id, "", "", uri.hostname, user_info.access_token, nil, (time_now + 7879680))
+            new_user_info = LUserAuthInfo.new(user_info.id, "", "", uri.hostname, user_info.access_token, nil, (time_now + 7879680), time_now, 1)
             LSqliteDb.shared.insert_user_info(user_info)
             return new_user_info
           else
@@ -63,16 +63,20 @@ module LgPodPlugin
             return self.get_gitlab_access_token_input(uri, user_info.id, nil, nil)
           end
         else
-          # 刷新 token 失败时, 通过已经保存的用户名密码来刷新 token
-          return refreshUserToken uri, refresh_token, user_info.id, user_info.username, user_info.password
+          return user_info
         end
       else
-        update_time = user_info.update_time.to_i
-        if time_now - update_time > 1800
-          user_info = refreshUserToken uri, refresh_token, user_info.id, user_info.username, user_info.password
-          return  user_info
+        # 判断 token 是否失效
+        if user_info.expires_in  <= time_now
+          return refreshUserToken uri, refresh_token, user_info.id, user_info.username, user_info.password
         else
-          return user_info
+          update_time = user_info.update_time.to_i
+          if time_now - update_time > 1800
+            user_info = refreshUserToken uri, refresh_token, user_info.id, user_info.username, user_info.password
+            return  user_info
+          else
+            return user_info
+          end
         end
       end
     end
@@ -109,7 +113,7 @@ module LgPodPlugin
         expires_in = json["expires_in"] ||= 7200
         created_at = json["created_at"] ||= Time.now.to_i
         time_now = Time.now.to_i
-        user_model = LUserAuthInfo.new(user_id, username, password, host, access_token, refresh_token, (created_at + expires_in), time_now)
+        user_model = LUserAuthInfo.new(user_id, username, password, host, access_token, refresh_token, (created_at + expires_in), time_now, 0)
         LSqliteDb.shared.insert_user_info(user_model)
         LgPodPlugin.log_green "请求成功: `access_token` => #{access_token}, expires_in => #{expires_in}"
       rescue => exception
@@ -148,6 +152,7 @@ module LgPodPlugin
         user_model.access_token = access_token
         user_model.refresh_token = refresh_token
         user_model.update_time = time_now
+        user_model.type = 0
         LSqliteDb.shared.insert_user_info(user_model)
         LgPodPlugin.log_green "刷新token成功: `refresh_token` => #{refresh_token}, expires_in => #{expires_in}"
         return user_model

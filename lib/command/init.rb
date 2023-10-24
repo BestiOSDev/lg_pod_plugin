@@ -52,7 +52,7 @@ module LgPodPlugin
         File.open(token_file.to_path, 'w+') { |f| f.write(str) }
         LSqliteDb.shared.init_database
         user_id = LUserAuthInfo.get_user_id(self.host)
-        user_model = LUserAuthInfo.new(user_id, "", "", self.host, self.token, "", (created_at + expires_in))
+        user_model = LUserAuthInfo.new(user_id, "", "", self.host, self.token, "", (created_at + expires_in), created_at, 1)
         LSqliteDb.shared.insert_user_info(user_model)
         LgPodPlugin.log_green "设置私人访问令牌成功"
       end
