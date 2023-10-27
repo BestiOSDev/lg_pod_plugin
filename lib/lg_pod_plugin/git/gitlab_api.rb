@@ -52,8 +52,8 @@ module LgPodPlugin
       if user_info.type == 1
         if user_info.expires_in  <= time_now
           project_name = LUtils.get_git_project_name(uri.to_s)
-          token_vaild = GitLabAPI.request_user_emails(uri.hostname, user_info.access_token)
-          if token_vaild == "success"
+          token_valid = GitLabAPI.request_user_emails(uri.hostname, user_info.access_token)
+          if token_valid == "success"
             new_user_info = LUserAuthInfo.new(user_info.id, "", "", uri.hostname, user_info.access_token, nil, (time_now + 7879680), time_now, 1)
             LSqliteDb.shared.insert_user_info(user_info)
             return new_user_info
@@ -81,7 +81,7 @@ module LgPodPlugin
       end
     end
 
-    def self.refreshUserToken(uri, refresh_token, user_id, username, password)
+    def self.refresh_user_token(uri, refresh_token, user_id, username, password)
       # 刷新 token 失败时, 通过已经保存的用户名密码来刷新 token
       new_user_info = GitLabAPI.refresh_gitlab_access_token uri.hostname, refresh_token
       unless new_user_info
