@@ -68,11 +68,11 @@ module LgPodPlugin
       else
         # 判断 token 是否失效
         if user_info.expires_in  <= time_now
-          return refreshUserToken uri, refresh_token, user_info.id, user_info.username, user_info.password
+          return refresh_user_token uri, refresh_token, user_info.id, user_info.username, user_info.password
         else
           update_time = user_info.update_time.to_i
           if time_now - update_time > 1800
-            user_info = refreshUserToken uri, refresh_token, user_info.id, user_info.username, user_info.password
+            user_info = refresh_user_token uri, refresh_token, user_info.id, user_info.username, user_info.password
             return  user_info
           else
             return user_info
