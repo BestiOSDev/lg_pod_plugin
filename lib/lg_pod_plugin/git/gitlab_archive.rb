@@ -57,51 +57,9 @@ module LgPodPlugin
       else
         return nil
       end
-      lg_spec = self.spec
-      unless lg_spec
-        podspec_filename = self.name + ".podspec"
-        podspec_content = GitLabAPI.get_podspec_file_content(host, token, project.id, sha, podspec_filename)
-        unless podspec_content && LUtils.is_a_string?(podspec_content)
-          download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2\\?" + "sha\\=#{sha}"
-          download_url += "\\&access_token\\=#{token}" if token
-          return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
-        end
-        pod_spec_file_path = sandbox_path.join("#{podspec_filename}")
-        lg_spec = LgPodPlugin::PodSpec.form_string(podspec_content, pod_spec_file_path)
-        if podspec_content
-          begin
-            File.open(pod_spec_file_path, "w+") do |f|
-              f.write podspec_content
-            end
-          rescue => exception
-            LgPodPlugin.log_red "#{exception}"
-          end
-          @podspec_content = podspec_content
-        end
-        unless lg_spec
-          download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2\\?" + "sha\\=#{sha}"
-          download_url += "\\&access_token\\=#{token}" if token
-          return [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
-        end
-        self.spec = lg_spec
-      end
-      download_params = Array.new
-      @source_files = lg_spec.source_files.keys
-      lg_spec.source_files.each_key do |key|
-        next if key == "All" || key == "LICENSE" || key == "License"
-        path = LUtils.url_encode(key)
-        # download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2#{"\\?"}" + "sha#{"\\="}#{sha}"
-        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2#{"\\?"}" + "path#{"\\="}#{path}#{"\\&"}sha#{"\\="}#{sha}"
-        download_url += "\\&access_token\\=#{token}" if token
-        download_params.append({ "filename" => "#{path}.tar.bz2", "url" => download_url })
-      end
-      if download_params.empty?
-        download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2\\?" + "sha\\=#{sha}"
-        download_url += "\\&access_token\\=#{token}" if token
-        [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
-      else
-        download_params
-      end
+      download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2\\?" + "sha\\=#{sha}"
+      download_url += "\\&access_token\\=#{token}" if token
+      download_params = [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
     end
 
     # 根据branch 下载 zip 包
@@ -113,17 +71,17 @@ module LgPodPlugin
       download_params["token"] = token
       download_params["name"] = self.name
       download_params["type"] = "gitlab-branch"
-      if self.spec
-        download_params["podspec"] = self.spec
-      else
-        download_params["podspec_content"] = @podspec_content
-      end
+      # if self.spec
+      #   download_params["podspec"] = self.spec
+      # else
+      #   download_params["podspec_content"] = @podspec_content
+      # end
       download_params["path"] = root_path.to_path
-      if @source_files
-        download_params["source_files"] = @source_files
-      else
-        download_params["source_files"] = "All"
-      end
+      # if @source_files
+      #   download_params["source_files"] = @source_files
+      # else
+      #   download_params["source_files"] = "All"
+      # end
       download_params["download_urls"] = download_urls
       download_params
     end
@@ -137,17 +95,17 @@ module LgPodPlugin
       download_params["token"] = token
       download_params["name"] = self.name
       download_params["type"] = "gitlab-tag"
-      if self.spec
-        download_params["podspec"] = self.spec
-      else
-        download_params["podspec_content"] = @podspec_content
-      end
+      # if self.spec
+      #   download_params["podspec"] = self.spec
+      # else
+      #   download_params["podspec_content"] = @podspec_content
+      # end
       download_params["path"] = root_path.to_path
-      if @source_files
-        download_params["source_files"] = @source_files
-      else
-        download_params["source_files"] = "All"
-      end
+      # if @source_files
+      #   download_params["source_files"] = @source_files
+      # else
+      #   download_params["source_files"] = "All"
+      # end
       download_params["download_urls"] = download_urls
       download_params
     end
@@ -160,18 +118,18 @@ module LgPodPlugin
       download_params = Hash.new
       download_params["token"] = token
       download_params["name"] = self.name
-      if self.spec
-        download_params["podspec"] = self.spec
-      else
-        download_params["podspec_content"] = @podspec_content
-      end
+      # if self.spec
+      #   download_params["podspec"] = self.spec
+      # else
+      #   download_params["podspec_content"] = @podspec_content
+      # end
       download_params["type"] = "gitlab-commit"
       download_params["path"] = root_path.to_path
-      if @source_files
-        download_params["source_files"] = @source_files
-      else
-        download_params["source_files"] = "All"
-      end
+      # if @source_files
+      #   download_params["source_files"] = @source_files
+      # else
+      #   download_params["source_files"] = "All"
+      # end
       download_params["download_urls"] = download_urls
       download_params
     end

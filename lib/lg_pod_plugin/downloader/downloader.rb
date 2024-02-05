@@ -64,40 +64,40 @@ module LgPodPlugin
         if download_params && download_params.is_a?(Hash)
           download_params["destination"] = destination
           download_params["cache_pod_spec_path"] = cache_pod_spec
-          podspec = download_params["podspec"]
-          podspec_content = download_params["podspec_content"]
-          if podspec
-            podspec_json = podspec.to_pretty_json
-            download_params["podspec_json"] = podspec_json if podspec
-            download_params["prepare_command"] = podspec.prepare_command if podspec
-            download_params.delete("podspec")
-            unless self.request.lg_spec
-              self.request.lg_spec = podspec
-            end
-          elsif podspec_content
-            path = download_params["path"]
-            podspec_path = path + "/#{name}.podspec"
-            begin
-              File.open(podspec_path,"w+") do|f|
-                f.write podspec_content
-              end
-            end
-            if File.exist?(podspec_path)
-              lg_spec = LgPodPlugin::PodSpec.form_file podspec_path
-              if lg_spec
-                self.request.lg_spec = lg_spec
-                download_params["podspec_json"] = lg_spec.to_pretty_json
-                download_params["source_files"] = lg_spec.source_files.keys
-                download_params["prepare_command"] = lg_spec.prepare_command if lg_spec.prepare_command
-                download_params.delete("podspec_content")
-              else
-                download_params["source_files"] = ["All"]
-                download_params["prepare_command"] = nil
-                download_params["podspec_json"] = podspec_content
-                download_params.delete("podspec_content")
-              end
-            end
-          end
+          # podspec = download_params["podspec"]
+          # podspec_content = download_params["podspec_content"]
+          # if podspec
+          #   podspec_json = podspec.to_pretty_json
+          #   download_params["podspec_json"] = podspec_json if podspec
+          #   download_params["prepare_command"] = podspec.prepare_command if podspec
+          #   download_params.delete("podspec")
+          #   unless self.request.lg_spec
+          #     self.request.lg_spec = podspec
+          #   end
+          # elsif podspec_content
+          #   path = download_params["path"]
+          #   podspec_path = path + "/#{name}.podspec"
+          #   begin
+          #     File.open(podspec_path,"w+") do|f|
+          #       f.write podspec_content
+          #     end
+          #   end
+          #   if File.exist?(podspec_path)
+          #     lg_spec = LgPodPlugin::PodSpec.form_file podspec_path
+          #     if lg_spec
+          #       self.request.lg_spec = lg_spec
+          #       download_params["podspec_json"] = lg_spec.to_pretty_json
+          #       download_params["source_files"] = lg_spec.source_files.keys
+          #       download_params["prepare_command"] = lg_spec.prepare_command if lg_spec.prepare_command
+          #       download_params.delete("podspec_content")
+          #     else
+          #       download_params["source_files"] = ["All"]
+          #       download_params["prepare_command"] = nil
+          #       download_params["podspec_json"] = podspec_content
+          #       download_params.delete("podspec_content")
+          #     end
+          #   end
+          # end
           return download_params
         elsif File.exist?(download_params.to_s) && download_params
           FileUtils.chdir download_params
