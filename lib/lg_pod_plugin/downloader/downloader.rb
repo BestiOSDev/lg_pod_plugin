@@ -32,10 +32,6 @@ module LgPodPlugin
         checkout_options[:branch] = branch if branch
       end
       commit = checkout_options[:commit]
-      # unless commit
-      #   commit = self.request.params[:commit] if self.request.params[:commit]
-      #   checkout_options[:commit] = commit if commit
-      # end
       if branch
         LgPodPlugin.log_green "Using `#{name}` (#{branch})"
       elsif tag

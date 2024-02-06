@@ -264,46 +264,46 @@ module LgPodPlugin
       end
     end
 
-    public
-    def self.get_podspec_file_content(host, token, project_id, sha, filepath)
-      begin
-        hash_map = Hash.new
-        hash_map["ref"] = sha
-        hash_map["access_token"] = token
-        uri = URI("#{host}/api/v4/projects/#{project_id}/repository/files/#{filepath}")
-        uri.query = URI.encode_www_form(hash_map)
-        res = Net::HTTP.get_response(uri)
-        case res
-        when Net::HTTPSuccess, Net::HTTPRedirection
-          json = JSON.parse(res.body)
-        else
-          body = JSON.parse(res.body)
-          message = body["message"]
-          if message == "404 Project Not Found"
-            LSqliteDb.shared.delete_project_by_id(project_id)
-          end
-          json = nil
-        end
-        return nil unless json && json.is_a?(Hash)
-        content = json["content"]
-        return nil unless content && LUtils.is_a_string?(content)
-        encoding = json["encoding"] ||= "base64"
-        if encoding == "base64"
-          require 'base64'
-          content = Base64.decode64(content)
-          if content.respond_to?(:encoding) && content.encoding.name != 'UTF-8'
-            text = content.force_encoding("gb2312").force_encoding("utf-8")
-            return text
-          else
-            return content
-          end
-        else
-          return nil
-        end
-      rescue
-        return nil
-      end
-    end
+    # public
+    # def self.get_podspec_file_content(host, token, project_id, sha, filepath)
+    #   begin
+    #     hash_map = Hash.new
+    #     hash_map["ref"] = sha
+    #     hash_map["access_token"] = token
+    #     uri = URI("#{host}/api/v4/projects/#{project_id}/repository/files/#{filepath}")
+    #     uri.query = URI.encode_www_form(hash_map)
+    #     res = Net::HTTP.get_response(uri)
+    #     case res
+    #     when Net::HTTPSuccess, Net::HTTPRedirection
+    #       json = JSON.parse(res.body)
+    #     else
+    #       body = JSON.parse(res.body)
+    #       message = body["message"]
+    #       if message == "404 Project Not Found"
+    #         LSqliteDb.shared.delete_project_by_id(project_id)
+    #       end
+    #       json = nil
+    #     end
+    #     return nil unless json && json.is_a?(Hash)
+    #     content = json["content"]
+    #     return nil unless content && LUtils.is_a_string?(content)
+    #     encoding = json["encoding"] ||= "base64"
+    #     if encoding == "base64"
+    #       require 'base64'
+    #       content = Base64.decode64(content)
+    #       if content.respond_to?(:encoding) && content.encoding.name != 'UTF-8'
+    #         text = content.force_encoding("gb2312").force_encoding("utf-8")
+    #         return text
+    #       else
+    #         return content
+    #       end
+    #     else
+    #       return nil
+    #     end
+    #   rescue
+    #     return nil
+    #   end
+    # end
 
     # 通过名称搜索项目信息
     public

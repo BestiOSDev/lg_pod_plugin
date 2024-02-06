@@ -42,14 +42,14 @@ module LgPodPlugin
       download_params["type"] = "github-tag"
       download_params["path"] = root_path.to_path
       download_params["download_urls"] = download_urls
-      if self.spec
-        download_params["podspec"] = self.spec
-        download_params["source_files"] = self.spec.source_files.keys
-        download_params["podspec_content"] = nil
-      else
-        download_params["podspec"] = nil
-        download_params["source_files"] = ["All"]
-      end
+      # if self.spec
+      #   download_params["podspec"] = self.spec
+      #   download_params["source_files"] = self.spec.source_files.keys
+      #   download_params["podspec_content"] = nil
+      # else
+      #   download_params["podspec"] = nil
+      #   download_params["source_files"] = ["All"]
+      # end
       download_params
     end
 
@@ -61,13 +61,13 @@ module LgPodPlugin
       download_params["type"] = "github-branch"
       download_params["path"] = root_path.to_path
       download_params["download_urls"] = download_urls
-      if self.spec
-        download_params["podspec"] = self.spec
-        download_params["source_files"] = self.spec.source_files.keys
-      else
-        download_params["podspec"] = nil
-        download_params["source_files"] = ["All"]
-      end
+      # if self.spec
+      #   download_params["podspec"] = self.spec
+      #   download_params["source_files"] = self.spec.source_files.keys
+      # else
+      #   download_params["podspec"] = nil
+      #   download_params["source_files"] = ["All"]
+      # end
       download_params
     end
 
@@ -79,13 +79,13 @@ module LgPodPlugin
       download_params["type"] = "github-commit"
       download_params["path"] = root_path.to_path
       download_params["download_urls"] = download_urls
-      if self.spec
-        download_params["podspec"] = self.spec
-        download_params["source_files"] = self.spec.source_files.keys
-      else
-        download_params["podspec"] = nil
-        download_params["source_files"] = ["All"]
-      end
+      # if self.spec
+      #   download_params["podspec"] = self.spec
+      #   download_params["source_files"] = self.spec.source_files.keys
+      # else
+      #   download_params["podspec"] = nil
+      #   download_params["source_files"] = ["All"]
+      # end
       download_params
     end
 

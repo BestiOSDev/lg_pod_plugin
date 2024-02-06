@@ -19,7 +19,7 @@ module LgPodPlugin
       end
 
       destination, cache_pod_spec = self.find_pod_cache name, options, spec, released_pod
-      lock_temp_file = destination.to_path+ ".lock"
+      lock_temp_file = destination.to_path + ".lock"
       if File.exist?(lock_temp_file)
         FileUtils.rm_rf lock_temp_file
       end

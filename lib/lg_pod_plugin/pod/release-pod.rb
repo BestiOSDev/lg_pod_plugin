@@ -46,7 +46,8 @@ module LgPodPlugin
             http = "https://ghproxy.com/" + http
             source["http"] = http
           end
-          requirements = {:http => http }
+          version = attributes_hash["version"] ||= ""
+          requirements = {:http => http, :version => version}
         elsif git && tag
           tag = tag.to_s unless LUtils.is_a_string? tag
           requirements = { :git => git, :tag => tag }
