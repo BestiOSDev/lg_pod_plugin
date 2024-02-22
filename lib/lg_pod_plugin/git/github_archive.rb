@@ -7,8 +7,11 @@ module LgPodPlugin
 
   class GitHubArchive
     private
+
     attr_reader :checkout_options
+
     public
+
     REQUIRED_ATTRS ||= %i[git tag name commit branch config path spec].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
@@ -41,15 +44,7 @@ module LgPodPlugin
       download_params["name"] = self.name
       download_params["type"] = "github-tag"
       download_params["path"] = root_path.to_path
-      download_params["download_urls"] = download_urls
-      # if self.spec
-      #   download_params["podspec"] = self.spec
-      #   download_params["source_files"] = self.spec.source_files.keys
-      #   download_params["podspec_content"] = nil
-      # else
-      #   download_params["podspec"] = nil
-      #   download_params["source_files"] = ["All"]
-      # end
+      download_params = download_params.merge(download_urls)
       download_params
     end
 
@@ -60,7 +55,7 @@ module LgPodPlugin
       download_params["name"] = self.name
       download_params["type"] = "github-branch"
       download_params["path"] = root_path.to_path
-      download_params["download_urls"] = download_urls
+      download_params = download_params.merge(download_urls)
       download_params
     end
 
@@ -71,7 +66,7 @@ module LgPodPlugin
       download_params["name"] = self.name
       download_params["type"] = "github-commit"
       download_params["path"] = root_path.to_path
-      download_params["download_urls"] = download_urls
+      download_params = download_params.merge(download_urls)
       download_params
     end
 
@@ -88,18 +83,18 @@ module LgPodPlugin
       return nil unless repo_name
       if self.git && self.tag
         download_url = "https://codeload.github.com/#{repo_name}/tar.gz/refs/tags/#{self.tag}"
-        [{ "filename" => "#{project_name}.tar.gz", "url" => download_url }]
+        { "filename" => "#{project_name}.tar.gz", "url" => download_url }
       elsif self.git && self.branch
         if self.branch == "HEAD"
           download_url = "https://gh.api.99988866.xyz/" + "#{base_url}" + "/archive/#{self.branch}.tar.gz"
-          [{ "filename" => "#{project_name}.tar.gz", "url" => download_url }]
+          { "filename" => "#{project_name}.tar.gz", "url" => download_url }
         else
           download_url = "https://codeload.github.com/#{repo_name}/tar.gz/refs/heads/#{self.branch}"
-          [{ "filename" => "#{project_name}.tar.gz", "url" => download_url }]
+          { "filename" => "#{project_name}.tar.gz", "url" => download_url }
         end
       elsif self.git && self.commit
         download_url = "https://codeload.github.com/#{repo_name}/tar.gz/#{self.commit}"
-        return [{ "filename" => "#{project_name}.tar.gz", "url" => download_url }]
+        return { "filename" => "#{project_name}.tar.gz", "url" => download_url }
       else
         nil
       end

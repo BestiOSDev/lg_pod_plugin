@@ -26,11 +26,8 @@ module LgPodPlugin
       download_params["path"] = self.path.to_path
       download_params["name"] = self.name
       download_params["type"] = "http"
-      download_params["download_urls"] = [{ "filename" => (new_filename ? new_filename : filename), "url" => http }]
-      # if self.lg_spec
-      #   download_params["podspec"] = self.lg_spec
-      #   download_params["source_files"] = self.lg_spec.source_files.keys
-      # end
+      download_params["filename"] = (new_filename ? new_filename : filename)
+      download_params["url"] = http
       download_params
     end
 

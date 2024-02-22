@@ -59,7 +59,7 @@ module LgPodPlugin
       end
       download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2\\?" + "sha\\=#{sha}"
       download_url += "\\&access_token\\=#{token}" if token
-      download_params = [{ "filename" => "#{self.name}.tar.bz2", "url" => download_url }]
+      download_params = { "filename" => "#{self.name}.tar.bz2", "url" => download_url }
     end
 
     # 根据branch 下载 zip 包
@@ -71,18 +71,8 @@ module LgPodPlugin
       download_params["token"] = token
       download_params["name"] = self.name
       download_params["type"] = "gitlab-branch"
-      # if self.spec
-      #   download_params["podspec"] = self.spec
-      # else
-      #   download_params["podspec_content"] = @podspec_content
-      # end
       download_params["path"] = root_path.to_path
-      # if @source_files
-      #   download_params["source_files"] = @source_files
-      # else
-      #   download_params["source_files"] = "All"
-      # end
-      download_params["download_urls"] = download_urls
+      download_params = download_params.merge(download_urls)
       download_params
     end
 
@@ -95,18 +85,8 @@ module LgPodPlugin
       download_params["token"] = token
       download_params["name"] = self.name
       download_params["type"] = "gitlab-tag"
-      # if self.spec
-      #   download_params["podspec"] = self.spec
-      # else
-      #   download_params["podspec_content"] = @podspec_content
-      # end
       download_params["path"] = root_path.to_path
-      # if @source_files
-      #   download_params["source_files"] = @source_files
-      # else
-      #   download_params["source_files"] = "All"
-      # end
-      download_params["download_urls"] = download_urls
+      download_params = download_params.merge(download_urls)
       download_params
     end
 
@@ -118,19 +98,9 @@ module LgPodPlugin
       download_params = Hash.new
       download_params["token"] = token
       download_params["name"] = self.name
-      # if self.spec
-      #   download_params["podspec"] = self.spec
-      # else
-      #   download_params["podspec_content"] = @podspec_content
-      # end
       download_params["type"] = "gitlab-commit"
       download_params["path"] = root_path.to_path
-      # if @source_files
-      #   download_params["source_files"] = @source_files
-      # else
-      #   download_params["source_files"] = "All"
-      # end
-      download_params["download_urls"] = download_urls
+      download_params = download_params.merge(download_urls)
       download_params
     end
 

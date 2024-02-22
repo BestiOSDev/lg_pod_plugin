@@ -116,15 +116,6 @@ module LgPodPlugin
       end
     end
 
-    def self.clean_pod_unused_files(destination, spec)
-      specs_by_platform = group_subspecs_by_platform(spec)
-      destination.parent.mkpath
-      self.write_lock(destination) do
-        Pod::Installer::PodSourcePreparer.new(spec, destination).prepare!
-        Pod::Sandbox::PodDirCleaner.new(destination, specs_by_platform).clean!
-      end
-    end
-
     def self.write_lock(location, &block)
       Pod::Downloader::Cache.lock(location, File::LOCK_SH, &block)
     end

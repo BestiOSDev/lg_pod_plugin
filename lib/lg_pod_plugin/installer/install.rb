@@ -49,6 +49,7 @@ module LgPodPlugin
           cache_podspec = Pod::Specification.from_file local_spec_path
           if cache_podspec
             LProject.shared.cache_specs[name] = cache_podspec
+            LgPodPlugin.log_green "> Copying #{name} from `#{source}` to `#{destination}`"
             LCache.copy_and_clean source, destination, cache_podspec
             LCache.write_spec cache_podspec, cache_pod_spec_path
           end
@@ -56,6 +57,7 @@ module LgPodPlugin
         request.lg_spec = LgPodPlugin::PodSpec.form_pod_spec cache_podspec if cache_podspec
       else
         LProject.shared.cache_specs[name] = cache_podspec
+        LgPodPlugin.log_green "> Copying #{name} from `#{source}` to `#{destination}`"
         LCache.copy_and_clean source, destination, cache_podspec
         LCache.write_spec cache_podspec, cache_pod_spec_path
       end
