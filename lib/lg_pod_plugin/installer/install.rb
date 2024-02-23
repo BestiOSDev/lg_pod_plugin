@@ -40,25 +40,22 @@ module LgPodPlugin
         cache_podspec = LProject.shared.cache_specs[name]
         request.lg_spec = LgPodPlugin::PodSpec.form_pod_spec cache_podspec if cache_podspec
       end
-      source = self.download_params["path"] ||= ""
       destination = self.download_params["destination"]
       cache_pod_spec_path = self.download_params["cache_pod_spec_path"]
       if cache_podspec.nil?
-        local_spec_path = Pathname(source).glob("#{name}.podspec{,.json}").last
+        local_spec_path = Pathname(destination).glob("#{name}.podspec{,.json}").last
         if local_spec_path && File.exist?(local_spec_path)
           cache_podspec = Pod::Specification.from_file local_spec_path
           if cache_podspec
             LProject.shared.cache_specs[name] = cache_podspec
-            LgPodPlugin.log_green "> Copying #{name} from `#{source}` to `#{destination}`"
-            LCache.copy_and_clean source, destination, cache_podspec
+            LCache.copy_and_clean "", destination, cache_podspec
             LCache.write_spec cache_podspec, cache_pod_spec_path
           end
         end
         request.lg_spec = LgPodPlugin::PodSpec.form_pod_spec cache_podspec if cache_podspec
       else
         LProject.shared.cache_specs[name] = cache_podspec
-        LgPodPlugin.log_green "> Copying #{name} from `#{source}` to `#{destination}`"
-        LCache.copy_and_clean source, destination, cache_podspec
+        LCache.copy_and_clean "", destination, cache_podspec
         LCache.write_spec cache_podspec, cache_pod_spec_path
       end
 
@@ -68,7 +65,6 @@ module LgPodPlugin
       else
         pod_is_exist = false
       end
-      FileUtils.rm_rf source if File.exist?(source)
       return if pod_is_exist
 
       git = checkout_options[:git]

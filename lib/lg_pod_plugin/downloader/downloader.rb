@@ -58,6 +58,7 @@ module LgPodPlugin
         # 本地 git 下载 pod 目录
         download_params = self.pre_download_git_repository(checkout_options)
         if download_params && download_params.is_a?(Hash)
+          download_params["dirname"] = destination.dirname
           download_params["destination"] = destination
           download_params["cache_pod_spec_path"] = cache_pod_spec
           return download_params

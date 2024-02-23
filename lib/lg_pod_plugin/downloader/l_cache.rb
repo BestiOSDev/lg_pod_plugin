@@ -110,7 +110,7 @@ module LgPodPlugin
       specs_by_platform = group_subspecs_by_platform(spec)
       destination.parent.mkpath
       self.write_lock(destination) do
-        Pod::Executable.execute_command('rsync', ['-a', '--exclude=.git/fsmonitor--daemon.ipc', '--delete', "#{source}/", destination])
+        # Pod::Executable.execute_command('rsync', ['-a', '--exclude=.git/fsmonitor--daemon.ipc', '--delete', "#{source}/", destination])
         Pod::Installer::PodSourcePreparer.new(spec, destination).prepare!
         Pod::Sandbox::PodDirCleaner.new(destination, specs_by_platform).clean!
       end
