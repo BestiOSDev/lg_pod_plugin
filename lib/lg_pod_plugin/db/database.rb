@@ -1,6 +1,6 @@
 require 'singleton'
-# arch = %x(ruby -v)
 require 'sqlite3'
+
 module LgPodPlugin
 
   class ProjectModel

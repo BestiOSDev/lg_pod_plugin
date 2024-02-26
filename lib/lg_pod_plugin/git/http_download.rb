@@ -1,7 +1,6 @@
 require 'uri'
 require_relative 'git_download'
 require_relative '../utils/l_util'
-require_relative '../config/podspec'
 
 module LgPodPlugin
 

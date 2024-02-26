@@ -1,4 +1,4 @@
-# require 'git'
+
 require 'cocoapods/downloader'
 require 'cocoapods/downloader/cache'
 require 'cocoapods/downloader/response'

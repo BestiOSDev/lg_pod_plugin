@@ -1,7 +1,7 @@
 require 'cocoapods'
 require 'cocoapods-core'
 require 'cocoapods/user_interface'
-require_relative '../config/podspec'
+# require_relative '../config/podspec'
 require_relative '../installer/concurrency'
 
 module LgPodPlugin
