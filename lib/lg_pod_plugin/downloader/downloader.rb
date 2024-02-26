@@ -15,18 +15,13 @@ module LgPodPlugin
     # 预下载处理
     def pre_download_pod
       name = self.request.name
-      if self.request.lg_spec
-        podspec = self.request.lg_spec.spec
-      else
-        podspec = nil
-      end
+      podspec = self.request.podspec
       checkout_options = Hash.new.merge!(self.request.checkout_options)
       http = checkout_options[:http]
       git = checkout_options[:git]
       tag = checkout_options[:tag]
       branch = checkout_options[:branch]
       checkout_options[:name] = name if name
-      checkout_options[:spec] = self.request.lg_spec if podspec
       unless branch
         branch = self.request.params[:branch] if self.request.params[:branch]
         checkout_options[:branch] = branch if branch

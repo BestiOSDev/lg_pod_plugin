@@ -6,7 +6,7 @@ module LgPodPlugin
   class LRequest
     attr_reader :target
     attr_reader :name
-    attr_accessor :lg_spec
+    attr_accessor :podspec
     attr_reader :released_pod
     attr_accessor :single_git
     attr_accessor :config
@@ -16,12 +16,10 @@ module LgPodPlugin
     attr_accessor :checkout_options
     def initialize(pod)
       @name = pod.name
+      @podspec = pod.spec
       @target = pod.target
       @released_pod = pod.released_pod
       @checkout_options = pod.checkout_options
-      if pod.spec
-        @lg_spec = pod.spec
-      end
       self.preprocess_request
     end
 

@@ -16,9 +16,14 @@ module LgPodPlugin
       end
     end
 
+    def self.ensure_matching_version
+      cache = Pod::Downloader::Cache.new(LFileManager.cache_root_path)
+    end
+
     public
     def self.run(command, options = {})
       clean_sandbox()
+      ensure_matching_version()
       workspace = Pathname(Dir.pwd)
       update = (command == "update")
       LSqliteDb.shared.init_database

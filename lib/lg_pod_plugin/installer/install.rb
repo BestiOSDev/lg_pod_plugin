@@ -34,11 +34,11 @@ module LgPodPlugin
       params = Hash.new.merge!(request.params)
       checkout_options = Hash.new.merge!(request.checkout_options)
       commit = checkout_options[:commit] ||= params[:commit]
-      if request.lg_spec
-        cache_podspec = request.lg_spec.spec
+      if request.podspec
+        cache_podspec = request.podspec
       else
         cache_podspec = LProject.shared.cache_specs[name]
-        request.lg_spec = LgPodPlugin::PodSpec.form_pod_spec cache_podspec if cache_podspec
+        request.podspec = cache_podspec if cache_podspec
       end
       destination = self.download_params["destination"]
       cache_pod_spec_path = self.download_params["cache_pod_spec_path"]
@@ -48,19 +48,18 @@ module LgPodPlugin
           cache_podspec = Pod::Specification.from_file local_spec_path
           if cache_podspec
             LProject.shared.cache_specs[name] = cache_podspec
-            LCache.copy_and_clean "", destination, cache_podspec
+            LCache.copy_and_clean nil, destination, cache_podspec
             LCache.write_spec cache_podspec, cache_pod_spec_path
           end
         end
-        request.lg_spec = LgPodPlugin::PodSpec.form_pod_spec cache_podspec if cache_podspec
+        request.podspec = cache_podspec if cache_podspec
       else
         LProject.shared.cache_specs[name] = cache_podspec
-        LCache.copy_and_clean "", destination, cache_podspec
+        LCache.copy_and_clean nil, destination, cache_podspec
         LCache.write_spec cache_podspec, cache_pod_spec_path
       end
-
       # 判断缓存是否下载成功
-      if (destination && File.exist?(destination) && !Pathname(destination).children.empty?) && (cache_pod_spec_path && File.exist?(cache_pod_spec_path))
+      if destination && destination.exist? && !destination.children.empty?
         pod_is_exist = true
       else
         pod_is_exist = false
@@ -69,7 +68,7 @@ module LgPodPlugin
 
       git = checkout_options[:git]
       return unless git
-      cache_podspec = request.lg_spec.spec if request.lg_spec
+      cache_podspec = request.podspec
       branch = checkout_options[:branch] ||= request.params[:branch]
       checkout_options[:name] = name if name
       checkout_options[:branch] = branch if branch

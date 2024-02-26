@@ -12,7 +12,7 @@ module LgPodPlugin
 
     public
 
-    REQUIRED_ATTRS ||= %i[git tag name commit branch config path spec].freeze
+    REQUIRED_ATTRS ||= %i[git tag name commit branch config path].freeze
     attr_accessor(*REQUIRED_ATTRS)
 
     def initialize(checkout_options = {})
@@ -20,7 +20,6 @@ module LgPodPlugin
       self.tag = checkout_options[:tag]
       self.name = checkout_options[:name]
       self.path = checkout_options[:path]
-      self.spec = checkout_options[:spec]
       self.config = checkout_options[:config]
       self.commit = checkout_options[:commit]
       self.branch = checkout_options[:branch]

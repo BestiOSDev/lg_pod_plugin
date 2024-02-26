@@ -10,13 +10,12 @@ module LgPodPlugin
     private
     attr_reader :checkout_options
     public
-    REQUIRED_ATTRS ||= %i[http name path lg_spec].freeze
+    REQUIRED_ATTRS ||= %i[http name path].freeze
     attr_accessor(*REQUIRED_ATTRS)
     def initialize(checkout_options = {})
       self.name = checkout_options[:name]
       self.path = checkout_options[:path]
       self.http = checkout_options[:http]
-      self.lg_spec = checkout_options[:spec]
       @checkout_options = checkout_options
     end
 
