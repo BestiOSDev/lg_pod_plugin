@@ -29,8 +29,8 @@ module LgPodPlugin
 
     public
     def copy_file_to_caches
-      request = @downloader.send(:request)
-      name = request.send(:name)
+      request = downloader.request
+      name = request.name
       params = Hash.new.merge!(request.params)
       checkout_options = Hash.new.merge!(request.checkout_options)
       commit = checkout_options[:commit] ||= params[:commit]

@@ -40,10 +40,13 @@ module LgPodPlugin
         LgPodPlugin.log_green "Using `#{name}`"
       end
       hash_map = self.request.get_cache_key_params
-      # self.request.checkout_options.delete(:branch) if commit
-      # self.request.checkout_options[:commit] = commit if commit
-      # 发现本地有缓存, 不需要更新缓存
-      pod_is_exist, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, podspec, self.request.released_pod)
+      if request.single_git
+        commit = hash_map[:commit] unless commit
+        checkout_options[:commit] = commit if commit
+        pod_is_exist, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, {:git => git}, podspec, self.request.released_pod)
+      else
+        pod_is_exist, destination, cache_pod_spec = LCache.new.pod_cache_exist(name, hash_map, podspec, self.request.released_pod)
+      end
       if pod_is_exist
         LgPodPlugin.log_green "find the cache of `#{name}`, you can use it now."
         return nil

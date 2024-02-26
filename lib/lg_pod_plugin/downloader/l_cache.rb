@@ -86,11 +86,12 @@ module LgPodPlugin
 
     # MARK - 缓存方法
     def self.path_for_pod(request, slug_opts = {})
-      return self.root_cache.send(:path_for_pod, request, slug_opts)
+      root_path + request.slug(**slug_opts)
     end
 
     def self.path_for_spec(request, slug_opts = {})
-      return self.root_cache.send(:path_for_spec, request, slug_opts)
+      path = root_path + 'Specs' + request.slug(**slug_opts)
+      return Pathname.new(path.to_path + '.podspec.json')
     end
 
     def self.get_local_spec(request, target)
@@ -115,13 +116,13 @@ module LgPodPlugin
     end
 
     def self.copy_and_clean(source, destination, spec)
-      return self.root_cache.send(:copy_and_clean, source, destination, spec)
+      return self.root_cache.copy_and_clean(source, destination, spec)
     end
 
     public
 
     def self.write_spec(spec, path)
-      self.root_cache.send(:write_spec, spec, path)
+      self.root_cache.write_spec(spec, path)
     end
 
     # 拷贝 pod 缓存文件到 sandbox
