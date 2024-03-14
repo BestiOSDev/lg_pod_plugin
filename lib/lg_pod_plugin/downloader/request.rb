@@ -12,7 +12,6 @@ module LgPodPlugin
     attr_accessor :config
     attr_accessor :net_ping
     attr_accessor :params
-    # attr_accessor :lockfile
     attr_accessor :checkout_options
     def initialize(pod)
       @name = pod.name

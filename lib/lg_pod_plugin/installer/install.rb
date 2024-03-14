@@ -1,5 +1,4 @@
 require 'pp'
-# require 'git'
 require 'cgi'
 require 'cocoapods'
 require 'cocoapods-core'

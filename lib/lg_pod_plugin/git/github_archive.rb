@@ -39,6 +39,7 @@ module LgPodPlugin
       project_name = LUtils.get_git_project_name self.git
       download_urls = self.download_archive_zip(project_name)
       download_params = Hash.new
+      download_params["token"] = ""
       download_params["name"] = self.name
       download_params["type"] = "github-tag"
       download_params["path"] = root_path.to_path
@@ -51,6 +52,7 @@ module LgPodPlugin
       download_urls = self.download_archive_zip(project_name)
       download_params = Hash.new
       download_params["name"] = self.name
+      download_params["token"] = ""
       download_params["type"] = "github-branch"
       download_params["path"] = root_path.to_path
       download_params = download_params.merge(download_urls)
@@ -61,6 +63,7 @@ module LgPodPlugin
       project_name = LUtils.get_git_project_name self.git
       download_urls = self.download_archive_zip(project_name)
       download_params = Hash.new
+      download_params["token"] = ""
       download_params["name"] = self.name
       download_params["type"] = "github-commit"
       download_params["path"] = root_path.to_path

@@ -79,10 +79,10 @@ module LgPodPlugin
       [result, podspecs]
     end
 
-    def self.root_cache
-      cache_path = LFileManager.cache_root_path
-      return Pod::Downloader::Cache.new(cache_path)
-    end
+    # def self.root_cache
+    #   cache_path = LFileManager.cache_root_path
+    #   return Pod::Downloader::Cache.new(cache_path)
+    # end
 
     # MARK - 缓存方法
     def self.path_for_pod(request, slug_opts = {})
@@ -94,41 +94,66 @@ module LgPodPlugin
       return Pathname.new(path.to_path + '.podspec.json')
     end
 
-    def self.get_local_spec(request, target)
-      result = Pod::Downloader::Response.new
-      result.location = target
-      if request.released_pod?
-        result.spec = request.spec
-        local_specs = { request.name => request.spec }
-        return [request, local_specs]
-      else
-        local_specs = {}
-        pods_pecs = Pod::Sandbox::PodspecFinder.new(target).podspecs
-        pods_pecs[request.name] = request.spec if request.spec
-        pods_pecs.each do |name, spec|
-          if request.name == name
-            result.spec = spec
-            local_specs[request.name] = spec
-          end
+    #
+    # def self.get_local_spec(request, target)
+    #   result = Pod::Downloader::Response.new
+    #   result.location = target
+    #   if request.released_pod?
+    #     result.spec = request.spec
+    #     local_specs = { request.name => request.spec }
+    #     return [request, local_specs]
+    #   else
+    #     local_specs = {}
+    #     pods_pecs = Pod::Sandbox::PodspecFinder.new(target).podspecs
+    #     pods_pecs[request.name] = request.spec if request.spec
+    #     pods_pecs.each do |name, spec|
+    #       if request.name == name
+    #         result.spec = spec
+    #         local_specs[request.name] = spec
+    #       end
+    #     end
+    #   end
+    #   [result, local_specs]
+    # end
+
+    def self.group_subspecs_by_platform(spec)
+      specs_by_platform = {}
+      [spec, *spec.recursive_subspecs].each do |ss|
+        ss.available_platforms.each do |platform|
+          specs_by_platform[platform] ||= []
+          specs_by_platform[platform] << ss
         end
       end
-      [result, local_specs]
+      specs_by_platform
     end
 
     def self.copy_and_clean(source, destination, spec)
-      return self.root_cache.copy_and_clean(source, destination, spec)
+      attributes_hash = spec.send(:attributes_hash) || {}
+      name = attributes_hash["name"] ||= ""
+      specs_by_platform = self.group_subspecs_by_platform(spec)
+      destination.parent.mkpath
+      should_copy = source && source.exist? && !source.children.empty?
+      Pod::Downloader::Cache.write_lock(destination) do
+        if should_copy
+          FileUtils.rm_rf(destination)
+          FileUtils.cp_r(source, destination)
+          LgPodPlugin.log_green "-> Copy #{name} from #{source} to #{destination}"
+        end
+        Pod::Installer::PodSourcePreparer.new(spec, destination).prepare!
+        Pod::Sandbox::PodDirCleaner.new(destination, specs_by_platform).clean!
+      end
     end
 
     public
-
     def self.write_spec(spec, path)
-      self.root_cache.write_spec(spec, path)
+      path.dirname.mkpath
+      Pod::Downloader::Cache.write_lock(path) do
+        path.open('w') { |f| f.write spec.to_pretty_json }
+      end
     end
 
     # 拷贝 pod 缓存文件到 sandbox
-
     public
-
     def self.cache_pod(name, target, options = {}, spec = nil, released_pod = false)
       checkout_options = Hash.new.deep_merge(options).reject do |key, val|
         !key || !val
