@@ -14,13 +14,12 @@ module LgPodPlugin
       token_file = db_path.join("access_token.json")
       return self.get_gitlab_access_token_input(uri, user_id, nil, nil) unless token_file.exist?
       json = JSON.parse(File.read("#{token_file.to_path}"))
-      encrypt_access_token = json["access_token"]
-      return self.get_gitlab_access_token_input(uri, user_id, nil, nil) if encrypt_access_token.nil?
-      access_token = LUtils.decrypt(encrypt_access_token, "AZMpxzVxzbo3sFDLRZMpxzVxzbo3sFDZ")
+      access_token = json["access_token"]
+      return self.get_gitlab_access_token_input(uri, user_id, nil, nil) if access_token.nil?
       token_vaild = GitLabAPI.request_user_emails(uri.hostname, access_token)
       if token_vaild == "invalid token"
         FileUtils.rm_rf token_file
-        return self.get_gitlab_access_token_input(uri, user_id, nil, nil) if encrypt_access_token.nil?
+        return self.get_gitlab_access_token_input(uri, user_id, nil, nil)
       end
       user_id = LUserAuthInfo.get_user_id(uri.hostname)
       now_time = Time.now.to_i

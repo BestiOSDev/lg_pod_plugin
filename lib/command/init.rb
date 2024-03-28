@@ -38,7 +38,7 @@ module LgPodPlugin
         refresh_token = ""
         expires_in = 7879680
         created_at = Time.now.to_i
-        encrypt_access_token = LUtils.encrypt(self.token, "AZMpxzVxzbo3sFDLRZMpxzVxzbo3sFDZ")
+        encrypt_access_token = self.token
         hash = {"access_token": encrypt_access_token}
         hash["token_type"] = "Bearer"
         hash["expires_in"] = expires_in
