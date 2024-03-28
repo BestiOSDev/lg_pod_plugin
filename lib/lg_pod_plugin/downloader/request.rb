@@ -1,5 +1,4 @@
 require 'net/http'
-# require 'singleton'
 require 'cocoapods-core'
 
 module LgPodPlugin
@@ -7,22 +6,19 @@ module LgPodPlugin
   class LRequest
     attr_reader :target
     attr_reader :name
-    attr_accessor :lg_spec
+    attr_accessor :podspec
     attr_reader :released_pod
     attr_accessor :single_git
     attr_accessor :config
     attr_accessor :net_ping
     attr_accessor :params
-    attr_accessor :lockfile
     attr_accessor :checkout_options
     def initialize(pod)
       @name = pod.name
+      @podspec = pod.spec
       @target = pod.target
       @released_pod = pod.released_pod
       @checkout_options = pod.checkout_options
-      if pod.spec
-        @lg_spec = pod.spec
-      end
       self.preprocess_request
     end
 
@@ -50,9 +46,9 @@ module LgPodPlugin
     end
 
     public
-    def get_lockfile
-      self.lockfile = LgPodPlugin::LockfileModel.from_file
-    end
+    # def get_lockfile
+      # self.lockfile = LgPodPlugin::LockfileModel.from_file
+    # end
 
     # 获取缓存用的hash_map
     public
@@ -68,16 +64,17 @@ module LgPodPlugin
       tag = options[:tag] ||= self.params[:tag]
       branch = options[:branch] ||= self.params[:branch]
       commit = options[:commit] ||= self.params[:commit]
-      return hash_map unless git
+      return nil unless git
       hash_map[:git] = git
-      if git && commit
+      if git &&  commit
         hash_map[:commit] = commit
+        return  hash_map
       elsif git && tag
         hash_map[:tag] = tag
-      elsif git && branch && commit
-        hash_map[:commit] = commit
+        return  hash_map
+      else
+        return {:git => git}
       end
-      hash_map
     end
 
     public
@@ -111,9 +108,9 @@ module LgPodPlugin
 
     #获取下载参数
     def get_request_params
-      unless self.lockfile
-        self.lockfile = self.get_lockfile
-      end
+      # unless self.lockfile
+      #   self.lockfile = self.get_lockfile
+      # end
       Hash.new.merge!(self.get_lock_params)
     end
 
@@ -124,28 +121,28 @@ module LgPodPlugin
       return [nil, nil] unless (ip && network_ok)
       if branch
         new_commit, _ = GitLabAPI.request_github_refs_heads git, branch, self.net_ping.uri
-        unless new_commit
-          id = LPodLatestRefs.get_pod_id(name, git, branch)
-          pod_info = LSqliteDb.shared.query_pod_refs(id)
-          new_commit = pod_info ? pod_info.commit : nil
-          return [branch, new_commit]
-        end
-        if new_commit
-          LSqliteDb.shared.insert_pod_refs(name, git, branch, nil, new_commit)
-        end
+        # unless new_commit
+        #   id = LPodLatestRefs.get_pod_id(name, git, branch)
+        #   pod_info = LSqliteDb.shared.query_pod_refs(id)
+        #   new_commit = pod_info ? pod_info.commit : nil
+        #   return [branch, new_commit]
+        # end
+        # if new_commit
+        #   LSqliteDb.shared.insert_pod_refs(name, git, branch, nil, new_commit)
+        # end
         [branch, new_commit]
       else
         new_commit, new_branch = GitLabAPI.request_github_refs_heads git, nil, self.net_ping.uri
-        unless new_commit
-          id = LPodLatestRefs.get_pod_id(name, git, "HEAD")
-          pod_info = LSqliteDb.shared.query_pod_refs(id)
-          new_commit = pod_info ? pod_info.commit : nil
-          new_branch = pod_info ? pod_info.branch : nil
-          return [new_branch, new_commit]
-        end
-        if new_commit
-          LSqliteDb.shared.insert_pod_refs(name, git, "HEAD", nil, new_commit)
-        end
+        # unless new_commit
+        #   id = LPodLatestRefs.get_pod_id(name, git, "HEAD")
+        #   pod_info = LSqliteDb.shared.query_pod_refs(id)
+        #   new_commit = pod_info ? pod_info.commit : nil
+        #   new_branch = pod_info ? pod_info.branch : nil
+        #   return [new_branch, new_commit]
+        # end
+        # if new_commit
+        #   LSqliteDb.shared.insert_pod_refs(name, git, "HEAD", nil, new_commit)
+        # end
         [new_branch, new_commit]
       end
     end

@@ -1,5 +1,4 @@
 
-require_relative '../config/podspec'
 
 module LgPodPlugin
 

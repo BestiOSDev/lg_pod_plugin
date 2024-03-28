@@ -17,16 +17,15 @@ module LgPodPlugin
 
     public
     def self.get_config(git, uri)
-      return nil unless uri&.host
+      return nil unless uri&.hostname
       return nil unless LUtils.is_gitlab_uri(git, uri.hostname)
       user_id = LUserAuthInfo.get_user_id(uri.hostname)
       user_info = LSqliteDb.shared.query_user_info(user_id)
-      # 用户授权 token 不存在, 提示用户输入用户名密码
-      unless user_info
+      if user_info != nil
+        user_info = GitLabAPI.check_gitlab_access_token_valid(uri, user_info)
+      else
         user_info = GitLabAPI.get_gitlab_access_token(uri, user_id)
-        return nil unless user_info
       end
-      user_info = GitLabAPI.check_gitlab_access_token_valid(uri, user_info)
       return nil unless user_info
       config = LConfig.new
       config.host = uri.hostname

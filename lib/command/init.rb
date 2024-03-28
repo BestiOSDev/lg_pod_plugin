@@ -38,7 +38,7 @@ module LgPodPlugin
         refresh_token = ""
         expires_in = 7879680
         created_at = Time.now.to_i
-        encrypt_access_token = LUtils.encrypt(self.token, "AZMpxzVxzbo3sFDLRZMpxzVxzbo3sFDZ")
+        encrypt_access_token = self.token
         hash = {"access_token": encrypt_access_token}
         hash["token_type"] = "Bearer"
         hash["expires_in"] = expires_in
@@ -52,7 +52,7 @@ module LgPodPlugin
         File.open(token_file.to_path, 'w+') { |f| f.write(str) }
         LSqliteDb.shared.init_database
         user_id = LUserAuthInfo.get_user_id(self.host)
-        user_model = LUserAuthInfo.new(user_id, "", "", self.host, self.token, "", (created_at + expires_in))
+        user_model = LUserAuthInfo.new(user_id, "", "", self.host, self.token, "", (created_at + expires_in), created_at, 1)
         LSqliteDb.shared.insert_user_info(user_model)
         LgPodPlugin.log_green "设置私人访问令牌成功"
       end

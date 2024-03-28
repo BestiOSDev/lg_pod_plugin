@@ -1,2 +1,0 @@
-source "https://gems.ruby-china.com"
-gem 'lg_pod_plugin', '~> 1.1'

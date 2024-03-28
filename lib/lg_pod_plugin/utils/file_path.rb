@@ -23,6 +23,11 @@ module LgPodPlugin
       return self.download_director.join(director)
     end
 
+    def self.cache_root_path
+      cache_path = Pod::Config.instance.cache_root + 'Pods'
+      cache_path
+    end
+
   end
 
 end
