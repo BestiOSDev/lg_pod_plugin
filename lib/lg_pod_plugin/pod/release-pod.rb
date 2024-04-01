@@ -67,11 +67,10 @@ module LgPodPlugin
     
 
     def self.download_dependencies(installer)
-      installer.send(:download_dependencies)
+      installer.download_dependencies
       installer.send(:validate_targets)
       installer.send(:clean_sandbox)
-      installation_options = installer.send(:installation_options)
-      skip_pods_project_generation = installation_options.send(:skip_pods_project_generation)
+      skip_pods_project_generation = installer.send(:installation_options).send(:skip_pods_project_generation)
       if skip_pods_project_generation
         installer.show_skip_pods_project_generation_message
         installer.send(:run_podfile_post_install_hooks)

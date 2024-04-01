@@ -31,9 +31,7 @@ module LgPodPlugin
     end
 
     # 判断缓存是否存在且有效命中缓存
-
     public
-
     def find_pod_cache(name, options, spec = nil, released_pod = false)
       hash_map = Hash.new.merge!(options)
       if hash_map.has_key?(:version)
@@ -79,11 +77,6 @@ module LgPodPlugin
       [result, podspecs]
     end
 
-    # def self.root_cache
-    #   cache_path = LFileManager.cache_root_path
-    #   return Pod::Downloader::Cache.new(cache_path)
-    # end
-
     # MARK - 缓存方法
     def self.path_for_pod(request, slug_opts = {})
       root_path + request.slug(**slug_opts)
@@ -93,28 +86,6 @@ module LgPodPlugin
       path = root_path + 'Specs' + request.slug(**slug_opts)
       return Pathname.new(path.to_path + '.podspec.json')
     end
-
-    #
-    # def self.get_local_spec(request, target)
-    #   result = Pod::Downloader::Response.new
-    #   result.location = target
-    #   if request.released_pod?
-    #     result.spec = request.spec
-    #     local_specs = { request.name => request.spec }
-    #     return [request, local_specs]
-    #   else
-    #     local_specs = {}
-    #     pods_pecs = Pod::Sandbox::PodspecFinder.new(target).podspecs
-    #     pods_pecs[request.name] = request.spec if request.spec
-    #     pods_pecs.each do |name, spec|
-    #       if request.name == name
-    #         result.spec = spec
-    #         local_specs[request.name] = spec
-    #       end
-    #     end
-    #   end
-    #   [result, local_specs]
-    # end
 
     def self.group_subspecs_by_platform(spec)
       specs_by_platform = {}
