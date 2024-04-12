@@ -56,8 +56,8 @@ module LgPodPlugin
       else
         return nil
       end
-      download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2\\?" + "sha\\=#{sha}"
-      download_url += "\\&access_token\\=#{token}" if token
+      download_url = host + "/api/v4/projects/" + "#{project.id}" + "/repository/archive.tar.bz2?" + "sha=#{sha}"
+      download_url += "&access_token=#{token}" if token
       download_params = { "filename" => "#{self.name}.tar.bz2", "url" => download_url }
     end
 
